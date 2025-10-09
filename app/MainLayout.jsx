@@ -1,24 +1,31 @@
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Ionicons } from '@expo/vector-icons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from "@react-navigation/stack";
 import { signOut } from 'firebase/auth';
-import React from 'react';
+import React from "react";
 import { Alert } from 'react-native';
 
 // Import screens
-import { auth } from '../config/firebase';
-import CommunityScreen from './(tabs)/CommunityScreen';
-import HomeScreen from './(tabs)/HomeScreen';
-import InsightsScreen from './(tabs)/InsightsScreens';
-import LearnScreen from './(tabs)/LearnScreen';
+import CommunityScreen from "./(screens)/CommunityScreen";
+import HomeScreen from "./(screens)/HomeScreen";
+import InsightsScreen from "./(screens)/InsightsScreens";
+import LearnScreen from "./(screens)/LearnScreen";
+import LoginRegister from './(screens)/index';
+import HealthSelectionScreen from './HealthSelectionScreen';
+import MaternalHealthTabs from './MaternalHealthTabs';
+import MenstrualHealthTabs from './MenstrualHealthTabs';
 
+import { auth } from "../config/firebase";
+import { Colors } from "../constants/Colors";
+import { useColorScheme } from "../hooks/useColorScheme";
+
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
 
-// Bottom Tab Navigator Component
+// Bottom Tab Navigator Component (Legacy - for Maternal Health)
 const BottomTabs = () => {
   const colorScheme = useColorScheme();
 
@@ -49,22 +56,23 @@ const BottomTabs = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen
+        name="Learn"
+        component={LearnScreen}
+        options={{ title: "Learn" }}
+      />
       <Tab.Screen name="Community" component={CommunityScreen} />
       <Tab.Screen
         name="Insights"
         component={InsightsScreen}
         options={{ title: "Insights" }}
       />
-      <Tab.Screen
-        name="Learn"
-        component={LearnScreen}
-        options={{ title: "Learn" }}
-      />
+    
     </Tab.Navigator>
   );
 };
 
-// Drawer Navigator Component
+// Drawer Navigator Component (Legacy - for Maternal Health)
 const DrawerNavigator = () => {
   const navigation = useNavigation();
 
@@ -85,7 +93,7 @@ const DrawerNavigator = () => {
 
   return (
     <Drawer.Navigator initialRouteName="MainTabs">
-      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'Health Compass' }} />
+      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'Home' }} />
       
       <Drawer.Screen
         name="SwitchHealthFlow"
@@ -124,6 +132,25 @@ const DrawerNavigator = () => {
   );
 };
 
-export default function HealthCompassTabs() {
-  return <DrawerNavigator />;
+// Main Stack Navigator Component
+export default function MainLayout() {
+  const colorScheme = useColorScheme();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: Colors[colorScheme ?? "light"].background,
+        },
+      }}
+    >
+      <Stack.Screen name="LoginRegister" component={LoginRegister} />
+      <Stack.Screen name="HealthSelectionScreen" component={HealthSelectionScreen} />
+      <Stack.Screen name="MaternalHealthTabs" component={MaternalHealthTabs} />
+      <Stack.Screen name="MenstrualHealthTabs" component={MenstrualHealthTabs} />
+      {/* Legacy routes for backward compatibility */}
+      <Stack.Screen name="Drawer" component={DrawerNavigator} />
+    </Stack.Navigator>
+  );
 }
