@@ -1,9 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query
+} from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../config/firebase';
 
 export default function MenstrualLearnScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [menstrualData, setMenstrualData] = useState({
+    cycleLength: 28,
+    periodLength: 5,
+    lastPeriod: null,
+    isSetup: false
+  });
+  const [periodHistory, setPeriodHistory] = useState([]);
+  const [symptoms, setSymptoms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = [
     { id: 'all', name: 'All', icon: 'grid-outline' },
@@ -13,56 +31,242 @@ export default function MenstrualLearnScreen() {
     { id: 'exercise', name: 'Exercise', icon: 'fitness-outline' },
   ];
 
-  const articles = [
-    {
-      id: 1,
-      title: 'Understanding Your Menstrual Cycle',
-      category: 'basics',
-      readTime: '5 min read',
-      difficulty: 'Beginner',
-      image: '📚',
-    },
-    {
-      id: 2,
-      title: 'Managing Period Pain Naturally',
-      category: 'health',
-      readTime: '7 min read',
-      difficulty: 'Intermediate',
-      image: '🌿',
-    },
-    {
-      id: 3,
-      title: 'Nutrition During Your Period',
-      category: 'nutrition',
-      readTime: '6 min read',
-      difficulty: 'Beginner',
-      image: '🥗',
-    },
-    {
-      id: 4,
-      title: 'Exercise and Your Cycle',
-      category: 'exercise',
-      readTime: '8 min read',
-      difficulty: 'Intermediate',
-      image: '🏃‍♀️',
-    },
-    {
-      id: 5,
-      title: 'Hormonal Changes Explained',
-      category: 'basics',
-      readTime: '10 min read',
-      difficulty: 'Advanced',
-      image: '🧬',
-    },
-    {
-      id: 6,
-      title: 'Iron-Rich Foods for Women',
-      category: 'nutrition',
-      readTime: '4 min read',
-      difficulty: 'Beginner',
-      image: '🥩',
-    },
-  ];
+  // Dynamic articles based on user data
+  const getPersonalizedArticles = () => {
+    const baseArticles = [
+      {
+        id: 1,
+        title: 'Understanding Your Menstrual Cycle',
+        category: 'basics',
+        readTime: '5 min read',
+        difficulty: 'Beginner',
+        image: '📚',
+        description: 'Learn the fundamentals of your menstrual cycle and what to expect.'
+      },
+      {
+        id: 2,
+        title: 'Managing Period Pain Naturally',
+        category: 'health',
+        readTime: '7 min read',
+        difficulty: 'Intermediate',
+        image: '🌿',
+        description: 'Natural remedies and techniques to ease menstrual discomfort.'
+      },
+      {
+        id: 3,
+        title: 'Nutrition During Your Period',
+        category: 'nutrition',
+        readTime: '6 min read',
+        difficulty: 'Beginner',
+        image: '🥗',
+        description: 'Foods that can help with energy and mood during your cycle.'
+      },
+      {
+        id: 4,
+        title: 'Exercise and Your Cycle',
+        category: 'exercise',
+        readTime: '8 min read',
+        difficulty: 'Intermediate',
+        image: '🏃‍♀️',
+        description: 'How to adapt your workout routine to your menstrual cycle.'
+      },
+      {
+        id: 5,
+        title: 'Hormonal Changes Explained',
+        category: 'basics',
+        readTime: '10 min read',
+        difficulty: 'Advanced',
+        image: '🧬',
+        description: 'Understanding the science behind your menstrual cycle.'
+      },
+      {
+        id: 6,
+        title: 'Iron-Rich Foods for Women',
+        category: 'nutrition',
+        readTime: '4 min read',
+        difficulty: 'Beginner',
+        image: '🥩',
+        description: 'Essential nutrients to support your menstrual health.'
+      },
+    ];
+
+    // Add personalized articles based on user data
+    const personalizedArticles = [];
+
+    // If user has irregular cycles, add relevant content
+    if (periodHistory.length > 0) {
+      const cycleLengths = periodHistory.map(period => period.cycleLength);
+      const avgCycleLength = cycleLengths.reduce((acc, length) => acc + length, 0) / cycleLengths.length;
+      
+      if (avgCycleLength < 21 || avgCycleLength > 35) {
+        personalizedArticles.push({
+          id: 7,
+          title: 'Understanding Irregular Cycles',
+          category: 'health',
+          readTime: '6 min read',
+          difficulty: 'Intermediate',
+          image: '📊',
+          description: 'What irregular cycles mean and when to seek medical advice.'
+        });
+      }
+    }
+
+    // If user has heavy periods, add relevant content
+    if (periodHistory.length > 0) {
+      const avgPeriodLength = periodHistory.reduce((acc, period) => acc + period.periodLength, 0) / periodHistory.length;
+      
+      if (avgPeriodLength > 7) {
+        personalizedArticles.push({
+          id: 8,
+          title: 'Managing Heavy Periods',
+          category: 'health',
+          readTime: '5 min read',
+          difficulty: 'Beginner',
+          image: '💪',
+          description: 'Tips for managing heavy menstrual flow and when to see a doctor.'
+        });
+      }
+    }
+
+    // If user has logged symptoms, add symptom management content
+    if (symptoms.length > 0) {
+      const commonSymptoms = symptoms.map(s => s.symptom.toLowerCase());
+      if (commonSymptoms.some(s => s.includes('cramp'))) {
+        personalizedArticles.push({
+          id: 9,
+          title: 'Natural Cramp Relief',
+          category: 'health',
+          readTime: '4 min read',
+          difficulty: 'Beginner',
+          image: '🌿',
+          description: 'Natural ways to ease menstrual cramps and discomfort.'
+        });
+      }
+    }
+
+    return [...baseArticles, ...personalizedArticles];
+  };
+
+  const articles = getPersonalizedArticles();
+
+  // Get current user ID
+  const getCurrentUserId = () => {
+    return auth.currentUser?.uid;
+  };
+
+  // Fetch menstrual data
+  const fetchMenstrualData = async () => {
+    try {
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.menstrualData) {
+          setMenstrualData(userData.menstrualData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching menstrual data:', error);
+    }
+  };
+
+  // Fetch period history
+  const fetchPeriodHistory = async () => {
+    try {
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      const periodCollectionRef = collection(db, 'users', userId, 'periodHistory');
+      const q = query(periodCollectionRef, orderBy('startDate', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const periodData = [];
+      querySnapshot.forEach((doc) => {
+        periodData.push({ id: doc.id, ...doc.data() });
+      });
+      
+      setPeriodHistory(periodData);
+    } catch (error) {
+      console.error('Error fetching period history:', error);
+    }
+  };
+
+  // Fetch symptoms
+  const fetchSymptoms = async () => {
+    try {
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      const symptomsCollectionRef = collection(db, 'users', userId, 'symptoms');
+      const q = query(symptomsCollectionRef, orderBy('date', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const symptomsData = [];
+      querySnapshot.forEach((doc) => {
+        symptomsData.push({ id: doc.id, ...doc.data() });
+      });
+      
+      setSymptoms(symptomsData);
+    } catch (error) {
+      console.error('Error fetching symptoms:', error);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchMenstrualData(),
+        fetchPeriodHistory(),
+        fetchSymptoms()
+      ]);
+      setLoading(false);
+    };
+    
+    loadData();
+  }, []);
+
+  // Get personalized health tips based on user data
+  const getPersonalizedTips = () => {
+    const baseTips = [
+      { icon: 'water', text: 'Stay hydrated during your period', color: '#2196F3' },
+      { icon: 'restaurant', text: 'Eat iron-rich foods', color: '#4CAF50' },
+      { icon: 'bed', text: 'Get adequate sleep', color: '#9C27B0' },
+      { icon: 'fitness', text: 'Light exercise helps with cramps', color: '#FF9800' },
+    ];
+
+    const personalizedTips = [];
+
+    // Add tips based on cycle patterns
+    if (periodHistory.length > 0) {
+      const cycleLengths = periodHistory.map(period => period.cycleLength);
+      const avgCycleLength = cycleLengths.reduce((acc, length) => acc + length, 0) / cycleLengths.length;
+      
+      if (avgCycleLength < 21) {
+        personalizedTips.push({ icon: 'medical', text: 'Short cycles may need medical attention', color: '#F44336' });
+      } else if (avgCycleLength > 35) {
+        personalizedTips.push({ icon: 'time', text: 'Long cycles - track consistently', color: '#FF9800' });
+      }
+    }
+
+    // Add tips based on symptoms
+    if (symptoms.length > 0) {
+      const commonSymptoms = symptoms.map(s => s.symptom.toLowerCase());
+      if (commonSymptoms.some(s => s.includes('cramp'))) {
+        personalizedTips.push({ icon: 'thermometer', text: 'Heat therapy for cramps', color: '#FF5722' });
+      }
+      if (commonSymptoms.some(s => s.includes('bloat'))) {
+        personalizedTips.push({ icon: 'leaf', text: 'Reduce salt intake for bloating', color: '#4CAF50' });
+      }
+    }
+
+    return [...baseTips, ...personalizedTips];
+  };
 
   const filteredArticles = selectedCategory === 'all' 
     ? articles 
@@ -77,6 +281,18 @@ export default function MenstrualLearnScreen() {
     }
   };
 
+  const personalizedTips = getPersonalizedTips();
+
+  // Show loading screen
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#e91e63" />
+        <Text style={styles.loadingText}>Loading personalized content...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -89,6 +305,16 @@ export default function MenstrualLearnScreen() {
           </View>
         </View>
       </View>
+
+      {/* Personalized Content Banner */}
+      {menstrualData.isSetup && periodHistory.length > 0 && (
+        <View style={styles.personalizedBanner}>
+          <Ionicons name="star" size={20} color="#FFD700" />
+          <Text style={styles.personalizedText}>
+            Content personalized based on your cycle data
+          </Text>
+        </View>
+      )}
 
       {/* Categories */}
       <View style={styles.categoriesContainer}>
@@ -138,9 +364,34 @@ export default function MenstrualLearnScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Personalized Articles Section */}
+      {articles.some(article => article.id > 6) && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recommended for You</Text>
+          {articles.filter(article => article.id > 6).map((article) => (
+            <TouchableOpacity key={article.id} style={[styles.articleCard, styles.personalizedCard]}>
+              <View style={styles.articleImage}>
+                <Text style={styles.articleEmoji}>{article.image}</Text>
+              </View>
+              <View style={styles.articleContent}>
+                <Text style={styles.articleTitle}>{article.title}</Text>
+                <Text style={styles.articleDescription}>{article.description}</Text>
+                <View style={styles.articleMeta}>
+                  <Text style={styles.articleReadTime}>{article.readTime}</Text>
+                  <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(article.difficulty) }]}>
+                    <Text style={styles.difficultyText}>{article.difficulty}</Text>
+                  </View>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#ccc" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
       {/* Articles List */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Articles</Text>
+        <Text style={styles.sectionTitle}>All Articles</Text>
         {filteredArticles.map((article) => (
           <TouchableOpacity key={article.id} style={styles.articleCard}>
             <View style={styles.articleImage}>
@@ -148,6 +399,9 @@ export default function MenstrualLearnScreen() {
             </View>
             <View style={styles.articleContent}>
               <Text style={styles.articleTitle}>{article.title}</Text>
+              {article.description && (
+                <Text style={styles.articleDescription}>{article.description}</Text>
+              )}
               <View style={styles.articleMeta}>
                 <Text style={styles.articleReadTime}>{article.readTime}</Text>
                 <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(article.difficulty) }]}>
@@ -160,26 +414,16 @@ export default function MenstrualLearnScreen() {
         ))}
       </View>
 
-      {/* Quick Tips */}
+      {/* Personalized Quick Tips */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Tips</Text>
+        <Text style={styles.sectionTitle}>Personalized Tips</Text>
         <View style={styles.tipsContainer}>
-          <View style={styles.tipCard}>
-            <Ionicons name="water" size={24} color="#2196F3" />
-            <Text style={styles.tipText}>Stay hydrated during your period</Text>
-          </View>
-          <View style={styles.tipCard}>
-            <Ionicons name="restaurant" size={24} color="#4CAF50" />
-            <Text style={styles.tipText}>Eat iron-rich foods</Text>
-          </View>
-          <View style={styles.tipCard}>
-            <Ionicons name="bed" size={24} color="#9C27B0" />
-            <Text style={styles.tipText}>Get adequate sleep</Text>
-          </View>
-          <View style={styles.tipCard}>
-            <Ionicons name="fitness" size={24} color="#FF9800" />
-            <Text style={styles.tipText}>Light exercise helps with cramps</Text>
-          </View>
+          {personalizedTips.map((tip, index) => (
+            <View key={index} style={styles.tipCard}>
+              <Ionicons name={tip.icon} size={24} color={tip.color} />
+              <Text style={styles.tipText}>{tip.text}</Text>
+            </View>
+          ))}
         </View>
       </View>
     </ScrollView>
@@ -191,6 +435,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
   },
   header: {
     flexDirection: 'row',
@@ -218,6 +473,20 @@ const styles = StyleSheet.create({
   profileText: {
     fontWeight: 'bold',
     fontSize: 12,
+  },
+  personalizedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff3e0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  personalizedText: {
+    fontSize: 14,
+    color: '#E65100',
+    marginLeft: 8,
+    fontWeight: '500',
   },
   categoriesContainer: {
     marginBottom: 20,
@@ -307,6 +576,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
+  personalizedCard: {
+    backgroundColor: '#f3e5f5',
+    borderLeftWidth: 4,
+    borderLeftColor: '#e91e63',
+  },
   articleImage: {
     width: 50,
     height: 50,
@@ -327,6 +601,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#333',
     marginBottom: 4,
+  },
+  articleDescription: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+    lineHeight: 16,
   },
   articleMeta: {
     flexDirection: 'row',
