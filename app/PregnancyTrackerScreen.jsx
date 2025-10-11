@@ -22,8 +22,11 @@ export default function PregnancyTrackerScreen() {
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showDateDetailsModal, setShowDateDetailsModal] = useState(false);
   const [showAppointmentCalendar, setShowAppointmentCalendar] = useState(false);
+  const [showDueDateCalendar, setShowDueDateCalendar] = useState(false);
+  const [showAppointmentDateCalendar, setShowAppointmentDateCalendar] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [tempDueDate, setTempDueDate] = useState('');
+  const [dateErrors, setDateErrors] = useState({});
   const [tempWeight, setTempWeight] = useState('');
   const [tempSystolic, setTempSystolic] = useState('');
   const [tempDiastolic, setTempDiastolic] = useState('');
@@ -257,35 +260,29 @@ export default function PregnancyTrackerScreen() {
     return diffDays;
   };
 
-  const handleSetDueDate = async () => {
-    if (!tempDueDate) {
-      Alert.alert('Error', 'Please select a due date');
-      return;
-    }
-    
-    const selectedDate = new Date(tempDueDate);
+  // Validate due date
+  const validateDueDate = (date) => {
+    const errors = {};
     const today = new Date();
+    const selectedDate = new Date(date);
     
-    if (selectedDate <= today) {
-      Alert.alert('Error', 'Due date must be in the future');
-      return;
-    }
-    
+    if (!date) {
+      errors.dueDate = 'Due date is required';
+    } else if (isNaN(selectedDate.getTime())) {
+      errors.dueDate = 'Invalid date format';
+    } else if (selectedDate <= today) {
+      errors.dueDate = 'Due date must be in the future';
+    } else {
     // Calculate LMP (40 weeks before due date)
     const lmpDate = new Date(selectedDate);
     lmpDate.setDate(lmpDate.getDate() - (40 * 7));
     
     // Validate pregnancy timeframe (LMP should not be more than 42 weeks ago)
     const maxLMPDate = new Date(today);
-    maxLMPDate.setDate(maxLMPDate.getDate() - (42 * 7)); // 42 weeks ago
+      maxLMPDate.setDate(maxLMPDate.getDate() - (42 * 7));
     
     if (lmpDate < maxLMPDate) {
-      Alert.alert(
-        'Invalid Due Date', 
-        'This due date is too far in the future. A typical pregnancy lasts 37-42 weeks from the last menstrual period. Please select a date within the next 10 months.',
-        [{ text: 'OK' }]
-      );
-      return;
+        errors.dueDate = 'Due date is too far in the future (max 10 months)';
     }
     
     // Validate that due date is not too far in the future (max 10 months)
@@ -293,13 +290,65 @@ export default function PregnancyTrackerScreen() {
     maxDueDate.setMonth(maxDueDate.getMonth() + 10);
     
     if (selectedDate > maxDueDate) {
-      Alert.alert(
-        'Invalid Due Date', 
-        'Due date cannot be more than 10 months in the future. Please select a more realistic date.',
-        [{ text: 'OK' }]
-      );
+        errors.dueDate = 'Due date is too far in the future (max 10 months)';
+      }
+    }
+    
+    setDateErrors(prev => ({ ...prev, ...errors }));
+    return Object.keys(errors).length === 0;
+  };
+
+  // Validate appointment date
+  const validateAppointmentDate = (date) => {
+    const errors = {};
+    const today = new Date();
+    const selectedDate = new Date(date);
+    
+    if (!date) {
+      errors.appointmentDate = 'Appointment date is required';
+    } else if (isNaN(selectedDate.getTime())) {
+      errors.appointmentDate = 'Invalid date format';
+    } else if (selectedDate < today) {
+      errors.appointmentDate = 'Appointment date cannot be in the past';
+    }
+    
+    setDateErrors(prev => ({ ...prev, ...errors }));
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle due date selection from calendar
+  const handleDueDateSelect = (day) => {
+    setTempDueDate(day.dateString);
+    setShowDueDateCalendar(false);
+    // Clear due date error when user selects a date
+    if (dateErrors.dueDate) {
+      setDateErrors(prev => ({ ...prev, dueDate: null }));
+    }
+  };
+
+  // Handle appointment date selection from calendar
+  const handleAppointmentDateSelect = (day) => {
+    setTempAppointment(prev => ({ ...prev, date: day.dateString }));
+    setShowAppointmentDateCalendar(false);
+    // Clear appointment date error when user selects a date
+    if (dateErrors.appointmentDate) {
+      setDateErrors(prev => ({ ...prev, appointmentDate: null }));
+    }
+  };
+
+  const handleSetDueDate = async () => {
+    // Validate due date
+    if (!validateDueDate(tempDueDate)) {
+      Alert.alert('Validation Error', 'Please fix the date errors before saving');
       return;
     }
+    
+    const selectedDate = new Date(tempDueDate);
+    const today = new Date();
+    
+    // Calculate LMP (40 weeks before due date)
+    const lmpDate = new Date(selectedDate);
+    lmpDate.setDate(lmpDate.getDate() - (40 * 7));
     
     const updatedPregnancyData = {
       ...pregnancyData,
@@ -387,14 +436,16 @@ export default function PregnancyTrackerScreen() {
     setShowAppointmentModal(true);
   };
 
-  const handleAppointmentDateSelect = (day) => {
-    setTempAppointment(prev => ({...prev, date: day.dateString}));
-    setShowAppointmentCalendar(false);
-  };
 
   const handleSaveAppointment = async () => {
     if (!tempAppointment.type || !tempAppointment.date || !tempAppointment.time || !tempAppointment.doctor) {
       Alert.alert('Error', 'Please fill in all appointment details');
+      return;
+    }
+
+    // Validate appointment date
+    if (!validateAppointmentDate(tempAppointment.date)) {
+      Alert.alert('Validation Error', 'Please fix the date errors before saving');
       return;
     }
 
@@ -931,9 +982,7 @@ export default function PregnancyTrackerScreen() {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Select Your Due Date</Text>
               <Calendar
-                onDayPress={(day) => {
-                  setTempDueDate(day.dateString);
-                }}
+                onDayPress={handleDueDateSelect}
                 markedDates={{
                   [tempDueDate]: { selected: true, selectedColor: '#e91e63' }
                 }}
@@ -955,6 +1004,9 @@ export default function PregnancyTrackerScreen() {
                 })()}
                 disableAllTouchEventsForDisabledDays={true}
               />
+              {dateErrors.dueDate && (
+                <Text style={styles.errorMessage}>{dateErrors.dueDate}</Text>
+              )}
               <View style={styles.dateRangeNote}>
                 <Ionicons name="information-circle-outline" size={16} color="#666" />
                 <Text style={styles.dateRangeNoteText}>
@@ -1143,10 +1195,10 @@ export default function PregnancyTrackerScreen() {
               
               <Text style={styles.inputLabel}>Date</Text>
               <TouchableOpacity 
-                style={styles.datePickerButton}
-                onPress={() => setShowAppointmentCalendar(true)}
+                style={[styles.datePickerButton, dateErrors.appointmentDate && styles.errorInput]}
+                onPress={() => setShowAppointmentDateCalendar(true)}
               >
-                <Text style={[styles.datePickerText, !tempAppointment.date && styles.datePickerPlaceholder]}>
+                <Text style={[styles.datePickerText, !tempAppointment.date && styles.datePickerPlaceholder, dateErrors.appointmentDate && styles.errorText]}>
                   {tempAppointment.date ? 
                     new Date(tempAppointment.date).toLocaleDateString('en-US', { 
                       weekday: 'short', 
@@ -1159,6 +1211,9 @@ export default function PregnancyTrackerScreen() {
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />
               </TouchableOpacity>
+              {dateErrors.appointmentDate && (
+                <Text style={styles.errorMessage}>{dateErrors.appointmentDate}</Text>
+              )}
               
               <Text style={styles.inputLabel}>Time</Text>
               <TextInput
@@ -1195,7 +1250,7 @@ export default function PregnancyTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.confirmButtonText}>Add Appointment</Text>
+                <Text style={styles.confirmButtonText}>Add Appointment</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1385,6 +1440,44 @@ export default function PregnancyTrackerScreen() {
                 <Text style={styles.confirmButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Appointment Date Calendar Modal */}
+      <Modal
+        visible={showAppointmentDateCalendar}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAppointmentDateCalendar(false)}
+      >
+        <View style={styles.calendarModalOverlay}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarTitle}>Select Appointment Date</Text>
+              <TouchableOpacity 
+                style={styles.calendarCloseButton}
+                onPress={() => setShowAppointmentDateCalendar(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={handleAppointmentDateSelect}
+              markedDates={{
+                [tempAppointment.date]: { selected: true, selectedColor: '#e91e63' }
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#e91e63',
+                todayTextColor: '#e91e63',
+                arrowColor: '#e91e63',
+                monthTextColor: '#333',
+                textDayFontWeight: '500',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: '600',
+              }}
+              minDate={new Date().toISOString().split('T')[0]}
+            />
           </View>
         </View>
       </Modal>
@@ -1877,5 +1970,44 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  errorInput: {
+    borderColor: '#F44336',
+  },
+  errorText: {
+    color: '#F44336',
+  },
+  errorMessage: {
+    fontSize: 12,
+    color: '#F44336',
+    marginTop: 4,
+  },
+  calendarModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '80%',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  calendarTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  calendarCloseButton: {
+    padding: 4,
   },
 });

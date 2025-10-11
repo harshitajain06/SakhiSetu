@@ -29,11 +29,14 @@ export default function PeriodTrackerScreen() {
   const [saving, setSaving] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [showSymptomModal, setShowSymptomModal] = useState(false);
+  const [showStartCalendar, setShowStartCalendar] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [periodStartDate, setPeriodStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [periodEndDate, setPeriodEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [newSymptom, setNewSymptom] = useState('');
   const [symptomSeverity, setSymptomSeverity] = useState('Mild');
+  const [dateErrors, setDateErrors] = useState({});
 
   // Get current user ID
   const getCurrentUserId = () => {
@@ -156,13 +159,8 @@ export default function PeriodTrackerScreen() {
       if (!userId) return;
 
       // Validate dates
-      if (!periodStartDate || !periodEndDate) {
-        Alert.alert('Error', 'Please select both start and end dates');
-        return;
-      }
-
-      if (new Date(periodEndDate) < new Date(periodStartDate)) {
-        Alert.alert('Error', 'End date cannot be before start date');
+      if (!validateDates()) {
+        Alert.alert('Validation Error', 'Please fix the date errors before saving');
         return;
       }
 
@@ -219,7 +217,71 @@ export default function PeriodTrackerScreen() {
   const openPeriodModal = () => {
     setPeriodStartDate(new Date().toISOString().split('T')[0]);
     setPeriodEndDate(new Date().toISOString().split('T')[0]);
+    setDateErrors({});
     setShowPeriodModal(true);
+  };
+
+  // Validate dates
+  const validateDates = () => {
+    const errors = {};
+    const today = new Date().toISOString().split('T')[0];
+    const startDate = new Date(periodStartDate);
+    const endDate = new Date(periodEndDate);
+    const todayDate = new Date(today);
+
+    // Check if start date is provided
+    if (!periodStartDate) {
+      errors.startDate = 'Start date is required';
+    } else if (isNaN(startDate.getTime())) {
+      errors.startDate = 'Invalid start date format';
+    } else if (startDate > todayDate) {
+      errors.startDate = 'Start date cannot be in the future';
+    }
+
+    // Check if end date is provided
+    if (!periodEndDate) {
+      errors.endDate = 'End date is required';
+    } else if (isNaN(endDate.getTime())) {
+      errors.endDate = 'Invalid end date format';
+    } else if (endDate > todayDate) {
+      errors.endDate = 'End date cannot be in the future';
+    }
+
+    // Check if end date is after start date
+    if (periodStartDate && periodEndDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+      if (endDate < startDate) {
+        errors.endDate = 'End date cannot be before start date';
+      }
+      
+      // Check if period is too long (more than 10 days)
+      const diffTime = endDate - startDate;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      if (diffDays > 10) {
+        errors.endDate = 'Period cannot be longer than 10 days';
+      }
+    }
+
+    setDateErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle date selection from calendar
+  const handleStartDateSelect = (day) => {
+    setPeriodStartDate(day.dateString);
+    setShowStartCalendar(false);
+    // Clear start date error when user selects a date
+    if (dateErrors.startDate) {
+      setDateErrors(prev => ({ ...prev, startDate: null }));
+    }
+  };
+
+  const handleEndDateSelect = (day) => {
+    setPeriodEndDate(day.dateString);
+    setShowEndCalendar(false);
+    // Clear end date error when user selects a date
+    if (dateErrors.endDate) {
+      setDateErrors(prev => ({ ...prev, endDate: null }));
+    }
   };
 
   // Save symptom data
@@ -455,22 +517,34 @@ export default function PeriodTrackerScreen() {
             
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Start Date</Text>
-              <TextInput
-                style={styles.dateInput}
-                value={periodStartDate}
-                onChangeText={setPeriodStartDate}
-                placeholder="YYYY-MM-DD"
-              />
+              <TouchableOpacity 
+                style={[styles.dateInput, dateErrors.startDate && styles.errorInput]}
+                onPress={() => setShowStartCalendar(true)}
+              >
+                <Text style={[styles.dateInputText, dateErrors.startDate && styles.errorText]}>
+                  {periodStartDate || 'Select start date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#666" />
+              </TouchableOpacity>
+              {dateErrors.startDate && (
+                <Text style={styles.errorMessage}>{dateErrors.startDate}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>End Date</Text>
-              <TextInput
-                style={styles.dateInput}
-                value={periodEndDate}
-                onChangeText={setPeriodEndDate}
-                placeholder="YYYY-MM-DD"
-              />
+              <TouchableOpacity 
+                style={[styles.dateInput, dateErrors.endDate && styles.errorInput]}
+                onPress={() => setShowEndCalendar(true)}
+              >
+                <Text style={[styles.dateInputText, dateErrors.endDate && styles.errorText]}>
+                  {periodEndDate || 'Select end date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#666" />
+              </TouchableOpacity>
+              {dateErrors.endDate && (
+                <Text style={styles.errorMessage}>{dateErrors.endDate}</Text>
+              )}
             </View>
 
             <View style={styles.modalButtons}>
@@ -559,6 +633,83 @@ export default function PeriodTrackerScreen() {
                 )}
               </TouchableOpacity>
           </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Start Date Calendar Modal */}
+      <Modal
+        visible={showStartCalendar}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowStartCalendar(false)}
+      >
+        <View style={styles.calendarModalOverlay}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarTitle}>Select Start Date</Text>
+              <TouchableOpacity 
+                style={styles.calendarCloseButton}
+                onPress={() => setShowStartCalendar(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={handleStartDateSelect}
+              markedDates={{
+                [periodStartDate]: { selected: true, selectedColor: '#e91e63' }
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#e91e63',
+                todayTextColor: '#e91e63',
+                arrowColor: '#e91e63',
+                monthTextColor: '#333',
+                textDayFontWeight: '500',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: '600',
+              }}
+              maxDate={new Date().toISOString().split('T')[0]}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* End Date Calendar Modal */}
+      <Modal
+        visible={showEndCalendar}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowEndCalendar(false)}
+      >
+        <View style={styles.calendarModalOverlay}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarTitle}>Select End Date</Text>
+              <TouchableOpacity 
+                style={styles.calendarCloseButton}
+                onPress={() => setShowEndCalendar(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={handleEndDateSelect}
+              markedDates={{
+                [periodEndDate]: { selected: true, selectedColor: '#e91e63' }
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#e91e63',
+                todayTextColor: '#e91e63',
+                arrowColor: '#e91e63',
+                monthTextColor: '#333',
+                textDayFontWeight: '500',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: '600',
+              }}
+              maxDate={new Date().toISOString().split('T')[0]}
+              minDate={periodStartDate || undefined}
+            />
         </View>
       </View>
       </Modal>
@@ -880,5 +1031,57 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  errorInput: {
+    borderColor: '#F44336',
+  },
+  errorText: {
+    color: '#F44336',
+  },
+  errorMessage: {
+    fontSize: 12,
+    color: '#F44336',
+    marginTop: 4,
+  },
+  calendarModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '80%',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  calendarTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  calendarCloseButton: {
+    padding: 4,
   },
 });
