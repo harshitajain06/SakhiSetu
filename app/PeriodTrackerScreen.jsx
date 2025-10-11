@@ -114,6 +114,9 @@ export default function PeriodTrackerScreen() {
       const startDate = new Date(period.startDate);
       const endDate = new Date(period.endDate);
       
+      // Validate dates before using them
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return;
+      
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split('T')[0];
         marked[dateStr] = { 
@@ -127,14 +130,17 @@ export default function PeriodTrackerScreen() {
     // Add predicted next period
     if (menstrualData.lastPeriod) {
       const lastPeriodDate = new Date(menstrualData.lastPeriod);
-      const nextPeriodDate = new Date(lastPeriodDate);
-      nextPeriodDate.setDate(nextPeriodDate.getDate() + menstrualData.cycleLength);
-      
-      const nextPeriodStr = nextPeriodDate.toISOString().split('T')[0];
-      marked[nextPeriodStr] = { 
-        marked: true, 
-        dotColor: '#e91e63' 
-      };
+      // Validate date before using it
+      if (!isNaN(lastPeriodDate.getTime())) {
+        const nextPeriodDate = new Date(lastPeriodDate);
+        nextPeriodDate.setDate(nextPeriodDate.getDate() + menstrualData.cycleLength);
+        
+        const nextPeriodStr = nextPeriodDate.toISOString().split('T')[0];
+        marked[nextPeriodStr] = { 
+          marked: true, 
+          dotColor: '#e91e63' 
+        };
+      }
     }
     
     setMarkedDates(marked);

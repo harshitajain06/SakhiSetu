@@ -318,21 +318,25 @@ export default function PregnancyTrackerScreen() {
 
   // Handle due date selection from calendar
   const handleDueDateSelect = (day) => {
-    setTempDueDate(day.dateString);
-    setShowDueDateCalendar(false);
-    // Clear due date error when user selects a date
-    if (dateErrors.dueDate) {
-      setDateErrors(prev => ({ ...prev, dueDate: null }));
+    if (day && day.dateString) {
+      setTempDueDate(day.dateString);
+      setShowDueDateCalendar(false);
+      // Clear due date error when user selects a date
+      if (dateErrors.dueDate) {
+        setDateErrors(prev => ({ ...prev, dueDate: null }));
+      }
     }
   };
 
   // Handle appointment date selection from calendar
   const handleAppointmentDateSelect = (day) => {
-    setTempAppointment(prev => ({ ...prev, date: day.dateString }));
-    setShowAppointmentDateCalendar(false);
-    // Clear appointment date error when user selects a date
-    if (dateErrors.appointmentDate) {
-      setDateErrors(prev => ({ ...prev, appointmentDate: null }));
+    if (day && day.dateString) {
+      setTempAppointment(prev => ({ ...prev, date: day.dateString }));
+      setShowAppointmentDateCalendar(false);
+      // Clear appointment date error when user selects a date
+      if (dateErrors.appointmentDate) {
+        setDateErrors(prev => ({ ...prev, appointmentDate: null }));
+      }
     }
   };
 
@@ -350,10 +354,13 @@ export default function PregnancyTrackerScreen() {
     const lmpDate = new Date(selectedDate);
     lmpDate.setDate(lmpDate.getDate() - (40 * 7));
     
+    // Validate LMP date before using it
+    const lmpDateString = !isNaN(lmpDate.getTime()) ? lmpDate.toISOString().split('T')[0] : null;
+    
     const updatedPregnancyData = {
       ...pregnancyData,
       dueDate: tempDueDate,
-      lastPeriod: lmpDate.toISOString().split('T')[0],
+      lastPeriod: lmpDateString,
       isSetup: true
     };
     
@@ -655,8 +662,11 @@ export default function PregnancyTrackerScreen() {
     
     // Pregnancy milestones
     milestones.forEach(milestone => {
-      if (milestone.completed) {
+      if (milestone.completed && pregnancyData.dueDate) {
         const milestoneDate = new Date(pregnancyData.dueDate);
+        // Validate the date before using it
+        if (isNaN(milestoneDate.getTime())) return;
+        
         milestoneDate.setDate(milestoneDate.getDate() - ((40 - milestone.week) * 7));
         const dateString = milestoneDate.toISOString().split('T')[0];
         
@@ -704,6 +714,9 @@ export default function PregnancyTrackerScreen() {
       milestones.forEach(milestone => {
         if (milestone.completed) {
           const milestoneDate = new Date(pregnancyData.dueDate);
+          // Validate the date before using it
+          if (isNaN(milestoneDate.getTime())) return;
+          
           milestoneDate.setDate(milestoneDate.getDate() - ((40 - milestone.week) * 7));
           const milestoneDateString = milestoneDate.toISOString().split('T')[0];
           
@@ -1199,14 +1212,15 @@ export default function PregnancyTrackerScreen() {
                 onPress={() => setShowAppointmentDateCalendar(true)}
               >
                 <Text style={[styles.datePickerText, !tempAppointment.date && styles.datePickerPlaceholder, dateErrors.appointmentDate && styles.errorText]}>
-                  {tempAppointment.date ? 
-                    new Date(tempAppointment.date).toLocaleDateString('en-US', { 
+                  {tempAppointment.date ? (() => {
+                    const date = new Date(tempAppointment.date);
+                    return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { 
                       weekday: 'short', 
                       year: 'numeric', 
                       month: 'short', 
                       day: 'numeric' 
-                    }) : 
-                    'Select appointment date'
+                    }) : 'Invalid date';
+                  })() : 'Select appointment date'
                   }
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />
@@ -1299,12 +1313,15 @@ export default function PregnancyTrackerScreen() {
                 <View style={styles.selectedDateContainer}>
                   <Ionicons name="calendar" size={16} color="#e91e63" />
                   <Text style={styles.selectedDateText}>
-                    Selected: {new Date(tempAppointment.date).toLocaleDateString('en-US', { 
+                    Selected: {(() => {
+                      const date = new Date(tempAppointment.date);
+                      return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       year: 'numeric', 
                       month: 'long', 
                       day: 'numeric' 
-                    })}
+                      }) : 'Invalid date';
+                    })()}
                   </Text>
                 </View>
               )}
