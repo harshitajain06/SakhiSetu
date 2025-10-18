@@ -28,6 +28,7 @@ export default function MaternalHealthHomeScreen() {
   const [bpHistory, setBPHistory] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Get current user ID
   const getCurrentUserId = () => {
@@ -76,6 +77,88 @@ export default function MaternalHealthHomeScreen() {
     if (week <= 20) return 'Avocado';
     if (week <= 28) return 'Cauliflower';
     return 'Pumpkin';
+  };
+
+  // Get baby development based on week
+  const getBabyDevelopment = (week) => {
+    if (week >= 1 && week <= 4) {
+      return "Fertilization occurs, and the blastocyst implants in the uterine lining.";
+    } else if (week >= 5 && week <= 8) {
+      return "The heart begins to form and beat by week 7. Tiny buds that will become arms and legs start to develop. Facial features and major organs begin to form.";
+    } else if (week >= 9 && week <= 12) {
+      return "The fetus develops a more mature face, and eyelids form but remain closed. Fingernails begin to form. By week 12, the fetus can make a fist and begins to make minor movements, though they are not noticeable to the mother yet.";
+    } else if (week >= 13 && week <= 17) {
+      return "Bones begin to harden, especially in the skull and long bones. The baby starts making sucking motions and swallowing amniotic fluid. Hearing develops.";
+    } else if (week >= 18 && week <= 20) {
+      return "The initial signs of movement, known as \"quickening,\" may be felt. The ears are standing out, and the baby may respond to sounds.";
+    } else if (week >= 21 && week <= 27) {
+      return "The fetus continues to develop its brain and starts responding more to sound. Lungs are forming, and the baby is growing rapidly.";
+    } else if (week >= 28 && week <= 32) {
+      return "The fetus's brain and central nervous system are maturing and gaining more control over bodily functions. Rhythmic breathing movements occur, and the baby is putting on weight.";
+    } else if (week >= 33 && week <= 36) {
+      return "The baby continues to gain weight, adding about an ounce a day in the final weeks. Movements may become more frequent, though there is less room to somersault.";
+    } else if (week >= 37 && week <= 42) {
+      return "The fetus's brain and lungs are nearly fully mature. The baby's grasp is firm, and it is preparing for birth.";
+    }
+    return "Continue monitoring your baby's development with regular checkups.";
+  };
+
+  // Get symptoms faced by mother based on week
+  const getMotherSymptoms = (week) => {
+    if (week >= 1 && week <= 4) {
+      return [
+        "Missed period",
+        "Tender, swollen breasts",
+        "Fatigue",
+        "Frequent urination",
+        "Light spotting (implantation bleeding)",
+        "Mood swings"
+      ];
+    } else if (week >= 5 && week <= 8) {
+      return [
+        "Morning sickness (nausea with or without vomiting)",
+        "Heightened sense of smell",
+        "More pronounced mood swings",
+        "Increased fatigue",
+        "Frequent urination"
+      ];
+    } else if (week >= 9 && week <= 12) {
+      return [
+        "Morning sickness and fatigue may continue",
+        "Heartburn may begin",
+        "You might start needing maternity clothes",
+        "Breasts continue to grow"
+      ];
+    } else if (week >= 13 && week <= 18) {
+      return [
+        "You may feel better as early pregnancy symptoms lessen",
+        "Weight gain becomes more regular",
+        "Breasts continue to grow in preparation for milk production",
+        "Heartburn can persist"
+      ];
+    } else if (week >= 19 && week <= 27) {
+      return [
+        "Swelling may increase",
+        "Aches and pains in the abdomen or back are common",
+        "You may feel the baby's first movements (quickening)",
+        "Start sleeping on your side to prevent pressure on major veins"
+      ];
+    } else if (week >= 28 && week <= 34) {
+      return [
+        "Shortness of breath may occur as the baby grows larger",
+        "Heartburn may continue or worsen",
+        "Swelling in hands, feet, and ankles",
+        "Pelvic discomfort can become more frequent"
+      ];
+    } else if (week >= 35 && week <= 42) {
+      return [
+        "The baby drops lower into your pelvis in preparation for birth",
+        "You may have a surge in nesting instincts",
+        "Frequent urination and insomnia can continue",
+        "Braxton Hicks contractions may become more frequent"
+      ];
+    }
+    return ["Consult with your healthcare provider for personalized guidance"];
   };
 
   // Get milestones based on current week
@@ -179,6 +262,23 @@ export default function MaternalHealthHomeScreen() {
     }
   };
 
+  // Reload all data
+  const reloadData = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        fetchPregnancyData(),
+        fetchWeightHistory(),
+        fetchBPHistory(),
+        fetchAppointments()
+      ]);
+    } catch (error) {
+      console.error('Error reloading data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Load data on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -199,6 +299,8 @@ export default function MaternalHealthHomeScreen() {
   const daysUntilDue = calculateDaysUntilDue();
   const babySize = getBabySize(currentWeek);
   const milestones = getMilestones(currentWeek);
+  const babyDevelopment = getBabyDevelopment(currentWeek);
+  const motherSymptoms = getMotherSymptoms(currentWeek);
 
   // Get latest weight and blood pressure
   const latestWeight = weightHistory.length > 0 ? weightHistory[0].weight : 0;
@@ -233,6 +335,21 @@ export default function MaternalHealthHomeScreen() {
           <Text style={styles.headerSubtitle}>Your Maternal Health Companion</Text>
         </View>
         <View style={styles.headerRight}>
+          <TouchableOpacity 
+            style={styles.reloadButton} 
+            onPress={reloadData}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons 
+                name="reload-outline" 
+                size={24} 
+                color="#fff" 
+              />
+            )}
+          </TouchableOpacity>
           <TouchableOpacity style={styles.notificationButton}>
             <Ionicons name="notifications-outline" size={24} color="#fff" />
             <View style={styles.notificationBadge} />
@@ -287,6 +404,35 @@ export default function MaternalHealthHomeScreen() {
             <Ionicons name="arrow-forward" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
+      )}
+
+      {/* Baby Development & Mother Symptoms */}
+      {pregnancyData.isSetup && (
+        <>
+          <View style={styles.developmentCard}>
+            <View style={styles.developmentHeader}>
+              <Ionicons name="heart-circle" size={28} color="#E91E63" />
+              <Text style={styles.developmentTitle}>Baby's Development</Text>
+            </View>
+            <Text style={styles.developmentWeek}>Week {currentWeek}</Text>
+            <Text style={styles.developmentText}>{babyDevelopment}</Text>
+          </View>
+
+          <View style={styles.symptomsCard}>
+            <View style={styles.symptomsHeader}>
+              <Ionicons name="fitness" size={28} color="#9C27B0" />
+              <Text style={styles.symptomsTitle}>Symptoms You May Experience</Text>
+            </View>
+            <View style={styles.symptomsList}>
+              {motherSymptoms.map((symptom, index) => (
+                <View key={index} style={styles.symptomItem}>
+                  <Ionicons name="ellipse" size={8} color="#9C27B0" />
+                  <Text style={styles.symptomText}>{symptom}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </>
       )}
 
       {/* Quick Stats */}
@@ -527,6 +673,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center',
     gap: 15,
+  },
+  reloadButton: {
+    position: 'relative',
   },
   notificationButton: {
     position: 'relative',
@@ -934,5 +1083,77 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     marginBottom: 15,
+  },
+  developmentCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  developmentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 10,
+  },
+  developmentTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  developmentWeek: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E91E63',
+    marginBottom: 12,
+  },
+  developmentText: {
+    fontSize: 15,
+    color: '#555',
+    lineHeight: 22,
+  },
+  symptomsCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  symptomsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 10,
+  },
+  symptomsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  symptomsList: {
+    gap: 12,
+  },
+  symptomItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingLeft: 5,
+  },
+  symptomText: {
+    fontSize: 15,
+    color: '#555',
+    lineHeight: 22,
+    flex: 1,
   },
 });
