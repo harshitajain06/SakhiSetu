@@ -62,7 +62,10 @@ const InformationIcon = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 10,
   },
   iconButton: {
     padding: 4,

@@ -487,6 +487,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    width: '100%',
   },
   actionText: {
     fontSize: 14,

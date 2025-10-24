@@ -1672,6 +1672,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    width: '100%',
   },
   logButtonText: {
     fontSize: 12,
