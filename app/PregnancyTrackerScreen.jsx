@@ -1,17 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc
+    addDoc,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    orderBy,
+    query,
+    setDoc
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import InformationIcon from '../components/InformationIcon';
 import { auth, db } from '../config/firebase';
 
 export default function PregnancyTrackerScreen() {
@@ -885,15 +886,39 @@ export default function PregnancyTrackerScreen() {
         <Text style={styles.sectionTitle}>Quick Log</Text>
         <View style={styles.quickLogContainer}>
           <TouchableOpacity style={styles.logButton} onPress={handleLogWeight}>
-            <Ionicons name="scale" size={24} color="#4CAF50" />
+            <View style={styles.logButtonHeader}>
+              <Ionicons name="scale" size={24} color="#4CAF50" />
+              <InformationIcon 
+                info="Track your weight gain throughout pregnancy to monitor healthy weight progression and identify any concerns early. Regular weight monitoring helps ensure you're gaining weight at a healthy rate for both you and your baby."
+                size={16}
+                color="#4CAF50"
+                title="Log Weight"
+              />
+            </View>
             <Text style={styles.logButtonText}>Log Weight</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.logButton} onPress={handleLogBloodPressure}>
-            <Ionicons name="heart" size={24} color="#e91e63" />
+            <View style={styles.logButtonHeader}>
+              <Ionicons name="heart" size={24} color="#e91e63" />
+              <InformationIcon 
+                info="Monitor your blood pressure regularly during pregnancy to detect preeclampsia or other complications early. High blood pressure during pregnancy can be dangerous for both mother and baby, so regular monitoring is crucial."
+                size={16}
+                color="#e91e63"
+                title="Log Blood Pressure"
+              />
+            </View>
             <Text style={styles.logButtonText}>Log BP</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.logButton} onPress={handleAddAppointment}>
-            <Ionicons name="calendar" size={24} color="#2196F3" />
+            <View style={styles.logButtonHeader}>
+              <Ionicons name="calendar" size={24} color="#2196F3" />
+              <InformationIcon 
+                info="Schedule and track your prenatal appointments, ultrasounds, and other medical visits to stay on top of your care. Regular prenatal care is essential for monitoring your baby's development and your health throughout pregnancy."
+                size={16}
+                color="#2196F3"
+                title="Add Appointment"
+              />
+            </View>
             <Text style={styles.logButtonText}>Add Appointment</Text>
           </TouchableOpacity>
         </View>
@@ -1641,6 +1666,12 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginHorizontal: 4,
+  },
+  logButtonHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
   logButtonText: {
     fontSize: 12,

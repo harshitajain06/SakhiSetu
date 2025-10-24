@@ -1,15 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    orderBy,
+    query
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import InformationIcon from '../components/InformationIcon';
 import { auth, db } from '../config/firebase';
 
 export default function MenstrualHomeScreen() {
@@ -224,11 +225,27 @@ export default function MenstrualHomeScreen() {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToTracker}>
-            <Ionicons name="add-circle-outline" size={32} color="#e91e63" />
+            <View style={styles.actionHeader}>
+              <Ionicons name="add-circle-outline" size={32} color="#e91e63" />
+              <InformationIcon 
+                info="Track the start and end dates of your menstrual period to monitor your cycle patterns and predict future periods. This helps you understand your body's natural rhythm and identify any irregularities."
+                size={16}
+                color="#e91e63"
+                title="Log Period"
+              />
+            </View>
             <Text style={styles.actionText}>Log Period</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToTracker}>
-            <Ionicons name="medical-outline" size={32} color="#e91e63" />
+            <View style={styles.actionHeader}>
+              <Ionicons name="medical-outline" size={32} color="#e91e63" />
+              <InformationIcon 
+                info="Record symptoms like cramps, mood changes, bloating, and other physical or emotional changes throughout your cycle. This data helps you and your healthcare provider understand patterns and manage your health better."
+                size={16}
+                color="#e91e63"
+                title="Log Symptoms"
+              />
+            </View>
             <Text style={styles.actionText}>Log Symptoms</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToTracker}>
@@ -464,6 +481,12 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginBottom: 12,
+  },
+  actionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
   actionText: {
     fontSize: 14,
