@@ -11,7 +11,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { auth, db } from '../config/firebase';
 
@@ -35,8 +35,79 @@ export default function PeriodTrackerScreen() {
   const [periodStartDate, setPeriodStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [periodEndDate, setPeriodEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [newSymptom, setNewSymptom] = useState('');
-  const [symptomSeverity, setSymptomSeverity] = useState('Mild');
+  const [symptomSeverity, setSymptomSeverity] = useState('Light');
   const [dateErrors, setDateErrors] = useState({});
+  const [showSymptomDropdown, setShowSymptomDropdown] = useState(false);
+  const [showSymptomDetailModal, setShowSymptomDetailModal] = useState(false);
+  const [selectedSymptomDetail, setSelectedSymptomDetail] = useState(null);
+
+  // Symptom options
+  const symptomOptions = [
+    'Cramps',
+    'Bloating',
+    'Headache',
+    'Fatigue',
+    'Vomit/Nausea',
+    'Digestive issues',
+    'Mood swings'
+  ];
+
+  // Get symptom card background color based on severity
+  const getSymptomCardColor = (severity) => {
+    switch (severity) {
+      case 'Severe':
+        return '#ffebee'; // Light red
+      case 'Moderate':
+        return '#fff9c4'; // Light yellow
+      case 'Light':
+        return '#e8f5e9'; // Light green
+      default:
+        return '#f8f9fa'; // Default gray
+    }
+  };
+
+  // Symptom content based on type and severity
+  const getSymptomContent = (symptomType, severity) => {
+    const content = {
+      'Cramps': {
+        'Light': 'Apply a heating pad or hot water bottle to your lower abdomen or back to soothe muscles. Taking a warm bath can also offer relief.',
+        'Moderate': 'Take an over-the-counter nonsteroidal anti-inflammatory drug (NSAID), such as ibuprofen (Advil) or naproxen (Aleve). Start taking it at the first sign of pain.',
+        'Severe': 'RED ALERT TO CONSULT A DOCTOR'
+      },
+      'Bloating': {
+        'Light': 'Stay hydrated by drinking plenty of water to help flush out excess fluid. Gentle exercise like walking can also help.',
+        'Moderate': 'Reduce your intake of salty, sugary, and processed foods. You can also try natural diuretics like ginger or asparagus.',
+        'Severe': 'In addition to lifestyle changes, a doctor can help determine if an underlying issue is causing severe fluid retention. Some natural remedies, like magnesium, may also help. RED ALERT TO CONSULT A DOCTOR'
+      },
+      'Headache': {
+        'Light': 'Drink water, eat a light meal if you\'re hungry, and relax in a dark, quiet room.',
+        'Moderate': 'Use common over-the-counter pain relievers like ibuprofen or acetaminophen. A cold pack on your head or neck can also help.',
+        'Severe': 'For severe headaches or menstrual migraines, a doctor may need to prescribe specific medication. Some find relief from supplements like magnesium. RED ALERT TO CONSULT A DOCTOR'
+      },
+      'Fatigue': {
+        'Light': 'Prioritize sleep and maintain a consistent sleep schedule. Eat nutritious foods throughout the day to avoid energy crashes.',
+        'Moderate': 'Gentle, regular exercise such as yoga or walking can boost energy and improve sleep quality. Avoid excessive caffeine and alcohol.',
+        'Severe': 'A doctor should evaluate severe fatigue, especially if you also experience heavy bleeding, as it could be a sign of iron deficiency (anemia). RED ALERT TO CONSULT A DOCTOR'
+      },
+      'Vomit/Nausea': {
+        'Light': 'Drink ginger or peppermint tea. Eat small, bland meals like pulses, bananas, or toast.',
+        'Moderate': 'Use heat therapy, like a heating pad on your abdomen, which can help relax muscles and ease nausea caused by cramps. Stay hydrated with small, frequent sips of water.',
+        'Severe': 'For persistent or severe nausea, a doctor might recommend anti-nausea medication. In any case, staying hydrated is crucial. RED ALERT TO CONSULT A DOCTOR'
+      },
+      'Digestive issues': {
+        'Light': 'Drink plenty of water and eat fiber-rich foods like fruits and vegetables. Avoid carbonated drinks and salty foods.',
+        'Moderate': 'For diarrhea, focus on soluble fiber found in foods like bananas, oats, and peeled apples. For constipation, ensure you are drinking plenty of warm water and getting gentle exercise.',
+        'Severe': 'If persistent or painful, digestive issues could point to an underlying condition like endometriosis, and a doctor should be consulted. RED ALERT TO CONSULT A DOCTOR'
+      },
+      'Mood swings': {
+        'Light': 'Practice relaxation techniques like deep breathing, yoga, or meditation. Limit your intake of caffeine and sugar.',
+        'Moderate': 'Regular exercise is proven to help improve mood by releasing endorphins. Eating a balanced diet with plenty of fruits, vegetables, and whole grains can help stabilize your blood sugar.',
+        'Severe': 'If mood swings are severely impacting your daily life, a doctor may recommend counseling, specific supplements like calcium, or medication. RED ALERT TO CONSULT A DOCTOR'
+      }
+    };
+
+    return content[symptomType]?.[severity] || 'No information available.';
+  };
 
   // Get current user ID
   const getCurrentUserId = () => {
@@ -297,13 +368,13 @@ export default function PeriodTrackerScreen() {
       const userId = getCurrentUserId();
       if (!userId) return;
 
-      if (!newSymptom.trim()) {
-        Alert.alert('Error', 'Please enter a symptom');
+      if (!newSymptom) {
+        Alert.alert('Error', 'Please select a symptom');
         return;
       }
 
       const symptomData = {
-        symptom: newSymptom.trim(),
+        symptom: newSymptom,
         severity: symptomSeverity,
         date: selectedDate,
         createdAt: new Date()
@@ -317,7 +388,7 @@ export default function PeriodTrackerScreen() {
       Alert.alert('Success', 'Symptom logged successfully!');
       setShowSymptomModal(false);
       setNewSymptom('');
-      setSymptomSeverity('Mild');
+      setSymptomSeverity('Light');
     } catch (error) {
       console.error('Error saving symptom data:', error);
       Alert.alert('Error', 'Failed to save symptom data. Please try again.');
@@ -437,11 +508,18 @@ export default function PeriodTrackerScreen() {
         {symptoms.length > 0 ? (
         <View style={styles.symptomsGrid}>
             {symptoms.slice(0, 4).map((symptom, index) => (
-              <View key={symptom.id} style={styles.symptomCard}>
+              <TouchableOpacity 
+                key={symptom.id} 
+                style={[styles.symptomCard, { backgroundColor: getSymptomCardColor(symptom.severity) }]}
+                onPress={() => {
+                  setSelectedSymptomDetail(symptom);
+                  setShowSymptomDetailModal(true);
+                }}
+              >
                 <Ionicons name="medical-outline" size={24} color="#e91e63" />
                 <Text style={styles.symptomName}>{symptom.symptom}</Text>
-              <Text style={styles.symptomSeverity}>{symptom.severity}</Text>
-              </View>
+                <Text style={styles.symptomSeverity}>{symptom.severity}</Text>
+              </TouchableOpacity>
           ))}
         </View>
         ) : (
@@ -589,18 +667,21 @@ export default function PeriodTrackerScreen() {
             
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Symptom</Text>
-              <TextInput
-                style={styles.textInput}
-                value={newSymptom}
-                onChangeText={setNewSymptom}
-                placeholder="e.g., Cramps, Bloating, Headache"
-              />
+              <TouchableOpacity 
+                style={styles.dropdownButton}
+                onPress={() => setShowSymptomDropdown(true)}
+              >
+                <Text style={[styles.dropdownText, !newSymptom && styles.dropdownPlaceholder]}>
+                  {newSymptom || 'Select a symptom'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Severity</Text>
               <View style={styles.severityButtons}>
-                {['Mild', 'Moderate', 'Severe'].map((severity) => (
+                {['Light', 'Moderate', 'Severe'].map((severity) => (
                   <TouchableOpacity
                     key={severity}
                     style={[
@@ -716,8 +797,113 @@ export default function PeriodTrackerScreen() {
               maxDate={new Date().toISOString().split('T')[0]}
               minDate={periodStartDate || undefined}
             />
+          </View>
         </View>
-      </View>
+      </Modal>
+
+      {/* Symptom Dropdown Modal */}
+      <Modal
+        visible={showSymptomDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSymptomDropdown(false)}
+      >
+        <View style={styles.dropdownOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setShowSymptomDropdown(false)}
+          />
+          <View style={styles.dropdownModal}>
+            <View style={styles.dropdownHeader}>
+              <Text style={styles.dropdownTitle}>Select Symptom</Text>
+              <TouchableOpacity 
+                onPress={() => setShowSymptomDropdown(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownList}>
+              {symptomOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.dropdownOption}
+                  onPress={() => {
+                    setNewSymptom(option);
+                    setShowSymptomDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownOptionText}>{option}</Text>
+                  {newSymptom === option && (
+                    <Ionicons name="checkmark" size={20} color="#e91e63" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Symptom Detail Modal */}
+      <Modal
+        visible={showSymptomDetailModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSymptomDetailModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.detailModalHeader}>
+              <Text style={styles.modalTitle}>
+                {selectedSymptomDetail?.symptom || 'Symptom Details'}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => setShowSymptomDetailModal(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            {selectedSymptomDetail && (
+              <View style={styles.detailContent}>
+                <View style={styles.severityBadge}>
+                  <Text style={styles.severityBadgeText}>
+                    Severity: {selectedSymptomDetail.severity}
+                  </Text>
+                </View>
+                
+                <View style={styles.contentSection}>
+                  <Text style={styles.contentTitle}>Recommendations:</Text>
+                  <View style={[
+                    styles.contentBox,
+                    selectedSymptomDetail.severity === 'Severe' && styles.severeContentBox
+                  ]}>
+                    <Text style={[
+                      styles.contentText,
+                      selectedSymptomDetail.severity === 'Severe' && styles.severeContentText
+                    ]}>
+                      {getSymptomContent(selectedSymptomDetail.symptom, selectedSymptomDetail.severity)}
+                    </Text>
+                  </View>
+                  
+                  {selectedSymptomDetail.severity === 'Severe' && (
+                    <View style={styles.alertBox}>
+                      <Ionicons name="warning" size={24} color="#F44336" />
+                      <Text style={styles.alertText}>Please consult a doctor immediately</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            <TouchableOpacity 
+              style={styles.closeDetailButton}
+              onPress={() => setShowSymptomDetailModal(false)}
+            >
+              <Text style={styles.closeDetailButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </ScrollView>
   );
@@ -1089,5 +1275,141 @@ const styles = StyleSheet.create({
   },
   calendarCloseButton: {
     padding: 4,
+  },
+  dropdownButton: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  dropdownPlaceholder: {
+    color: '#999',
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  dropdownModal: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '70%',
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  dropdownList: {
+    maxHeight: 300,
+  },
+  dropdownOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  detailModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  detailContent: {
+    marginBottom: 20,
+  },
+  severityBadge: {
+    backgroundColor: '#fce4ec',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+    alignSelf: 'flex-start',
+  },
+  severityBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#e91e63',
+  },
+  contentSection: {
+    marginTop: 8,
+  },
+  contentTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  contentBox: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  severeContentBox: {
+    backgroundColor: '#ffebee',
+    borderWidth: 2,
+    borderColor: '#F44336',
+  },
+  contentText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  severeContentText: {
+    color: '#d32f2f',
+    fontWeight: '500',
+  },
+  alertBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#F44336',
+  },
+  alertText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#F44336',
+    marginLeft: 12,
+    flex: 1,
+  },
+  closeDetailButton: {
+    backgroundColor: '#e91e63',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  closeDetailButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#fff',
   },
 });

@@ -7,7 +7,8 @@ import {
     getDocs,
     orderBy,
     query,
-    setDoc
+    setDoc,
+    updateDoc
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -50,14 +51,77 @@ export default function PregnancyTrackerScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [symptoms, setSymptoms] = useState([
-    { name: 'Nausea', severity: 'Mild', icon: 'medical-outline', logged: true },
-    { name: 'Fatigue', severity: 'Moderate', icon: 'battery-half-outline', logged: true },
-    { name: 'Mood', severity: 'Good', icon: 'happy-outline', logged: false },
-    { name: 'Appetite', severity: 'Normal', icon: 'restaurant-outline', logged: false },
-  ]);
+  const [pregnancySymptoms, setPregnancySymptoms] = useState([]);
+  const [showSymptomModal, setShowSymptomModal] = useState(false);
+  const [showSymptomDropdown, setShowSymptomDropdown] = useState(false);
+  const [showSymptomDetailModal, setShowSymptomDetailModal] = useState(false);
+  const [selectedSymptomDetail, setSelectedSymptomDetail] = useState(null);
+  const [newSymptom, setNewSymptom] = useState('');
+  const [symptomSeverity, setSymptomSeverity] = useState('Light');
 
   const [appointments, setAppointments] = useState([]);
+
+  // Pregnancy symptom options
+  const pregnancySymptomOptions = [
+    'Back/leg pain',
+    'Frequent urination',
+    'Swollen breasts',
+    'Vomit/Nausea',
+    'Heartburn',
+    'Abdominal pain'
+  ];
+
+  // Get symptom card background color based on severity
+  const getSymptomCardColor = (severity) => {
+    switch (severity) {
+      case 'Severe':
+        return '#ffebee'; // Light red
+      case 'Moderate':
+        return '#fff9c4'; // Light yellow
+      case 'Light':
+        return '#e8f5e9'; // Light green
+      default:
+        return '#f8f9fa'; // Default gray
+    }
+  };
+
+  // Pregnancy symptom content based on type and severity
+  const getPregnancySymptomContent = (symptomType, severity) => {
+    const content = {
+      'Back/leg pain': {
+        'Light': 'Maintain good posture, wear supportive flat shoes, and avoid heavy lifting. Use a pillow behind your back while sitting.',
+        'Moderate': 'Use a pregnancy support belt to take some weight off your back. Sleep on your side with a pillow between your knees and under your belly. A warm water bottle or pack on the lowest setting can soothe muscles.',
+        'Severe': 'If pain persists for more than two weeks, talk to your doctor. They might recommend physical therapy, massage from a certified prenatal therapist, or safe exercises.'
+      },
+      'Frequent urination': {
+        'Light': 'Lean forward when you urinate to empty your bladder completely. Reduce evening fluid intake to limit nighttime trips to the bathroom.',
+        'Moderate': 'Strengthen your pelvic floor muscles with daily Kegel exercises. Avoid caffeine and other diuretics.',
+        'Severe': 'If urination is painful or accompanied by a fever, it could be a urinary tract infection (UTI) and needs a doctor\'s attention.'
+      },
+      'Swollen breasts': {
+        'Light': 'Wear a supportive, well-fitting maternity bra, and consider wearing one at night. Use a cotton bra to let your skin breathe.',
+        'Moderate': 'Use a cool compress or chilled cabbage leaf to reduce swelling and tenderness. A warm shower can also help relax breast tissue.',
+        'Severe': 'Sudden, severe pain, especially with redness, warmth, or hard lumps, should be checked by a doctor, as it could signal a more serious condition.'
+      },
+      'Vomit/Nausea': {
+        'Light': 'Eat a few crackers or dry toast before getting out of bed in the morning. Eat small, frequent, and bland meals throughout the day.',
+        'Moderate': 'Sip on ginger tea, ginger ale, or use acupressure wristbands. Avoid strong smells and greasy or spicy foods.',
+        'Severe': 'If you can\'t keep any food or fluids down for 24 hours, contact your doctor to prevent dehydration. You may need intravenous fluids or anti-nausea medication.'
+      },
+      'Heartburn': {
+        'Light': 'Avoid lying down right after eating. Wait at least two to three hours. Wear loose-fitting clothes.',
+        'Moderate': 'Sleep with your head propped up on extra pillows. Eat small meals slowly and avoid spicy, greasy, or acidic foods.',
+        'Severe': 'If moderate remedies don\'t help, talk to your doctor. Certain antacids like Tums may be recommended, but it is important to confirm with a healthcare provider.'
+      },
+      'Abdominal pain': {
+        'Light': 'Move slowly when changing position to avoid round ligament pain. A warm bath can relax tense muscles.',
+        'Moderate': 'Wear a maternity belt for extra support. Make sure you are well-hydrated to help with constipation-related pain.',
+        'Severe': 'Contact a doctor immediately if you experience persistent or constant pain, especially if it\'s accompanied by bleeding, fever, or contractions.'
+      }
+    };
+
+    return content[symptomType]?.[severity] || 'No information available.';
+  };
 
   // Get current user ID
   const getCurrentUserId = () => {
@@ -197,6 +261,63 @@ export default function PregnancyTrackerScreen() {
     }
   };
 
+  // Fetch pregnancy symptoms
+  const fetchPregnancySymptoms = async () => {
+    try {
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      const symptomsCollectionRef = collection(db, 'users', userId, 'pregnancySymptoms');
+      const q = query(symptomsCollectionRef, orderBy('date', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const symptomsData = [];
+      querySnapshot.forEach((doc) => {
+        symptomsData.push({ id: doc.id, ...doc.data() });
+      });
+      
+      setPregnancySymptoms(symptomsData);
+    } catch (error) {
+      console.error('Error fetching pregnancy symptoms:', error);
+    }
+  };
+
+  // Save pregnancy symptom data
+  const savePregnancySymptomData = async () => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      if (!newSymptom) {
+        Alert.alert('Error', 'Please select a symptom');
+        return;
+      }
+
+      const symptomData = {
+        symptom: newSymptom,
+        severity: symptomSeverity,
+        date: selectedDate,
+        createdAt: new Date()
+      };
+
+      await addDoc(collection(db, 'users', userId, 'pregnancySymptoms'), symptomData);
+
+      // Refresh data
+      await fetchPregnancySymptoms();
+      
+      Alert.alert('Success', 'Symptom logged successfully!');
+      setShowSymptomModal(false);
+      setNewSymptom('');
+      setSymptomSeverity('Light');
+    } catch (error) {
+      console.error('Error saving pregnancy symptom data:', error);
+      Alert.alert('Error', 'Failed to save symptom data. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const saveAppointment = async (appointment) => {
     try {
       setSaving(true);
@@ -245,7 +366,8 @@ export default function PregnancyTrackerScreen() {
         fetchPregnancyData(),
         fetchWeightHistory(),
         fetchBPHistory(),
-        fetchAppointments()
+        fetchAppointments(),
+        fetchPregnancySymptoms()
       ]);
     };
     
@@ -428,10 +550,10 @@ export default function PregnancyTrackerScreen() {
     }
   };
 
-  const handleLogSymptom = (symptomIndex) => {
-    const newSymptoms = [...symptoms];
-    newSymptoms[symptomIndex].logged = !newSymptoms[symptomIndex].logged;
-    setSymptoms(newSymptoms);
+  const handleLogSymptom = () => {
+    setNewSymptom('');
+    setSymptomSeverity('Light');
+    setShowSymptomModal(true);
   };
 
   const handleAddAppointment = () => {
@@ -858,27 +980,40 @@ export default function PregnancyTrackerScreen() {
 
       {/* Today's Symptoms */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Today's Symptoms</Text>
-        <View style={styles.symptomsGrid}>
-          {symptoms.map((symptom, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={[
-                styles.symptomCard,
-                symptom.logged && styles.symptomCardLogged
-              ]}
-              onPress={() => handleLogSymptom(index)}
-            >
-              <Ionicons 
-                name={symptom.icon} 
-                size={24} 
-                color={symptom.logged ? '#4CAF50' : '#e91e63'} 
-              />
-              <Text style={styles.symptomName}>{symptom.name}</Text>
-              <Text style={styles.symptomSeverity}>{symptom.severity}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Today's Symptoms</Text>
+          <TouchableOpacity 
+            style={styles.logSymptomButton}
+            onPress={handleLogSymptom}
+          >
+            <Ionicons name="add-circle" size={20} color="#e91e63" />
+            <Text style={styles.logSymptomButtonText}>Log Symptom</Text>
+          </TouchableOpacity>
         </View>
+        {pregnancySymptoms.length > 0 ? (
+          <View style={styles.symptomsGrid}>
+            {pregnancySymptoms.slice(0, 6).map((symptom) => (
+              <TouchableOpacity 
+                key={symptom.id} 
+                style={[styles.symptomCard, { backgroundColor: getSymptomCardColor(symptom.severity) }]}
+                onPress={() => {
+                  setSelectedSymptomDetail(symptom);
+                  setShowSymptomDetailModal(true);
+                }}
+              >
+                <Ionicons name="medical-outline" size={24} color="#e91e63" />
+                <Text style={styles.symptomName}>{symptom.symptom}</Text>
+                <Text style={styles.symptomSeverity}>{symptom.severity}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="medical-outline" size={48} color="#ccc" />
+            <Text style={styles.emptyStateText}>No symptoms logged yet</Text>
+            <Text style={styles.emptyStateSubtext}>Start tracking your symptoms</Text>
+          </View>
+        )}
       </View>
 
       {/* Quick Log */}
@@ -1523,6 +1658,181 @@ export default function PregnancyTrackerScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Symptom Log Modal */}
+      <Modal
+        visible={showSymptomModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSymptomModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Log Symptom</Text>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Symptom</Text>
+              <TouchableOpacity 
+                style={styles.dropdownButton}
+                onPress={() => setShowSymptomDropdown(true)}
+              >
+                <Text style={[styles.dropdownText, !newSymptom && styles.dropdownPlaceholder]}>
+                  {newSymptom || 'Select a symptom'}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Severity</Text>
+              <View style={styles.severityButtons}>
+                {['Light', 'Moderate', 'Severe'].map((severity) => (
+                  <TouchableOpacity
+                    key={severity}
+                    style={[
+                      styles.severityButton,
+                      symptomSeverity === severity && styles.activeSeverityButton
+                    ]}
+                    onPress={() => setSymptomSeverity(severity)}
+                  >
+                    <Text style={[
+                      styles.severityButtonText,
+                      symptomSeverity === severity && styles.activeSeverityButtonText
+                    ]}>
+                      {severity}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowSymptomModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.confirmButton, saving && styles.disabledButton]}
+                onPress={savePregnancySymptomData}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.confirmButtonText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Symptom Dropdown Modal */}
+      <Modal
+        visible={showSymptomDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSymptomDropdown(false)}
+      >
+        <View style={styles.dropdownOverlay}>
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setShowSymptomDropdown(false)}
+          />
+          <View style={styles.dropdownModal}>
+            <View style={styles.dropdownHeader}>
+              <Text style={styles.dropdownTitle}>Select Symptom</Text>
+              <TouchableOpacity 
+                onPress={() => setShowSymptomDropdown(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownList}>
+              {pregnancySymptomOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.dropdownOption}
+                  onPress={() => {
+                    setNewSymptom(option);
+                    setShowSymptomDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownOptionText}>{option}</Text>
+                  {newSymptom === option && (
+                    <Ionicons name="checkmark" size={20} color="#e91e63" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Symptom Detail Modal */}
+      <Modal
+        visible={showSymptomDetailModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSymptomDetailModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.detailModalHeader}>
+              <Text style={styles.modalTitle}>
+                {selectedSymptomDetail?.symptom || 'Symptom Details'}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => setShowSymptomDetailModal(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            {selectedSymptomDetail && (
+              <View style={styles.detailContent}>
+                <View style={styles.severityBadge}>
+                  <Text style={styles.severityBadgeText}>
+                    Severity: {selectedSymptomDetail.severity}
+                  </Text>
+                </View>
+                
+                <View style={styles.contentSection}>
+                  <Text style={styles.contentTitle}>Recommendations:</Text>
+                  <View style={[
+                    styles.contentBox,
+                    selectedSymptomDetail.severity === 'Severe' && styles.severeContentBox
+                  ]}>
+                    <Text style={[
+                      styles.contentText,
+                      selectedSymptomDetail.severity === 'Severe' && styles.severeContentText
+                    ]}>
+                      {getPregnancySymptomContent(selectedSymptomDetail.symptom, selectedSymptomDetail.severity)}
+                    </Text>
+                  </View>
+                  
+                  {selectedSymptomDetail.severity === 'Severe' && (
+                    <View style={styles.alertBox}>
+                      <Ionicons name="warning" size={24} color="#F44336" />
+                      <Text style={styles.alertText}>Please consult a doctor immediately</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            <TouchableOpacity 
+              style={styles.closeDetailButton}
+              onPress={() => setShowSymptomDetailModal(false)}
+            >
+              <Text style={styles.closeDetailButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -2058,5 +2368,208 @@ const styles = StyleSheet.create({
   },
   calendarCloseButton: {
     padding: 4,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  logSymptomButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fce4ec',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  logSymptomButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#e91e63',
+    marginLeft: 4,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#666',
+    marginTop: 12,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 4,
+  },
+  dropdownButton: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    marginBottom: 16,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  dropdownPlaceholder: {
+    color: '#999',
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  dropdownModal: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '70%',
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  dropdownList: {
+    maxHeight: 300,
+  },
+  dropdownOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  severityButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  severityButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+  },
+  activeSeverityButton: {
+    backgroundColor: '#e91e63',
+    borderColor: '#e91e63',
+  },
+  severityButtonText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  activeSeverityButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  detailModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  detailContent: {
+    marginBottom: 20,
+  },
+  severityBadge: {
+    backgroundColor: '#fce4ec',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+    alignSelf: 'flex-start',
+  },
+  severityBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#e91e63',
+  },
+  contentSection: {
+    marginTop: 8,
+  },
+  contentTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  contentBox: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  severeContentBox: {
+    backgroundColor: '#ffebee',
+    borderWidth: 2,
+    borderColor: '#F44336',
+  },
+  contentText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  severeContentText: {
+    color: '#d32f2f',
+    fontWeight: '500',
+  },
+  alertBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#F44336',
+  },
+  alertText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#F44336',
+    marginLeft: 12,
+    flex: 1,
+  },
+  closeDetailButton: {
+    backgroundColor: '#e91e63',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  closeDetailButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#fff',
   },
 });
