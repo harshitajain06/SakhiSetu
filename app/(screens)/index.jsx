@@ -6,6 +6,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import {
     ActivityIndicator, Alert,
     Dimensions,
+    Image,
     Platform,
     ScrollView,
     StyleSheet,
@@ -84,7 +85,11 @@ export default function AuthPage() {
         <View style={styles.contentWrapper}>
           <View style={styles.iconContainer}>
             <View style={styles.iconCircle}>
-              <Text style={styles.icon}>🛡️</Text>
+              <Image 
+                source={require('../../assets/images/SakhiSetu_logo.png')} 
+                style={styles.iconImage}
+                resizeMode="contain"
+              />
             </View>
           </View>
           <Text style={[styles.title, isDarkMode && { color: '#fff' }]}>
@@ -242,6 +247,10 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 32,
     color: '#007bff',
+  },
+  iconImage: {
+    width: 80,
+    height: 80,
   },
   title: {
     fontSize: isWeb ? Math.min(28, width * 0.07) : 24,
