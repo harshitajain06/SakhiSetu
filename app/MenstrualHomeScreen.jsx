@@ -335,16 +335,165 @@ export default function MenstrualHomeScreen() {
         </View>
       )}
 
-      {/* Health Tips */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Health Tips</Text>
-        <View style={styles.tipCard}>
-          <Ionicons name="bulb-outline" size={24} color="#FFC107" />
-          <View style={styles.tipContent}>
-            <Text style={styles.tipTitle}>Stay Hydrated</Text>
-            <Text style={styles.tipText}>Drink plenty of water during your cycle to help with bloating and energy levels.</Text>
+      {/* Health Tips Carousel */}
+      <View style={styles.tipsSection}>
+        <Text style={styles.sectionTitle}>Health Tips for You</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tipsCarousel}>
+          {/* Menstrual Tips */}
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="trash-outline" size={40} color="#E91E63" />
+            </View>
+            <Text style={styles.tipTitle}>Dispose Safely</Text>
+            <Text style={styles.tipDescription}>Wrap used pads properly and discard in bins; never flush pads.</Text>
           </View>
-        </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="calendar" size={40} color="#E91E63" />
+            </View>
+            <Text style={styles.tipTitle}>Track Your Cycle</Text>
+            <Text style={styles.tipDescription}>Use the app calendar to note cycle length, flow, and symptoms. This will help you notice irregularities early.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="moon" size={40} color="#9C27B0" />
+            </View>
+            <Text style={styles.tipTitle}>Rest Well</Text>
+            <Text style={styles.tipDescription}>Good sleep supports hormonal balance and reduces stress during periods.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="nutrition" size={40} color="#4CAF50" />
+            </View>
+            <Text style={styles.tipTitle}>Eat Healthy</Text>
+            <Text style={styles.tipDescription}>Avoid excessive caffeine and junk food during menstruation as they may worsen cramps.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="thermometer" size={40} color="#FF5722" />
+            </View>
+            <Text style={styles.tipTitle}>Ease Cramps</Text>
+            <Text style={styles.tipDescription}>Keep a small heating pad or hot water bottle ready during periods to ease abdominal cramps and back pain.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="fitness" size={40} color="#2196F3" />
+            </View>
+            <Text style={styles.tipTitle}>Exercise Timing</Text>
+            <Text style={styles.tipDescription}>Avoid high-intensity workouts. Engage in light physical activity like walking or yoga.</Text>
+          </View>
+
+          {/* Maternal Tips */}
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="restaurant" size={40} color="#8BC34A" />
+            </View>
+            <Text style={styles.tipTitle}>Eat Healthy</Text>
+            <Text style={styles.tipDescription}>Include milk, fruits, vegetables, and proteins every day to keep both mother and baby strong.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="time" size={40} color="#FF5722" />
+            </View>
+            <Text style={styles.tipTitle}>Regular Checkups</Text>
+            <Text style={styles.tipDescription}>Visit the doctor often to monitor mother's health, baby's growth, and detect complications early.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="walk" size={40} color="#607D8B" />
+            </View>
+            <Text style={styles.tipTitle}>Stay Active</Text>
+            <Text style={styles.tipDescription}>Gentle walks or prenatal yoga improve circulation, reduce back pain, and keep the mother energetic.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="moon" size={40} color="#9C27B0" />
+            </View>
+            <Text style={styles.tipTitle}>Rest Well</Text>
+            <Text style={styles.tipDescription}>Sleeping 7–9 hours daily keeps the mother relaxed, reduces fatigue, and helps balance pregnancy hormones.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="happy" size={40} color="#FF9800" />
+            </View>
+            <Text style={styles.tipTitle}>Manage Stress</Text>
+            <Text style={styles.tipDescription}>Simple breathing exercises, meditation, reduce anxiety and promote emotional well-being. Stress is not good for baby's health.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="medical" size={40} color="#E91E63" />
+            </View>
+            <Text style={styles.tipTitle}>Postnatal Visits</Text>
+            <Text style={styles.tipDescription}>Doctor checkups ensure proper healing, family planning advice, and long-term maternal health.</Text>
+          </View>
+
+          {/* General Health Tips */}
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="fitness" size={40} color="#2196F3" />
+            </View>
+            <Text style={styles.tipTitle}>Exercise Regularly</Text>
+            <Text style={styles.tipDescription}>At least 30 minutes of walking, cycling, or sports keeps the body fit and heart strong.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="moon" size={40} color="#9C27B0" />
+            </View>
+            <Text style={styles.tipTitle}>Get Enough Sleep</Text>
+            <Text style={styles.tipDescription}>7–9 hours of quality sleep helps the brain rest, improves memory, and reduces stress.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="phone-portrait-outline" size={40} color="#795548" />
+            </View>
+            <Text style={styles.tipTitle}>Limit Screen Time</Text>
+            <Text style={styles.tipDescription}>Too much phone or computer use strains eyes, affects posture, and disturbs sleep.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="body-outline" size={40} color="#607D8B" />
+            </View>
+            <Text style={styles.tipTitle}>Practice Good Posture</Text>
+            <Text style={styles.tipDescription}>Sit and stand straight to avoid back pain, improve breathing, and boost self-confidence.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="tooth-outline" size={40} color="#00BCD4" />
+            </View>
+            <Text style={styles.tipTitle}>Oral Care</Text>
+            <Text style={styles.tipDescription}>Brush twice a day and floss regularly to prevent cavities, gum disease, and weak teeth.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="water" size={40} color="#00BCD4" />
+            </View>
+            <Text style={styles.tipTitle}>Personal Hygiene</Text>
+            <Text style={styles.tipDescription}>Regular bathing, clean clothes, and trimmed nails protect against germs and skin infections.</Text>
+          </View>
+          
+          <View style={styles.tipCard}>
+            <View style={styles.tipImage}>
+              <Ionicons name="leaf-outline" size={40} color="#4CAF50" />
+            </View>
+            <Text style={styles.tipTitle}>Safe Environment</Text>
+            <Text style={styles.tipDescription}>Keep your surroundings clean and avoid littering to reduce disease risk and promote community health.</Text>
+          </View>
+        </ScrollView>
       </View>
     </ScrollView>
   );
@@ -553,26 +702,45 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginRight: 4,
   },
-  tipCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff3e0',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'flex-start',
+  tipsSection: {
+    marginBottom: 20,
   },
-  tipContent: {
-    flex: 1,
-    marginLeft: 12,
+  tipsCarousel: {
+    paddingLeft: 16,
+  },
+  tipCard: {
+    width: 200,
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    marginRight: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tipImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
   },
   tipTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: 'bold', 
     color: '#333',
-    marginBottom: 4,
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  tipText: {
-    fontSize: 14,
+  tipDescription: {
+    fontSize: 12,
     color: '#666',
-    lineHeight: 20,
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
