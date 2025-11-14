@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Linking } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  Linking,
+  Platform,
+} from "react-native";
 import { db } from "../../config/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -10,7 +18,9 @@ export default function CommunityInfoScreen() {
   useEffect(() => {
     const fetchResources = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "communityResources"));
+        const querySnapshot = await getDocs(
+          collection(db, "communityResources")
+        );
         const list = [];
         querySnapshot.forEach((doc) => {
           list.push({ id: doc.id, ...doc.data() });
@@ -25,54 +35,86 @@ export default function CommunityInfoScreen() {
   }, []);
 
   const filteredResources =
-    filter === "All" ? resources : resources.filter((item) => item.category === filter);
+    filter === "All"
+      ? resources
+      : resources.filter((item) => item.category === filter);
 
   const handleCall = (phoneNumber) => {
     Linking.openURL(`tel:${phoneNumber}`);
   };
 
+  const openNearbyHospitals = () => {
+    const url =
+      "https://www.google.com/maps/search/?api=1&query=hospitals+near+me";
+    Linking.openURL(url);
+  };
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
+      <View style={styles.cardHeader}>
         <View style={styles.avatar} />
-        <View style={{ flex: 1 }}>
+        <View style={styles.cardHeaderText}>
           <Text style={styles.title}>{item.name}</Text>
           <Text style={styles.category}>{item.category}</Text>
         </View>
       </View>
+
       <Text style={styles.address}>{item.address}</Text>
+
       <TouchableOpacity onPress={() => handleCall(item.phone)}>
         <Text style={styles.phone}>{item.phone}</Text>
       </TouchableOpacity>
+
       <Text style={styles.description}>{item.description}</Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
+      {/* Page Heading */}
+      <Text style={styles.heading}>Community Support Resources</Text>
+      <Text style={styles.subHeading}>
+        Find health centers, counselors, and emergency resources nearby.
+      </Text>
+
       {/* Filter Buttons */}
       <View style={styles.filterContainer}>
         {["All", "Health Center", "Local Counselor"].map((cat) => (
           <TouchableOpacity
             key={cat}
-            style={[styles.filterButton, filter === cat && styles.activeFilter]}
+            style={[
+              styles.filterButton,
+              filter === cat && styles.activeFilter,
+            ]}
             onPress={() => setFilter(cat)}
           >
-            <Text style={[styles.filterText, filter === cat && styles.activeFilterText]}>
+            <Text
+              style={[
+                styles.filterText,
+                filter === cat && styles.activeFilterText,
+              ]}
+            >
               {cat}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
+      {/* Nearby Hospitals Button */}
+      <TouchableOpacity style={styles.nearbyButton} onPress={openNearbyHospitals}>
+        <Text style={styles.nearbyButtonText}>Find Nearby Hospitals</Text>
+      </TouchableOpacity>
+
       {/* Resource List */}
       <FlatList
         data={filteredResources}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
         ListFooterComponent={
           <Text style={styles.footerNote}>
-            Important: Phone numbers are always available offline, but direct calling requires an active internet connection.
+            Phone numbers work offline, but calling requires an active internet
+            connection.
           </Text>
         }
       />
@@ -81,41 +123,126 @@ export default function CommunityInfoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 15, backgroundColor: "#fff" },
-  filterContainer: { flexDirection: "row", marginBottom: 10 },
+  container: {
+    flex: 1,
+    padding: 18,
+    backgroundColor: "#F9FAFB",
+  },
+
+  heading: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  subHeading: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
+  },
+
+  filterContainer: {
+    flexDirection: "row",
+    marginBottom: 15,
+  },
   filterButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: "#eee",
-    borderRadius: 20,
-    marginRight: 8,
-  },
-  activeFilter: { backgroundColor: "#4F46E5" },
-  filterText: { color: "#333" },
-  activeFilterText: { color: "#fff" },
-  card: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    backgroundColor: "#ccc",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: "#E5E7EB",
     borderRadius: 20,
     marginRight: 10,
   },
-  title: { fontWeight: "bold", fontSize: 16 },
-  category: { color: "#666", fontSize: 12 },
-  address: { color: "#444", marginBottom: 4 },
-  phone: { color: "#2563EB", marginBottom: 6 },
-  description: { color: "#555" },
+  activeFilter: {
+    backgroundColor: "#4F46E5",
+    elevation: 3,
+  },
+  filterText: {
+    color: "#374151",
+    fontWeight: "500",
+  },
+  activeFilterText: {
+    color: "#fff",
+  },
+
+  nearbyButton: {
+    backgroundColor: "#EF4444",
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 20,
+    alignItems: "center",
+    elevation: 3,
+  },
+  nearbyButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+    letterSpacing: 0.3,
+  },
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  avatar: {
+    width: 45,
+    height: 45,
+    backgroundColor: "#D1D5DB",
+    borderRadius: 22.5,
+    marginRight: 12,
+  },
+
+  cardHeaderText: {
+    flex: 1,
+  },
+
+  title: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  category: {
+    color: "#6B7280",
+    fontSize: 13,
+    marginTop: 2,
+  },
+
+  address: {
+    color: "#374151",
+    marginBottom: 6,
+  },
+
+  phone: {
+    color: "#2563EB",
+    marginBottom: 8,
+    fontWeight: "600",
+  },
+
+  description: {
+    color: "#4B5563",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
   footerNote: {
     fontSize: 12,
-    color: "#888",
-    marginTop: 10,
-    paddingHorizontal: 5,
+    color: "#6B7280",
+    marginTop: 20,
+    textAlign: "center",
   },
 });
