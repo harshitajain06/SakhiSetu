@@ -1,430 +1,125 @@
 import { Ionicons } from '@expo/vector-icons';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query
-} from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { auth, db } from '../config/firebase';
+import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function MenstrualLearnScreen() {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [menstrualData, setMenstrualData] = useState({
-    cycleLength: 28,
-    periodLength: 5,
-    lastPeriod: null,
-    isSetup: false
-  });
-  const [periodHistory, setPeriodHistory] = useState([]);
-  const [symptoms, setSymptoms] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const categories = [
-    { id: 'all', name: 'All', icon: 'grid-outline' },
-    { id: 'basics', name: 'Basics', icon: 'book-outline' },
-    { id: 'health', name: 'Health', icon: 'medical-outline' },
-    { id: 'nutrition', name: 'Nutrition', icon: 'nutrition-outline' },
-    { id: 'exercise', name: 'Exercise', icon: 'fitness-outline' },
+  const navigation = useNavigation();
+  const modules = [
+    {
+      id: 1,
+      title: 'Your Journey to Understanding',
+      description: 'Explore the basics of menstrual health and well-being.',
+      icon: 'heart',
+      iconColor: '#e91e63',
+      contentType: 'Videos',
+      route: 'JourneyToUnderstanding'
+    },
+    {
+      id: 2,
+      title: 'Myths & Facts',
+      description: 'Separate common beliefs from medical truths about menstruation.',
+      icon: 'bulb',
+      iconColor: '#FFC107',
+      contentType: 'Images and Text',
+      route: 'MythsAndFacts'
+    },
+    {
+      id: 3,
+      title: 'Staying Clean',
+      description: 'Guidance on hygiene practices during your menstrual cycle.',
+      icon: 'water',
+      iconColor: '#2196F3',
+      contentType: 'Images and Text',
+      route: 'StayingClean'
+    },
+    {
+      id: 4,
+      title: 'Well-being & Confidence',
+      description: 'Tips for managing mood and staying confident during periods.',
+      icon: 'barbell',
+      iconColor: '#4CAF50',
+      contentType: 'Images and Text',
+      route: 'WellbeingConfidence'
+    },
+    {
+      id: 5,
+      title: 'Health Diet & Care',
+      description: 'Nutrition advice and self-care tips for menstrual health.',
+      icon: 'restaurant',
+      iconColor: '#FF9800',
+      contentType: 'Videos',
+      route: 'HealthDietCare'
+    },
   ];
 
-  // Dynamic articles based on user data
-  const getPersonalizedArticles = () => {
-    const baseArticles = [
-      {
-        id: 1,
-        title: 'Understanding Your Menstrual Cycle',
-        category: 'basics',
-        readTime: '5 min read',
-        difficulty: 'Beginner',
-        image: '📚',
-        description: 'Learn the fundamentals of your menstrual cycle and what to expect.'
-      },
-      {
-        id: 2,
-        title: 'Managing Period Pain Naturally',
-        category: 'health',
-        readTime: '7 min read',
-        difficulty: 'Intermediate',
-        image: '🌿',
-        description: 'Natural remedies and techniques to ease menstrual discomfort.'
-      },
-      {
-        id: 3,
-        title: 'Nutrition During Your Period',
-        category: 'nutrition',
-        readTime: '6 min read',
-        difficulty: 'Beginner',
-        image: '🥗',
-        description: 'Foods that can help with energy and mood during your cycle.'
-      },
-      {
-        id: 4,
-        title: 'Exercise and Your Cycle',
-        category: 'exercise',
-        readTime: '8 min read',
-        difficulty: 'Intermediate',
-        image: '🏃‍♀️',
-        description: 'How to adapt your workout routine to your menstrual cycle.'
-      },
-      {
-        id: 5,
-        title: 'Hormonal Changes Explained',
-        category: 'basics',
-        readTime: '10 min read',
-        difficulty: 'Advanced',
-        image: '🧬',
-        description: 'Understanding the science behind your menstrual cycle.'
-      },
-      {
-        id: 6,
-        title: 'Iron-Rich Foods for Women',
-        category: 'nutrition',
-        readTime: '4 min read',
-        difficulty: 'Beginner',
-        image: '🥩',
-        description: 'Essential nutrients to support your menstrual health.'
-      },
-    ];
-
-    // Add personalized articles based on user data
-    const personalizedArticles = [];
-
-    // If user has irregular cycles, add relevant content
-    if (periodHistory.length > 0) {
-      const cycleLengths = periodHistory.map(period => period.cycleLength);
-      const avgCycleLength = cycleLengths.reduce((acc, length) => acc + length, 0) / cycleLengths.length;
-      
-      if (avgCycleLength < 21 || avgCycleLength > 35) {
-        personalizedArticles.push({
-          id: 7,
-          title: 'Understanding Irregular Cycles',
-          category: 'health',
-          readTime: '6 min read',
-          difficulty: 'Intermediate',
-          image: '📊',
-          description: 'What irregular cycles mean and when to seek medical advice.'
-        });
-      }
-    }
-
-    // If user has heavy periods, add relevant content
-    if (periodHistory.length > 0) {
-      const avgPeriodLength = periodHistory.reduce((acc, period) => acc + period.periodLength, 0) / periodHistory.length;
-      
-      if (avgPeriodLength > 7) {
-        personalizedArticles.push({
-          id: 8,
-          title: 'Managing Heavy Periods',
-          category: 'health',
-          readTime: '5 min read',
-          difficulty: 'Beginner',
-          image: '💪',
-          description: 'Tips for managing heavy menstrual flow and when to see a doctor.'
-        });
-      }
-    }
-
-    // If user has logged symptoms, add symptom management content
-    if (symptoms.length > 0) {
-      const commonSymptoms = symptoms.map(s => s.symptom.toLowerCase());
-      if (commonSymptoms.some(s => s.includes('cramp'))) {
-        personalizedArticles.push({
-          id: 9,
-          title: 'Natural Cramp Relief',
-          category: 'health',
-          readTime: '4 min read',
-          difficulty: 'Beginner',
-          image: '🌿',
-          description: 'Natural ways to ease menstrual cramps and discomfort.'
-        });
-      }
-    }
-
-    return [...baseArticles, ...personalizedArticles];
-  };
-
-  const articles = getPersonalizedArticles();
-
-  // Get current user ID
-  const getCurrentUserId = () => {
-    return auth.currentUser?.uid;
-  };
-
-  // Fetch menstrual data
-  const fetchMenstrualData = async () => {
-    try {
-      const userId = getCurrentUserId();
-      if (!userId) return;
-
-      const userDocRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        if (userData.menstrualData) {
-          setMenstrualData(userData.menstrualData);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching menstrual data:', error);
+  const handleModulePress = (module) => {
+    if (module.route === 'MythsAndFacts') {
+      navigation.navigate('MythsAndFactsList');
+    } else if (module.route === 'JourneyToUnderstanding') {
+      navigation.navigate('JourneyToUnderstanding');
+    } else if (module.route === 'StayingClean') {
+      navigation.navigate('StayingCleanList');
+    } else if (module.route === 'WellbeingConfidence') {
+      navigation.navigate('WellbeingConfidenceList');
+    } else if (module.route === 'HealthDietCare') {
+      navigation.navigate('HealthDietCare');
+    } else {
+      // Handle other module navigations here
+      console.log('Navigate to:', module.route);
     }
   };
-
-  // Fetch period history
-  const fetchPeriodHistory = async () => {
-    try {
-      const userId = getCurrentUserId();
-      if (!userId) return;
-
-      const periodCollectionRef = collection(db, 'users', userId, 'periodHistory');
-      const q = query(periodCollectionRef, orderBy('startDate', 'desc'));
-      const querySnapshot = await getDocs(q);
-      
-      const periodData = [];
-      querySnapshot.forEach((doc) => {
-        periodData.push({ id: doc.id, ...doc.data() });
-      });
-      
-      setPeriodHistory(periodData);
-    } catch (error) {
-      console.error('Error fetching period history:', error);
-    }
-  };
-
-  // Fetch symptoms
-  const fetchSymptoms = async () => {
-    try {
-      const userId = getCurrentUserId();
-      if (!userId) return;
-
-      const symptomsCollectionRef = collection(db, 'users', userId, 'symptoms');
-      const q = query(symptomsCollectionRef, orderBy('date', 'desc'));
-      const querySnapshot = await getDocs(q);
-      
-      const symptomsData = [];
-      querySnapshot.forEach((doc) => {
-        symptomsData.push({ id: doc.id, ...doc.data() });
-      });
-      
-      setSymptoms(symptomsData);
-    } catch (error) {
-      console.error('Error fetching symptoms:', error);
-    }
-  };
-
-  // Load data on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchMenstrualData(),
-        fetchPeriodHistory(),
-        fetchSymptoms()
-      ]);
-      setLoading(false);
-    };
-    
-    loadData();
-  }, []);
-
-  // Get personalized health tips based on user data
-  const getPersonalizedTips = () => {
-    const baseTips = [
-      { icon: 'water', text: 'Stay hydrated during your period', color: '#2196F3' },
-      { icon: 'restaurant', text: 'Eat iron-rich foods', color: '#4CAF50' },
-      { icon: 'bed', text: 'Get adequate sleep', color: '#9C27B0' },
-      { icon: 'fitness', text: 'Light exercise helps with cramps', color: '#FF9800' },
-    ];
-
-    const personalizedTips = [];
-
-    // Add tips based on cycle patterns
-    if (periodHistory.length > 0) {
-      const cycleLengths = periodHistory.map(period => period.cycleLength);
-      const avgCycleLength = cycleLengths.reduce((acc, length) => acc + length, 0) / cycleLengths.length;
-      
-      if (avgCycleLength < 21) {
-        personalizedTips.push({ icon: 'medical', text: 'Short cycles may need medical attention', color: '#F44336' });
-      } else if (avgCycleLength > 35) {
-        personalizedTips.push({ icon: 'time', text: 'Long cycles - track consistently', color: '#FF9800' });
-      }
-    }
-
-    // Add tips based on symptoms
-    if (symptoms.length > 0) {
-      const commonSymptoms = symptoms.map(s => s.symptom.toLowerCase());
-      if (commonSymptoms.some(s => s.includes('cramp'))) {
-        personalizedTips.push({ icon: 'thermometer', text: 'Heat therapy for cramps', color: '#FF5722' });
-      }
-      if (commonSymptoms.some(s => s.includes('bloat'))) {
-        personalizedTips.push({ icon: 'leaf', text: 'Reduce salt intake for bloating', color: '#4CAF50' });
-      }
-    }
-
-    return [...baseTips, ...personalizedTips];
-  };
-
-  const filteredArticles = selectedCategory === 'all' 
-    ? articles 
-    : articles.filter(article => article.category === selectedCategory);
-
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Beginner': return '#4CAF50';
-      case 'Intermediate': return '#FF9800';
-      case 'Advanced': return '#F44336';
-      default: return '#666';
-    }
-  };
-
-  const personalizedTips = getPersonalizedTips();
-
-  // Show loading screen
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e91e63" />
-        <Text style={styles.loadingText}>Loading personalized content...</Text>
-      </View>
-    );
-  }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Learn</Text>
-        <View style={styles.headerRight}>
-          <Ionicons name="search-outline" size={24} color="#333" style={{ marginRight: 16 }} />
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileText}>HS</Text>
-          </View>
-        </View>
+        <Text style={styles.headerTitle}>Menstrual Health</Text>
       </View>
 
-      {/* Personalized Content Banner */}
-      {menstrualData.isSetup && periodHistory.length > 0 && (
-        <View style={styles.personalizedBanner}>
-          <Ionicons name="star" size={20} color="#FFD700" />
-          <Text style={styles.personalizedText}>
-            Content personalized based on your cycle data
-          </Text>
-        </View>
-      )}
-
-      {/* Categories */}
-      <View style={styles.categoriesContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {categories.map((category) => (
+      {/* Explore Modules Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Explore Modules</Text>
+        <View style={styles.modulesGrid}>
+          {modules.map((module) => (
             <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category.id && styles.activeCategory
-              ]}
-              onPress={() => setSelectedCategory(category.id)}
+              key={module.id}
+              style={styles.moduleCard}
+              onPress={() => handleModulePress(module)}
+              activeOpacity={0.7}
             >
+              <View style={[styles.moduleIconContainer, { backgroundColor: `${module.iconColor}15` }]}>
               <Ionicons 
-                name={category.icon} 
-                size={20} 
-                color={selectedCategory === category.id ? '#e91e63' : '#666'} 
-              />
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === category.id && styles.activeCategoryText
-              ]}>
-                {category.name}
-              </Text>
+                  name={module.icon} 
+                  size={32} 
+                  color={module.iconColor}
+                />
+              </View>
+              <Text style={styles.moduleTitle}>{module.title}</Text>
+              <Text style={styles.moduleDescription}>{module.description}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
       </View>
 
-      {/* Featured Article */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Featured</Text>
-        <TouchableOpacity style={styles.featuredCard}>
-          <View style={styles.featuredImage}>
-            <Text style={styles.featuredEmoji}>🌟</Text>
+      {/* Understanding Your Cycle Section */}
+      <View style={styles.cycleSection}>
+        <View style={[styles.cycleIconContainer, { backgroundColor: '#e91e6315' }]}>
+          <Ionicons name="help-circle" size={40} color="#e91e63" />
+        </View>
+        <Text style={styles.cycleTitle}>Understanding Your Cycle</Text>
+        <View style={styles.cycleImageContainer}>
+          <View style={styles.cycleImagePlaceholder}>
+            <Ionicons name="flower" size={48} color="#e91e63" />
           </View>
-          <View style={styles.featuredContent}>
-            <Text style={styles.featuredTitle}>Complete Guide to Menstrual Health</Text>
-            <Text style={styles.featuredDescription}>
-              Everything you need to know about your cycle, from basics to advanced topics.
-            </Text>
-            <View style={styles.featuredMeta}>
-              <Text style={styles.featuredReadTime}>15 min read</Text>
-              <Text style={styles.featuredDifficulty}>Comprehensive</Text>
-            </View>
-          </View>
+        </View>
+        <Text style={styles.cycleDescription}>
+          Learn how to track your menstrual cycle and recognize its unique patterns and signs. 
+          Knowledge empowers you to better manage your health.
+        </Text>
+        <TouchableOpacity style={styles.diveDeeperButton} activeOpacity={0.8}>
+          <Text style={styles.diveDeeperText}>Dive Deeper</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Personalized Articles Section */}
-      {articles.some(article => article.id > 6) && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recommended for You</Text>
-          {articles.filter(article => article.id > 6).map((article) => (
-            <TouchableOpacity key={article.id} style={[styles.articleCard, styles.personalizedCard]}>
-              <View style={styles.articleImage}>
-                <Text style={styles.articleEmoji}>{article.image}</Text>
-              </View>
-              <View style={styles.articleContent}>
-                <Text style={styles.articleTitle}>{article.title}</Text>
-                <Text style={styles.articleDescription}>{article.description}</Text>
-                <View style={styles.articleMeta}>
-                  <Text style={styles.articleReadTime}>{article.readTime}</Text>
-                  <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(article.difficulty) }]}>
-                    <Text style={styles.difficultyText}>{article.difficulty}</Text>
-                  </View>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#ccc" />
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* Articles List */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>All Articles</Text>
-        {filteredArticles.map((article) => (
-          <TouchableOpacity key={article.id} style={styles.articleCard}>
-            <View style={styles.articleImage}>
-              <Text style={styles.articleEmoji}>{article.image}</Text>
-            </View>
-            <View style={styles.articleContent}>
-              <Text style={styles.articleTitle}>{article.title}</Text>
-              {article.description && (
-                <Text style={styles.articleDescription}>{article.description}</Text>
-              )}
-              <View style={styles.articleMeta}>
-                <Text style={styles.articleReadTime}>{article.readTime}</Text>
-                <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(article.difficulty) }]}>
-                  <Text style={styles.difficultyText}>{article.difficulty}</Text>
-                </View>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Personalized Quick Tips */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personalized Tips</Text>
-        <View style={styles.tipsContainer}>
-          {personalizedTips.map((tip, index) => (
-            <View key={index} style={styles.tipCard}>
-              <Ionicons name={tip.icon} size={24} color={tip.color} />
-              <Text style={styles.tipText}>{tip.text}</Text>
-            </View>
-          ))}
-        </View>
       </View>
     </ScrollView>
   );
@@ -434,217 +129,124 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#eee',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileText: {
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  personalizedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff3e0',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  personalizedText: {
-    fontSize: 14,
-    color: '#E65100',
-    marginLeft: 8,
-    fontWeight: '500',
-  },
-  categoriesContainer: {
-    marginBottom: 20,
-  },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-  },
-  activeCategory: {
-    backgroundColor: '#fce4ec',
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
-    marginLeft: 6,
-  },
-  activeCategoryText: {
-    color: '#e91e63',
+    textAlign: 'center',
   },
   section: {
+    paddingHorizontal: 20,
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  featuredCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fce4ec',
-    borderRadius: 12,
-    padding: 16,
-  },
-  featuredImage: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  featuredEmoji: {
-    fontSize: 24,
-  },
-  featuredContent: {
-    flex: 1,
-  },
-  featuredTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  featuredDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  featuredMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  featuredReadTime: {
-    fontSize: 12,
-    color: '#666',
-    marginRight: 12,
-  },
-  featuredDifficulty: {
-    fontSize: 12,
-    color: '#e91e63',
-    fontWeight: '500',
-  },
-  articleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  personalizedCard: {
-    backgroundColor: '#f3e5f5',
-    borderLeftWidth: 4,
-    borderLeftColor: '#e91e63',
-  },
-  articleImage: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  articleEmoji: {
     fontSize: 20,
-  },
-  articleContent: {
-    flex: 1,
-  },
-  articleTitle: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontWeight: 'bold',
     color: '#333',
-    marginBottom: 4,
+    marginBottom: 16,
   },
-  articleDescription: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 8,
-    lineHeight: 16,
-  },
-  articleMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  articleReadTime: {
-    fontSize: 12,
-    color: '#666',
-    marginRight: 8,
-  },
-  difficultyBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  difficultyText: {
-    fontSize: 10,
-    color: '#fff',
-    fontWeight: '500',
-  },
-  tipsContainer: {
+  modulesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  tipCard: {
+  moduleCard: {
     width: '48%',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  moduleIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
-  tipText: {
-    fontSize: 12,
+  moduleTitle: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#333',
-    textAlign: 'center',
-    marginTop: 8,
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  moduleDescription: {
+    fontSize: 12,
+    color: '#666',
     lineHeight: 16,
+  },
+  cycleSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  cycleIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cycleTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  cycleImageContainer: {
+    width: '100%',
+    marginBottom: 16,
+  },
+  cycleImagePlaceholder: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  cycleDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
+  diveDeeperButton: {
+    backgroundColor: '#e91e63',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 24,
+    minWidth: 140,
+  },
+  diveDeeperText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

@@ -3,6 +3,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import React from 'react';
@@ -11,12 +12,42 @@ import { Alert } from 'react-native';
 // Import menstrual health specific screens
 import { auth } from '../config/firebase';
 import CycleInsightsScreen from './CycleInsightsScreen';
+import HealthDietCareScreen from './HealthDietCareScreen';
+import JourneyToUnderstandingScreen from './JourneyToUnderstandingScreen';
 import MenstrualHomeScreen from './MenstrualHomeScreen';
 import MenstrualLearnScreen from './MenstrualLearnScreen';
+import MythDetailScreen from './MythDetailScreen';
+import MythsAndFactsListScreen from './MythsAndFactsListScreen';
 import PeriodTrackerScreen from './PeriodTrackerScreen';
+import StayingCleanListScreen from './StayingCleanListScreen';
+import StayingCleanDetailScreen from './StayingCleanDetailScreen';
+import WellbeingConfidenceListScreen from './WellbeingConfidenceListScreen';
+import WellbeingConfidenceDetailScreen from './WellbeingConfidenceDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
+
+// Learn Stack Navigator for module screens
+const LearnStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="MenstrualLearnMain" component={MenstrualLearnScreen} />
+      <Stack.Screen name="MythsAndFactsList" component={MythsAndFactsListScreen} />
+      <Stack.Screen name="MythDetail" component={MythDetailScreen} />
+      <Stack.Screen name="JourneyToUnderstanding" component={JourneyToUnderstandingScreen} />
+      <Stack.Screen name="StayingCleanList" component={StayingCleanListScreen} />
+      <Stack.Screen name="StayingCleanDetail" component={StayingCleanDetailScreen} />
+      <Stack.Screen name="WellbeingConfidenceList" component={WellbeingConfidenceListScreen} />
+      <Stack.Screen name="WellbeingConfidenceDetail" component={WellbeingConfidenceDetailScreen} />
+      <Stack.Screen name="HealthDietCare" component={HealthDietCareScreen} />
+    </Stack.Navigator>
+  );
+};
 
 // Bottom Tab Navigator Component
 const BottomTabs = () => {
@@ -65,7 +96,7 @@ const BottomTabs = () => {
       />
       <Tab.Screen
         name="MenstrualLearn"
-        component={MenstrualLearnScreen}
+        component={LearnStack}
         options={{ title: "Learn" }}
       />
     </Tab.Navigator>
