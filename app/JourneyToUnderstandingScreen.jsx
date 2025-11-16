@@ -1,11 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import YoutubeIframe from 'react-native-youtube-iframe';
 
 export default function JourneyToUnderstandingScreen() {
   const navigation = useNavigation();
-  const [selectedVideo, setSelectedVideo] = useState(null);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentVideoId, setCurrentVideoId] = useState(null);
+
+  const openVideo = (videoId) => {
+    setCurrentVideoId(videoId);
+    setModalVisible(true);
+  };
 
   const videoLessons = [
     {
@@ -14,11 +29,8 @@ export default function JourneyToUnderstandingScreen() {
       description: 'Understanding the basics of menstruation.',
       icon: 'heart',
       duration: '2 min',
-      videoUrl: 'https://www.youtube.com/watch?v=faDgESel4Ng',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=faDgESel4Ng',
-        'https://www.youtube.com/watch?v=oFf0-311F4E'
-      ]
+      videoId: 'faDgESel4Ng',
+      relatedVideos: ['oFf0-311F4E'],
     },
     {
       id: 2,
@@ -26,10 +38,8 @@ export default function JourneyToUnderstandingScreen() {
       description: 'A detailed breakdown of the four phases.',
       icon: 'create',
       duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=cfROFgkV43E',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=cfROFgkV43E'
-      ]
+      videoId: 'cfROFgkV43E',
+      relatedVideos: [],
     },
     {
       id: 3,
@@ -37,8 +47,8 @@ export default function JourneyToUnderstandingScreen() {
       description: 'Effective strategies and remedies.',
       icon: 'bandage',
       duration: '4 min',
-      videoUrl: '',
-      relatedVideos: []
+      videoId: '',
+      relatedVideos: [],
     },
     {
       id: 4,
@@ -46,10 +56,8 @@ export default function JourneyToUnderstandingScreen() {
       description: 'Emotional changes during your cycle.',
       icon: 'chatbubble',
       duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=ImzxzlPzbRk',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=ImzxzlPzbRk'
-      ]
+      videoId: 'ImzxzlPzbRk',
+      relatedVideos: [],
     },
     {
       id: 5,
@@ -57,8 +65,8 @@ export default function JourneyToUnderstandingScreen() {
       description: 'Recognizing the subtle body signals.',
       icon: 'time',
       duration: '2 min',
-      videoUrl: '',
-      relatedVideos: []
+      videoId: '',
+      relatedVideos: [],
     },
     {
       id: 6,
@@ -66,10 +74,8 @@ export default function JourneyToUnderstandingScreen() {
       description: 'Supporting others during their menstrual cycle.',
       icon: 'people',
       duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=gojy9QRRO68',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=gojy9QRRO68'
-      ]
+      videoId: 'gojy9QRRO68',
+      relatedVideos: [],
     },
     {
       id: 7,
@@ -77,10 +83,8 @@ export default function JourneyToUnderstandingScreen() {
       description: 'Essential hygiene practices.',
       icon: 'water',
       duration: '4 min',
-      videoUrl: 'https://www.youtube.com/watch?v=qFLEIwY-SYE',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=qFLEIwY-SYE'
-      ]
+      videoId: 'qFLEIwY-SYE',
+      relatedVideos: [],
     },
     {
       id: 8,
@@ -88,129 +92,132 @@ export default function JourneyToUnderstandingScreen() {
       description: 'Complete guide to using sanitary pads.',
       icon: 'shield',
       duration: '5 min',
-      videoUrl: 'https://www.youtube.com/watch?v=J6bZsl1pi_o',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=J6bZsl1pi_o'
-      ]
-    }
+      videoId: 'J6bZsl1pi_o',
+      relatedVideos: [],
+    },
   ];
 
-  const handleVideoPress = (video) => {
-    if (video.videoUrl) {
-      Linking.openURL(video.videoUrl);
-    }
-  };
-
-  const handleRelatedVideoPress = (url) => {
-    Linking.openURL(url);
-  };
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Your Journey to Understanding</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <>
+      {/* Modal for video player */}
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          {/* Close Button */}
+          <TouchableOpacity
+            style={styles.modalCloseBtn}
+            onPress={() => setModalVisible(false)}
+          >
+            <Ionicons name="close" size={32} color="#fff" />
+          </TouchableOpacity>
 
-      {/* Featured Video Section */}
-      <View style={styles.featuredSection}>
-        <View style={styles.videoPlayerContainer}>
+          {/* YouTube Player */}
+          {currentVideoId && (
+            <YoutubeIframe
+              height={280}
+              play={true}
+              videoId={currentVideoId}
+            />
+          )}
+
+          {/* Related Videos */}
+          {/* <View style={{ padding: 20 }}>
+            <Text style={styles.relatedTitle}>Related Videos</Text>
+
+            {videoLessons
+              .filter((v) => v.videoId === currentVideoId)
+              .flatMap((v) => v.relatedVideos)
+              .map((rv, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.relatedCard}
+                  onPress={() => setCurrentVideoId(rv)}
+                >
+                  <Ionicons name="logo-youtube" size={22} color="#ff0000" />
+                  <Text style={styles.relatedText}>Watch related video</Text>
+                </TouchableOpacity>
+              ))}
+          </View> */}
+        </View>
+      </Modal>
+
+      {/* Main Screen */}
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Your Journey to Understanding</Text>
+          <View style={{ width: 32 }} />
+        </View>
+
+        {/* Featured Section */}
+        {/* <View style={styles.featuredSection}>
           <View style={styles.videoPlayer}>
             <Ionicons name="play-circle" size={64} color="#fff" />
           </View>
-        </View>
-        <Text style={styles.videoTitle}>Understanding Your Menstrual Cycle</Text>
-        <Text style={styles.videoDuration}>Duration: 2 min</Text>
-      </View>
+          <Text style={styles.videoTitle}>Understanding Your Menstrual Cycle</Text>
+          <Text style={styles.videoDuration}>Duration: 2 min</Text>
+        </View> */}
 
-      {/* Lessons List */}
-      <View style={styles.lessonsSection}>
-        <Text style={styles.sectionTitle}>Lessons</Text>
-        {videoLessons.map((lesson) => (
-          <TouchableOpacity
-            key={lesson.id}
-            style={styles.lessonCard}
-            onPress={() => handleVideoPress(lesson)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.lessonIconContainer}>
-              <Ionicons name={lesson.icon} size={24} color="#e91e63" />
-            </View>
-            <View style={styles.lessonContent}>
-              <Text style={styles.lessonTitle}>{lesson.title}</Text>
-              <Text style={styles.lessonDescription}>{lesson.description}</Text>
-            </View>
-            <View style={styles.lessonMeta}>
-              <Text style={styles.lessonDuration}>{lesson.duration}</Text>
-              <Ionicons name="play-circle" size={20} color="#e91e63" />
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+        {/* Lessons List */}
+        <View style={styles.lessonsSection}>
+          <Text style={styles.sectionTitle}>Lessons</Text>
 
-      {/* Related Videos Section */}
-      {selectedVideo && selectedVideo.relatedVideos && selectedVideo.relatedVideos.length > 0 && (
-        <View style={styles.relatedVideosSection}>
-          <Text style={styles.sectionTitle}>Related Videos</Text>
-          {selectedVideo.relatedVideos.map((url, index) => (
+          {videoLessons.map((lesson) => (
             <TouchableOpacity
-              key={index}
-              style={styles.relatedVideoCard}
-              onPress={() => handleRelatedVideoPress(url)}
+              key={lesson.id}
+              style={styles.lessonCard}
+              onPress={() => lesson.videoId && openVideo(lesson.videoId)}
             >
-              <Ionicons name="logo-youtube" size={24} color="#FF0000" />
-              <Text style={styles.relatedVideoText} numberOfLines={1}>
-                {url}
-              </Text>
+              <View style={styles.lessonIconContainer}>
+                <Ionicons name={lesson.icon} size={24} color="#e91e63" />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.lessonTitle}>{lesson.title}</Text>
+                <Text style={styles.lessonDescription}>{lesson.description}</Text>
+              </View>
+
+              <View style={styles.lessonMeta}>
+                <Text style={styles.lessonDuration}>{lesson.duration}</Text>
+                <Ionicons name="play-circle" size={20} color="#e91e63" />
+              </View>
             </TouchableOpacity>
           ))}
         </View>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
-  backButton: {
-    padding: 4,
-  },
+
+  backButton: { padding: 4 },
+
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
   },
-  placeholder: {
-    width: 32,
-  },
+
   featuredSection: {
     padding: 20,
     alignItems: 'center',
   },
-  videoPlayerContainer: {
-    width: '100%',
-    marginBottom: 12,
-  },
+
   videoPlayer: {
     width: '100%',
     height: 200,
@@ -219,43 +226,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  videoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  videoDuration: {
-    fontSize: 14,
-    color: '#666',
-  },
-  lessonsSection: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 16,
-  },
+
+  videoTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginTop: 10 },
+
+  videoDuration: { fontSize: 14, color: '#666' },
+
+  lessonsSection: { padding: 20 },
+
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
+
   lessonCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#f0f0f0',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    marginBottom: 12,
     elevation: 2,
   },
+
   lessonIconContainer: {
     width: 48,
     height: 48,
@@ -265,47 +255,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  lessonContent: {
-    flex: 1,
-  },
-  lessonTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  lessonDescription: {
-    fontSize: 13,
-    color: '#666',
-    lineHeight: 18,
-  },
+
+  lessonTitle: { fontSize: 15, fontWeight: '600', color: '#333' },
+
+  lessonDescription: { fontSize: 13, color: '#666', marginTop: 2 },
+
   lessonMeta: {
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+
+  lessonDuration: { fontSize: 12, color: '#666', marginRight: 4 },
+
+  /* Modal */
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+    paddingTop: 60,
+  },
+
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 35,
+    right: 20,
+    zIndex: 10,
+  },
+
+  relatedTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+  },
+
+  relatedCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
-  },
-  lessonDuration: {
-    fontSize: 12,
-    color: '#666',
-    marginRight: 8,
-  },
-  relatedVideosSection: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  relatedVideoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
+    backgroundColor: '#222',
     padding: 12,
+    borderRadius: 10,
     marginBottom: 8,
   },
-  relatedVideoText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 8,
-  },
-});
 
+  relatedText: { color: '#fff', marginLeft: 10 },
+});
