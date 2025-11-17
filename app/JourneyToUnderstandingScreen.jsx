@@ -1,15 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
-  Modal,
+  Dimensions, Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-} from 'react-native';
+  View
+} from "react-native";
 import YoutubeIframe from 'react-native-youtube-iframe';
+
+const { height, width } = Dimensions.get("window");
 
 export default function JourneyToUnderstandingScreen() {
   const navigation = useNavigation();
@@ -30,7 +33,6 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'heart',
       duration: '2 min',
       videoId: 'faDgESel4Ng',
-      relatedVideos: ['oFf0-311F4E'],
     },
     {
       id: 2,
@@ -39,7 +41,6 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'create',
       duration: '3 min',
       videoId: 'cfROFgkV43E',
-      relatedVideos: [],
     },
     {
       id: 3,
@@ -48,7 +49,6 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'bandage',
       duration: '4 min',
       videoId: '',
-      relatedVideos: [],
     },
     {
       id: 4,
@@ -57,7 +57,6 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'chatbubble',
       duration: '3 min',
       videoId: 'ImzxzlPzbRk',
-      relatedVideos: [],
     },
     {
       id: 5,
@@ -66,7 +65,6 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'time',
       duration: '2 min',
       videoId: '',
-      relatedVideos: [],
     },
     {
       id: 6,
@@ -75,7 +73,6 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'people',
       duration: '3 min',
       videoId: 'gojy9QRRO68',
-      relatedVideos: [],
     },
     {
       id: 7,
@@ -84,7 +81,6 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'water',
       duration: '4 min',
       videoId: 'qFLEIwY-SYE',
-      relatedVideos: [],
     },
     {
       id: 8,
@@ -93,55 +89,51 @@ export default function JourneyToUnderstandingScreen() {
       icon: 'shield',
       duration: '5 min',
       videoId: 'J6bZsl1pi_o',
-      relatedVideos: [],
     },
   ];
 
   return (
     <>
-      {/* Modal for video player */}
+      {/* Fullscreen Video Modal */}
       <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
+        <View style={styles.fullscreenContainer}>
+          
           {/* Close Button */}
           <TouchableOpacity
-            style={styles.modalCloseBtn}
+            style={styles.fullscreenClose}
             onPress={() => setModalVisible(false)}
           >
-            <Ionicons name="close" size={32} color="#fff" />
+            <Ionicons name="close" size={34} color="#fff" />
           </TouchableOpacity>
 
           {/* YouTube Player */}
           {currentVideoId && (
-            <YoutubeIframe
-              height={280}
-              play={true}
-              videoId={currentVideoId}
-            />
+            Platform.OS === 'web' ? (
+              <View style={styles.videoContainer}>
+                <YoutubeIframe
+                  height={height * 0.7 - 40}
+                  width={width * 0.5 - 40}
+                  play={true}
+                  videoId={currentVideoId}
+                  webViewStyle={{ backgroundColor: '#000' }}
+                />
+              </View>
+            ) : (
+              <YoutubeIframe
+                height={height * 0.9}
+                width={'100%'}
+                play={true}
+                videoId={currentVideoId}
+                webViewStyle={{ backgroundColor: '#000' }}
+              />
+            )
           )}
-
-          {/* Related Videos */}
-          {/* <View style={{ padding: 20 }}>
-            <Text style={styles.relatedTitle}>Related Videos</Text>
-
-            {videoLessons
-              .filter((v) => v.videoId === currentVideoId)
-              .flatMap((v) => v.relatedVideos)
-              .map((rv, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.relatedCard}
-                  onPress={() => setCurrentVideoId(rv)}
-                >
-                  <Ionicons name="logo-youtube" size={22} color="#ff0000" />
-                  <Text style={styles.relatedText}>Watch related video</Text>
-                </TouchableOpacity>
-              ))}
-          </View> */}
         </View>
       </Modal>
 
       {/* Main Screen */}
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -153,15 +145,6 @@ export default function JourneyToUnderstandingScreen() {
           <Text style={styles.headerTitle}>Your Journey to Understanding</Text>
           <View style={{ width: 32 }} />
         </View>
-
-        {/* Featured Section */}
-        {/* <View style={styles.featuredSection}>
-          <View style={styles.videoPlayer}>
-            <Ionicons name="play-circle" size={64} color="#fff" />
-          </View>
-          <Text style={styles.videoTitle}>Understanding Your Menstrual Cycle</Text>
-          <Text style={styles.videoDuration}>Duration: 2 min</Text>
-        </View> */}
 
         {/* Lessons List */}
         <View style={styles.lessonsSection}>
@@ -213,24 +196,6 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 
-  featuredSection: {
-    padding: 20,
-    alignItems: 'center',
-  },
-
-  videoPlayer: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#8B4513',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  videoTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginTop: 10 },
-
-  videoDuration: { fontSize: 14, color: '#666' },
-
   lessonsSection: { padding: 20 },
 
   sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
@@ -267,35 +232,31 @@ const styles = StyleSheet.create({
 
   lessonDuration: { fontSize: 12, color: '#666', marginRight: 4 },
 
-  /* Modal */
-  modalContainer: {
+  /* Fullscreen Modal */
+  fullscreenContainer: {
     flex: 1,
     backgroundColor: '#000',
-    paddingTop: 60,
-  },
-
-  modalCloseBtn: {
-    position: 'absolute',
-    top: 35,
-    right: 20,
-    zIndex: 10,
-  },
-
-  relatedTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 10,
-  },
-
-  relatedCard: {
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#222',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 8,
   },
 
-  relatedText: { color: '#fff', marginLeft: 10 },
+  fullscreenClose: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 999,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 8,
+    borderRadius: 30,
+  },
+
+  videoContainer: {
+    margin: 20,
+  },
+
+  videoContainerMobile: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
