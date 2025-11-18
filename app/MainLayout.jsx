@@ -16,6 +16,7 @@ import LoginRegister from './(screens)/index';
 import HealthSelectionScreen from './HealthSelectionScreen';
 import MaternalHealthTabs from './MaternalHealthTabs';
 import MenstrualHealthTabs from './MenstrualHealthTabs';
+import WelcomeScreen from './WelcomeScreen';
 
 import { auth } from "../config/firebase";
 import { Colors } from "../constants/Colors";
@@ -146,6 +147,7 @@ export default function MainLayout() {
       }}
     >
       <Stack.Screen name="LoginRegister" component={LoginRegister} />
+      <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
       <Stack.Screen name="HealthSelectionScreen" component={HealthSelectionScreen} />
       <Stack.Screen name="MaternalHealthTabs" component={MaternalHealthTabs} />
       <Stack.Screen name="MenstrualHealthTabs" component={MenstrualHealthTabs} />

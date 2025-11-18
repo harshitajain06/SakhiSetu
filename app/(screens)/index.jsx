@@ -4,7 +4,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfi
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
-  ActivityIndicator, Alert,
+  ActivityIndicator,
   Dimensions,
   Image,
   Platform,
@@ -13,6 +13,7 @@ import {
   Text, TextInput, TouchableOpacity,
   View
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { auth } from '../../config/firebase';
 
 const { width, height } = Dimensions.get('window');
@@ -35,40 +36,153 @@ export default function AuthPage() {
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
 
+  // Validation errors
+  const [loginErrors, setLoginErrors] = useState({ email: '', password: '' });
+  const [registerErrors, setRegisterErrors] = useState({ name: '', email: '', password: '' });
+
   useEffect(() => {
     if (user) {
-      navigation.replace('HealthSelectionScreen');
+      navigation.replace('WelcomeScreen');
     }
   }, [user]);
 
-  const handleLogin = async () => {
-    if (!loginEmail || !loginPassword) {
-      return Alert.alert('Error', 'Please fill all fields.');
+  // Validation functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      return 'Email is required';
     }
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
+
+  const validatePassword = (password, isLogin = false) => {
+    if (!password) {
+      return 'Password is required';
+    }
+    if (!isLogin && password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    if (!isLogin && !/(?=.*[a-z])(?=.*[A-Z])/.test(password) && !/(?=.*\d)/.test(password)) {
+      return 'Password should contain at least one uppercase letter, one lowercase letter, or one number';
+    }
+    return '';
+  };
+
+  const validateName = (name) => {
+    if (!name) {
+      return 'Name is required';
+    }
+    if (name.trim().length < 2) {
+      return 'Name must be at least 2 characters long';
+    }
+    if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+      return 'Name should only contain letters and spaces';
+    }
+    return '';
+  };
+
+  const showToast = (type, title, message) => {
+    Toast.show({
+      type: type, // 'success', 'error', 'info'
+      text1: title,
+      text2: message,
+      position: 'top',
+      visibilityTime: 3000,
+    });
+  };
+
+  const handleLogin = async () => {
+    // Validate fields
+    const emailError = validateEmail(loginEmail);
+    const passwordError = validatePassword(loginPassword, true);
+
+    setLoginErrors({
+      email: emailError,
+      password: passwordError,
+    });
+
+    if (emailError || passwordError) {
+      showToast('error', 'Validation Error', emailError || passwordError);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+      await signInWithEmailAndPassword(auth, loginEmail.trim(), loginPassword);
+      showToast('success', 'Success', 'Logged in successfully!');
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
-      Alert.alert('Login Failed', error.message);
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled.';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      showToast('error', 'Login Failed', errorMessage);
     }
   };
 
   const handleRegister = async () => {
-    if (!registerName || !registerEmail || !registerPassword) {
-      return Alert.alert('Error', 'Please fill all fields.');
+    // Validate all fields
+    const nameError = validateName(registerName);
+    const emailError = validateEmail(registerEmail);
+    const passwordError = validatePassword(registerPassword, false);
+
+    setRegisterErrors({
+      name: nameError,
+      email: emailError,
+      password: passwordError,
+    });
+
+    if (nameError || emailError || passwordError) {
+      const firstError = nameError || emailError || passwordError;
+      showToast('error', 'Validation Error', firstError);
+      return;
     }
+
     setIsLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, registerEmail, registerPassword);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        registerEmail.trim(),
+        registerPassword
+      );
       await updateProfile(userCredential.user, {
-        displayName: registerName,
+        displayName: registerName.trim(),
       });
+      showToast('success', 'Success', 'Account created successfully!');
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
-      Alert.alert('Registration Failed', error.message);
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use a stronger password.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Registration is currently disabled.';
+      }
+      
+      showToast('error', 'Registration Failed', errorMessage);
     }
   };
 
@@ -118,22 +232,46 @@ export default function AuthPage() {
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Email</Text>
               <TextInput
                 placeholder="name@example.com"
-                style={[styles.input, isDarkMode && styles.inputDark]}
+                style={[
+                  styles.input,
+                  isDarkMode && styles.inputDark,
+                  loginErrors.email && styles.inputError
+                ]}
                 value={loginEmail}
-                onChangeText={setLoginEmail}
+                onChangeText={(text) => {
+                  setLoginEmail(text);
+                  if (loginErrors.email) {
+                    setLoginErrors({ ...loginErrors, email: '' });
+                  }
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
+              {loginErrors.email ? (
+                <Text style={styles.errorText}>{loginErrors.email}</Text>
+              ) : null}
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Password</Text>
               <TextInput
                 placeholder="••••••••"
                 secureTextEntry
-                style={[styles.input, isDarkMode && styles.inputDark]}
+                style={[
+                  styles.input,
+                  isDarkMode && styles.inputDark,
+                  loginErrors.password && styles.inputError
+                ]}
                 value={loginPassword}
-                onChangeText={setLoginPassword}
+                onChangeText={(text) => {
+                  setLoginPassword(text);
+                  if (loginErrors.password) {
+                    setLoginErrors({ ...loginErrors, password: '' });
+                  }
+                }}
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
+              {loginErrors.password ? (
+                <Text style={styles.errorText}>{loginErrors.password}</Text>
+              ) : null}
               <TouchableOpacity style={styles.forgotPassword}>
                 <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
@@ -146,30 +284,71 @@ export default function AuthPage() {
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Full Name</Text>
               <TextInput
                 placeholder="John Doe"
-                style={[styles.input, isDarkMode && styles.inputDark]}
+                style={[
+                  styles.input,
+                  isDarkMode && styles.inputDark,
+                  registerErrors.name && styles.inputError
+                ]}
                 value={registerName}
-                onChangeText={setRegisterName}
+                onChangeText={(text) => {
+                  setRegisterName(text);
+                  if (registerErrors.name) {
+                    setRegisterErrors({ ...registerErrors, name: '' });
+                  }
+                }}
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
+              {registerErrors.name ? (
+                <Text style={styles.errorText}>{registerErrors.name}</Text>
+              ) : null}
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Email</Text>
               <TextInput
                 placeholder="name@example.com"
-                style={[styles.input, isDarkMode && styles.inputDark]}
+                style={[
+                  styles.input,
+                  isDarkMode && styles.inputDark,
+                  registerErrors.email && styles.inputError
+                ]}
                 value={registerEmail}
-                onChangeText={setRegisterEmail}
+                onChangeText={(text) => {
+                  setRegisterEmail(text);
+                  if (registerErrors.email) {
+                    setRegisterErrors({ ...registerErrors, email: '' });
+                  }
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
+              {registerErrors.email ? (
+                <Text style={styles.errorText}>{registerErrors.email}</Text>
+              ) : null}
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Password</Text>
               <TextInput
                 placeholder="••••••••"
                 secureTextEntry
-                style={[styles.input, isDarkMode && styles.inputDark]}
+                style={[
+                  styles.input,
+                  isDarkMode && styles.inputDark,
+                  registerErrors.password && styles.inputError
+                ]}
                 value={registerPassword}
-                onChangeText={setRegisterPassword}
+                onChangeText={(text) => {
+                  setRegisterPassword(text);
+                  if (registerErrors.password) {
+                    setRegisterErrors({ ...registerErrors, password: '' });
+                  }
+                }}
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
+              {registerErrors.password ? (
+                <Text style={styles.errorText}>{registerErrors.password}</Text>
+              ) : null}
+              {registerPassword && !registerErrors.password && registerPassword.length >= 6 && (
+                <Text style={styles.passwordHint}>
+                  Password strength: {registerPassword.length >= 8 && /(?=.*[a-z])(?=.*[A-Z])/.test(registerPassword) && /(?=.*\d)/.test(registerPassword) ? 'Strong' : 'Good'}
+                </Text>
+              )}
               <TouchableOpacity onPress={handleRegister} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create account</Text>}
               </TouchableOpacity>
@@ -181,6 +360,7 @@ export default function AuthPage() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <Toast />
     </View>
   );
 }
@@ -363,5 +543,23 @@ const styles = StyleSheet.create({
         color: '#0056b3',
       },
     }),
+  },
+  inputError: {
+    borderColor: '#dc3545',
+    borderWidth: 1.5,
+  },
+  errorText: {
+    color: '#dc3545',
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  passwordHint: {
+    color: '#28a745',
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 8,
+    marginLeft: 4,
   },
 });
