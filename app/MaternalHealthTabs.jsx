@@ -3,6 +3,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import React from 'react';
@@ -16,8 +17,54 @@ import InsightsScreen from './(screens)/InsightsScreens';
 import LearnScreen from './(screens)/LearnScreen';
 import PregnancyTrackerScreen from './PregnancyTrackerScreen';
 
+// Import maternal health learn module screens
+import BreastfeedingGuideDetailScreen from './BreastfeedingGuideDetailScreen';
+import BreastfeedingGuideListScreen from './BreastfeedingGuideListScreen';
+import ExerciseFitnessDetailScreen from './ExerciseFitnessDetailScreen';
+import ExerciseFitnessListScreen from './ExerciseFitnessListScreen';
+import MaternalWellnessScreen from './MaternalWellnessScreen';
+import NewbornCareScreen from './NewbornCareScreen';
+import NutritionDietScreen from './NutritionDietScreen';
+import PostpartumCareDetailScreen from './PostpartumCareDetailScreen';
+import PostpartumCareListScreen from './PostpartumCareListScreen';
+import PregnancyBasicsDetailScreen from './PregnancyBasicsDetailScreen';
+import PregnancyBasicsListScreen from './PregnancyBasicsListScreen';
+import PregnancyBasicsScreen from './PregnancyBasicsScreen';
+import PrenatalCareDetailScreen from './PrenatalCareDetailScreen';
+import PrenatalCareListScreen from './PrenatalCareListScreen';
+
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
+
+// Learn Stack Navigator for module screens
+const LearnStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="MaternalLearnMain" component={LearnScreen} />
+      <Stack.Screen name="PrenatalCareList" component={PrenatalCareListScreen} />
+      <Stack.Screen name="PrenatalCareDetail" component={PrenatalCareDetailScreen} />
+      <Stack.Screen name="PostpartumCareList" component={PostpartumCareListScreen} />
+      <Stack.Screen name="PostpartumCareDetail" component={PostpartumCareDetailScreen} />
+      <Stack.Screen name="BreastfeedingGuideList" component={BreastfeedingGuideListScreen} />
+      <Stack.Screen name="BreastfeedingGuideDetail" component={BreastfeedingGuideDetailScreen} />
+      <Stack.Screen name="ExerciseFitnessList" component={ExerciseFitnessListScreen} />
+      <Stack.Screen name="ExerciseFitnessDetail" component={ExerciseFitnessDetailScreen} />
+      {/* Pregnancy Basics screens */}
+      <Stack.Screen name="PregnancyBasics" component={PregnancyBasicsScreen} />
+      <Stack.Screen name="PregnancyBasicsList" component={PregnancyBasicsListScreen} />
+      <Stack.Screen name="PregnancyBasicsDetail" component={PregnancyBasicsDetailScreen} />
+      {/* Video module screens */}
+      <Stack.Screen name="NutritionDiet" component={NutritionDietScreen} />
+      <Stack.Screen name="NewbornCare" component={NewbornCareScreen} />
+      <Stack.Screen name="MaternalWellness" component={MaternalWellnessScreen} />
+    </Stack.Navigator>
+  );
+};
 
 // Bottom Tab Navigator Component
 const BottomTabs = () => {
@@ -60,7 +107,7 @@ const BottomTabs = () => {
       />
       <Tab.Screen
         name="Learn"
-        component={LearnScreen}
+        component={LearnStack}
         options={{ title: "Learn" }}
       />
     </Tab.Navigator>

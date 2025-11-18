@@ -103,7 +103,7 @@ export default function MenstrualLearnScreen() {
       </View>
 
       {/* Understanding Your Cycle Section */}
-      <View style={styles.cycleSection}>
+      {/* <View style={styles.cycleSection}>
         <View style={[styles.cycleIconContainer, { backgroundColor: '#e91e6315' }]}>
           <Ionicons name="help-circle" size={40} color="#e91e63" />
         </View>
@@ -120,7 +120,7 @@ export default function MenstrualLearnScreen() {
         <TouchableOpacity style={styles.diveDeeperButton} activeOpacity={0.8}>
           <Text style={styles.diveDeeperText}>Dive Deeper</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </ScrollView>
   );
 }
