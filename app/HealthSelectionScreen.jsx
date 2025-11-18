@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ProfileScreen from './ProfileScreen';
 
 export default function HealthSelectionScreen() {
   const navigation = useNavigation();
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
 
   const tips = [
     "Prioritize self-care today. Even small moments of peace can make a big difference.",
@@ -46,10 +48,10 @@ export default function HealthSelectionScreen() {
         <View style={styles.header}>
           <Text style={styles.appTitle}>Sakhi Setu</Text>
           <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.notificationIcon}>
-              <Ionicons name="notifications-outline" size={24} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.profileIcon}>
+            <TouchableOpacity
+              style={styles.profileIcon}
+              onPress={() => setProfileModalVisible(true)}
+            >
               <View style={styles.profileImage}>
                 <Ionicons name="person" size={20} color="#fff" />
               </View>
@@ -126,6 +128,10 @@ export default function HealthSelectionScreen() {
           </View>
         </View>
       </ScrollView>
+      <ProfileScreen
+        visible={profileModalVisible}
+        onClose={() => setProfileModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -155,9 +161,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 15,
-  },
-  notificationIcon: {
-    padding: 5,
   },
   profileIcon: {
     padding: 5,

@@ -4,14 +4,14 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfi
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
-    ActivityIndicator, Alert,
-    Dimensions,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text, TextInput, TouchableOpacity,
-    View
+  ActivityIndicator, Alert,
+  Dimensions,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
 import { auth } from '../../config/firebase';
 
@@ -176,9 +176,6 @@ export default function AuthPage() {
             </View>
           )}
 
-          {/* OAuth Buttons */}
-          <OAuthButtons isDarkMode={isDarkMode} />
-
           <TouchableOpacity>
             <Text style={[styles.privacyPolicy, isDarkMode && { color: '#64b5f6' }]}>Privacy Policy.</Text>
           </TouchableOpacity>
@@ -187,25 +184,6 @@ export default function AuthPage() {
     </View>
   );
 }
-
-function OAuthButtons({ isDarkMode }) {
-  return (
-    <View style={{ marginTop: 16 }}>
-      <View style={{ alignItems: 'center', marginBottom: 12 }}>
-        <Text style={[styles.oauthText, isDarkMode && { color: '#999' }]}>Or continue with</Text>
-      </View>
-      <View style={styles.oauthButtonContainer}>
-        <TouchableOpacity style={[styles.oauthButton, isDarkMode && styles.oauthButtonDark]} onPress={() => alert('Facebook login coming soon')}>
-          <Text style={[styles.oauthButtonText, isDarkMode && { color: '#fff' }]}>Facebook</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.oauthButton, isDarkMode && styles.oauthButtonDark]} onPress={() => alert('Google login coming soon')}>
-          <Text style={[styles.oauthButtonText, isDarkMode && { color: '#fff' }]}>Google</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
-
 
 const styles = StyleSheet.create({
   pageContainer: {
@@ -372,44 +350,6 @@ const styles = StyleSheet.create({
     color: '#007bff',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  oauthText: {
-    fontSize: 12,
-    color: '#6c757d',
-  },
-  oauthButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  oauthButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    flex: 1,
-    alignItems: 'center',
-    ...(isWeb && {
-      cursor: 'pointer',
-      transition: 'all 0.2s ease-in-out',
-      ':hover': {
-        backgroundColor: '#f8f9fa',
-        borderColor: '#007bff',
-        transform: 'translateY(-1px)',
-        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
-      },
-    }),
-  },
-  oauthButtonDark: {
-    backgroundColor: '#2d2d2d',
-    borderColor: '#555',
-  },
-  oauthButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#343a40',
   },
   privacyPolicy: {
     textAlign: 'center',
