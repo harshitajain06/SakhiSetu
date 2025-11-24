@@ -1,11 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Dimensions,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import YoutubeIframe from 'react-native-youtube-iframe';
+
+const { height, width } = Dimensions.get("window");
 
 export default function HealthDietCareScreen() {
   const navigation = useNavigation();
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentVideoId, setCurrentVideoId] = useState(null);
 
   const videoLessons = [
     {
@@ -121,20 +134,70 @@ export default function HealthDietCareScreen() {
     }
   ];
 
+  const extractVideoId = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    return match ? match[1] : null;
+  };
+
+  const openVideo = (videoUrl) => {
+    const videoId = extractVideoId(videoUrl);
+    if (videoId) {
+      setCurrentVideoId(videoId);
+      setModalVisible(true);
+    }
+  };
+
   const handleVideoPress = (video) => {
     if (video.videoUrl) {
-      Linking.openURL(video.videoUrl);
-    } else {
-      setSelectedVideo(video);
+      openVideo(video.videoUrl);
     }
   };
 
   const handleRelatedVideoPress = (url) => {
-    Linking.openURL(url);
+    openVideo(url);
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <>
+      {/* Fullscreen Video Modal */}
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={styles.fullscreenContainer}>
+          {/* Close Button */}
+          <TouchableOpacity
+            style={styles.fullscreenClose}
+            onPress={() => setModalVisible(false)}
+          >
+            <Ionicons name="close" size={34} color="#fff" />
+          </TouchableOpacity>
+
+          {/* YouTube Player */}
+          {currentVideoId && (
+            Platform.OS === 'web' ? (
+              <View style={styles.videoContainer}>
+                <YoutubeIframe
+                  height={height * 0.7 - 40}
+                  width={width * 0.5 - 40}
+                  play={true}
+                  videoId={currentVideoId}
+                  webViewStyle={{ backgroundColor: '#000' }}
+                />
+              </View>
+            ) : (
+              <YoutubeIframe
+                height={height * 0.9}
+                width={'100%'}
+                play={true}
+                videoId={currentVideoId}
+                webViewStyle={{ backgroundColor: '#000' }}
+              />
+            )
+          )}
+        </View>
+      </Modal>
+
+      {/* Main Screen */}
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -148,7 +211,7 @@ export default function HealthDietCareScreen() {
       </View>
 
       {/* Featured Video Section */}
-      <View style={styles.featuredSection}>
+      {/* <View style={styles.featuredSection}>
         <View style={styles.videoPlayerContainer}>
           <View style={styles.videoPlayer}>
             <Ionicons name="play-circle" size={64} color="#fff" />
@@ -156,7 +219,7 @@ export default function HealthDietCareScreen() {
         </View>
         <Text style={styles.videoTitle}>Nutrition for Menstrual Health</Text>
         <Text style={styles.videoDuration}>Duration: 3 min</Text>
-      </View>
+      </View> */}
 
       {/* Lessons List */}
       <View style={styles.lessonsSection}>
@@ -165,7 +228,7 @@ export default function HealthDietCareScreen() {
           <TouchableOpacity
             key={lesson.id}
             style={styles.lessonCard}
-            onPress={() => handleVideoPress(lesson)}
+            onPress={() => lesson.videoUrl && handleVideoPress(lesson)}
             activeOpacity={0.7}
           >
             <View style={styles.lessonIconContainer}>
@@ -183,25 +246,8 @@ export default function HealthDietCareScreen() {
         ))}
       </View>
 
-      {/* Related Videos Section */}
-      {selectedVideo && selectedVideo.relatedVideos && selectedVideo.relatedVideos.length > 0 && (
-        <View style={styles.relatedVideosSection}>
-          <Text style={styles.sectionTitle}>Related Videos</Text>
-          {selectedVideo.relatedVideos.map((url, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.relatedVideoCard}
-              onPress={() => handleRelatedVideoPress(url)}
-            >
-              <Ionicons name="logo-youtube" size={24} color="#FF0000" />
-              <Text style={styles.relatedVideoText} numberOfLines={1}>
-                {url}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 
@@ -334,6 +380,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginLeft: 8,
+  },
+  /* Fullscreen Modal */
+  fullscreenContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenClose: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 999,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 8,
+    borderRadius: 30,
+  },
+  videoContainer: {
+    margin: 20,
   },
 });
 
