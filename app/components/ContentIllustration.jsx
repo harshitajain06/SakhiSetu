@@ -10,23 +10,23 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 // Image mapping - only include images that exist
 const stayingCleanImages = {
   // Uncomment when images are added:
-  // 'daily_hygiene': require('../../assets/images/stayingClean/daily_hygiene.png'),
-  // 'sanitary_products': require('../../assets/images/stayingClean/sanitary_products.png'),
-  // 'disposal': require('../../assets/images/stayingClean/disposal.png'),
-  // 'prevent_infections': require('../../assets/images/stayingClean/prevent_infections.png'),
-  // 'bathing': require('../../assets/images/stayingClean/bathing.png'),
-  // 'managing_odor': require('../../assets/images/stayingClean/managing_odor.png'),
+  'daily_hygiene': require('../../assets/images/stayingClean/daily_hygiene.png'),
+  'sanitary_products': require('../../assets/images/stayingClean/sanitary_products.png'),
+  'disposal': require('../../assets/images/stayingClean/disposal.png'),
+  'prevent_infections': require('../../assets/images/stayingClean/prevent_infections.png'),
+  'bathing': require('../../assets/images/stayingClean/bathing.png'),
+  'managing_odor': require('../../assets/images/stayingClean/managing_odor.png'),
 };
 
 const wellbeingImages = {
   // Uncomment when images are added:
-  // 'mood_changes': require('../../assets/images/wellbeing/mood_changes.png'),
-  // 'managing_cramps': require('../../assets/images/wellbeing/managing_cramps.png'),
-  // 'self_confidence': require('../../assets/images/wellbeing/self_confidence.png'),
-  // 'staying_active': require('../../assets/images/wellbeing/staying_active.png'),
-  // 'nutrition': require('../../assets/images/wellbeing/nutrition.png'),
-  // 'stress_management': require('../../assets/images/wellbeing/stress_management.png'),
-  // 'sleep_rest': require('../../assets/images/wellbeing/sleep_rest.png'),
+  'mood_changes': require('../../assets/images/wellbeing/mood_changes.png'),
+  'managing_cramps': require('../../assets/images/wellbeing/managing_cramps.png'),
+  'self_confidence': require('../../assets/images/wellbeing/self_confidence.png'),
+  'staying_active': require('../../assets/images/wellbeing/staying_active.png'),
+  'nutrition': require('../../assets/images/wellbeing/nutrition.png'),
+  'stress_management': require('../../assets/images/wellbeing/stress_management.png'),
+  'sleep_rest': require('../../assets/images/wellbeing/sleep_rest.png'),
 };
 
 const getImageSource = (imageType, category) => {
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     height: 200,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     overflow: 'hidden',
   },
