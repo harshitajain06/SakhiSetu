@@ -223,7 +223,6 @@ export default function CycleInsightsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Cycle Insights</Text>
         <View style={styles.headerRight}>
-          <Ionicons name="notifications-outline" size={24} color="#333" style={{ marginRight: 16 }} />
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
           </View>

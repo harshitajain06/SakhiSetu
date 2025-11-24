@@ -27,7 +27,6 @@ export default function InsightsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Period Tracker</Text>
         <View style={styles.headerRight}>
-          <Icon name="notifications-outline" size={24} color="#333" style={{ marginRight: 16 }} />
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>AM</Text>
           </View>
@@ -82,7 +81,7 @@ export default function InsightsScreen() {
           <Text>Today</Text>
         </View>
         <View style={styles.legendRow}>
-          <Icon name="notifications-outline" size={14} color="#E53935" />
+          <View style={[styles.legendDot, { backgroundColor: '#E53935' }]} />
           <Text>Symptoms Logged</Text>
         </View>
       </View>

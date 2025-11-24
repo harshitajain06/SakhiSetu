@@ -9,7 +9,7 @@ import {
   query
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../../config/firebase';
 
 const { width } = Dimensions.get('window');
@@ -316,6 +316,14 @@ export default function MaternalHealthHomeScreen() {
     navigation.navigate('Community');
   };
 
+  // Handle phone call
+  const handlePhoneCall = (phoneNumber) => {
+    // Remove spaces and format for tel: scheme
+    const formattedNumber = phoneNumber.replace(/\s/g, '');
+    const url = `tel:${formattedNumber}`;
+    Linking.openURL(url).catch(err => console.error('Error opening phone dialer:', err));
+  };
+
   // Show loading screen while data is being fetched
   if (loading) {
     return (
@@ -350,13 +358,6 @@ export default function MaternalHealthHomeScreen() {
               />
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color="#fff" />
-            <View style={styles.notificationBadge} />
-          </TouchableOpacity>
-          <View style={styles.profileCircle}>
-            <Ionicons name="person" size={20} color="#fff" />
-          </View>
         </View>
       </View>
 
@@ -617,24 +618,44 @@ export default function MaternalHealthHomeScreen() {
           <Text style={styles.emergencyTitle}>Emergency Contacts</Text>
         </View>
         <View style={styles.contactList}>
-          <TouchableOpacity style={styles.contactItem}>
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={() => handlePhoneCall('+91 97179 73658')}
+          >
             <View style={styles.contactIcon}>
               <Ionicons name="medical" size={20} color="#F44336" />
             </View>
             <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>Dr. Sarah Johnson</Text>
-              <Text style={styles.contactNumber}>+1 (555) 123-4567</Text>
+              <Text style={styles.contactName}>Womennite</Text>
+              <Text style={styles.contactNumber}>+91 97179 73658</Text>
             </View>
             <Ionicons name="call" size={20} color="#F44336" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.contactItem}>
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={() => handlePhoneCall('18001034683')}
+          >
             <View style={styles.contactIcon}>
               <Ionicons name="medical" size={20} color="#F44336" />
             </View>
             <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>Emergency Line</Text>
-              <Text style={styles.contactNumber}>911</Text>
+              <Text style={styles.contactName}>National NGO Social Welfare</Text>
+              <Text style={styles.contactNumber}>18001034683</Text>
+            </View>
+            <Ionicons name="call" size={20} color="#F44336" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={() => handlePhoneCall('1091')}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="medical" size={20} color="#F44336" />
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactName}>Women Helpline</Text>
+              <Text style={styles.contactNumber}>1091</Text>
             </View>
             <Ionicons name="call" size={20} color="#F44336" />
           </TouchableOpacity>
@@ -676,26 +697,6 @@ const styles = StyleSheet.create({
   },
   reloadButton: {
     position: 'relative',
-  },
-  notificationButton: {
-    position: 'relative',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFC107',
-  },
-  profileCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   pregnancyCard: {
     margin: 20,
@@ -1021,7 +1022,9 @@ const styles = StyleSheet.create({
   },
   contactNumber: {
     fontSize: 14,
-    color: '#666',
+    color: '#2196F3',
+    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

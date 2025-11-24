@@ -436,7 +436,6 @@ export default function PeriodTrackerScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Period Tracker</Text>
         <View style={styles.headerRight}>
-          <Ionicons name="notifications-outline" size={24} color="#333" style={{ marginRight: 16 }} />
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
           </View>

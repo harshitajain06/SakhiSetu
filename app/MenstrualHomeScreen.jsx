@@ -182,7 +182,6 @@ export default function MenstrualHomeScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Menstrual Health</Text>
         <View style={styles.headerRight}>
-          <Ionicons name="notifications-outline" size={24} color="#333" style={{ marginRight: 16 }} />
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
           </View>

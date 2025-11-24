@@ -1,6 +1,6 @@
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNavigation } from '@react-navigation/native';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
@@ -133,6 +133,41 @@ export default function AuthPage() {
       }
       
       showToast('error', 'Login Failed', errorMessage);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    // Validate email
+    if (!loginEmail) {
+      showToast('error', 'Email Required', 'Please enter your email address to reset your password.');
+      setLoginErrors({ ...loginErrors, email: 'Email is required' });
+      return;
+    }
+
+    const emailError = validateEmail(loginEmail);
+    if (emailError) {
+      showToast('error', 'Invalid Email', emailError);
+      setLoginErrors({ ...loginErrors, email: emailError });
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, loginEmail.trim());
+      showToast('success', 'Email Sent', 'Password reset email has been sent. Please check your inbox.');
+    } catch (error) {
+      let errorMessage = 'Failed to send reset email. Please try again.';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many requests. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      showToast('error', 'Reset Failed', errorMessage);
     }
   };
 
@@ -272,7 +307,7 @@ export default function AuthPage() {
               {loginErrors.password ? (
                 <Text style={styles.errorText}>{loginErrors.password}</Text>
               ) : null}
-              <TouchableOpacity style={styles.forgotPassword}>
+              <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
                 <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleLogin} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
