@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ContentIllustration from './components/ContentIllustration';
 
 export default function NewbornCareDetailScreen() {
   const navigation = useNavigation();
@@ -34,11 +33,6 @@ export default function NewbornCareDetailScreen() {
       {/* Title */}
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{item.title}</Text>
-      </View>
-
-      {/* Illustration */}
-      <View style={styles.imageContainer}>
-        <ContentIllustration imageType={item.imageType} category="newborn" />
       </View>
 
       {/* Content Section */}
@@ -116,10 +110,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     lineHeight: 30,
-  },
-  imageContainer: {
-    paddingHorizontal: 20,
-    marginVertical: 16,
   },
   section: {
     paddingHorizontal: 20,

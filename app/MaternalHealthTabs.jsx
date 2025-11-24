@@ -6,8 +6,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
-import React from 'react';
-import { Alert } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Modal, View, StyleSheet } from 'react-native';
 
 // Import screens
 import { auth } from '../config/firebase';
@@ -16,6 +16,8 @@ import HomeScreen from './(screens)/HomeScreen';
 import InsightsScreen from './(screens)/InsightsScreens';
 import LearnScreen from './(screens)/LearnScreen';
 import PregnancyTrackerScreen from './PregnancyTrackerScreen';
+import FloatingChatButton from './components/FloatingChatButton';
+import ChatScreen from './(screens)/ChatScreen';
 
 // Import maternal health learn module screens
 import BreastfeedingGuideDetailScreen from './BreastfeedingGuideDetailScreen';
@@ -189,5 +191,26 @@ const DrawerNavigator = () => {
 };
 
 export default function MaternalHealthTabs() {
-  return <DrawerNavigator />;
+  const [chatModalVisible, setChatModalVisible] = useState(false);
+
+  return (
+    <View style={styles.container}>
+      <DrawerNavigator />
+      <FloatingChatButton onPress={() => setChatModalVisible(true)} />
+      <Modal
+        visible={chatModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setChatModalVisible(false)}
+      >
+        <ChatScreen onClose={() => setChatModalVisible(false)} />
+      </Modal>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

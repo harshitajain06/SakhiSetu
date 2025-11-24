@@ -3,14 +3,15 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { signOut } from 'firebase/auth';
-import React from 'react';
-import { Alert } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Modal, StyleSheet, View } from 'react-native';
 
 // Import menstrual health specific screens
 import { auth } from '../config/firebase';
+import ChatScreen from './(screens)/ChatScreen';
 import CycleInsightsScreen from './CycleInsightsScreen';
 import HealthDietCareScreen from './HealthDietCareScreen';
 import JourneyToUnderstandingScreen from './JourneyToUnderstandingScreen';
@@ -19,10 +20,11 @@ import MenstrualLearnScreen from './MenstrualLearnScreen';
 import MythDetailScreen from './MythDetailScreen';
 import MythsAndFactsListScreen from './MythsAndFactsListScreen';
 import PeriodTrackerScreen from './PeriodTrackerScreen';
-import StayingCleanListScreen from './StayingCleanListScreen';
 import StayingCleanDetailScreen from './StayingCleanDetailScreen';
-import WellbeingConfidenceListScreen from './WellbeingConfidenceListScreen';
+import StayingCleanListScreen from './StayingCleanListScreen';
 import WellbeingConfidenceDetailScreen from './WellbeingConfidenceDetailScreen';
+import WellbeingConfidenceListScreen from './WellbeingConfidenceListScreen';
+import FloatingChatButton from './components/FloatingChatButton';
 
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
@@ -164,5 +166,26 @@ const DrawerNavigator = () => {
 };
 
 export default function MenstrualHealthTabs() {
-  return <DrawerNavigator />;
+  const [chatModalVisible, setChatModalVisible] = useState(false);
+
+  return (
+    <View style={styles.container}>
+      <DrawerNavigator />
+      <FloatingChatButton onPress={() => setChatModalVisible(true)} />
+      <Modal
+        visible={chatModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setChatModalVisible(false)}
+      >
+        <ChatScreen onClose={() => setChatModalVisible(false)} />
+      </Modal>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
