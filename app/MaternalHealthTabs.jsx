@@ -22,8 +22,14 @@ import BreastfeedingGuideDetailScreen from './BreastfeedingGuideDetailScreen';
 import BreastfeedingGuideListScreen from './BreastfeedingGuideListScreen';
 import ExerciseFitnessDetailScreen from './ExerciseFitnessDetailScreen';
 import ExerciseFitnessListScreen from './ExerciseFitnessListScreen';
+import MaternalWellnessDetailScreen from './MaternalWellnessDetailScreen';
+import MaternalWellnessListScreen from './MaternalWellnessListScreen';
 import MaternalWellnessScreen from './MaternalWellnessScreen';
+import NewbornCareDetailScreen from './NewbornCareDetailScreen';
+import NewbornCareListScreen from './NewbornCareListScreen';
 import NewbornCareScreen from './NewbornCareScreen';
+import NutritionDietDetailScreen from './NutritionDietDetailScreen';
+import NutritionDietListScreen from './NutritionDietListScreen';
 import NutritionDietScreen from './NutritionDietScreen';
 import PostpartumCareDetailScreen from './PostpartumCareDetailScreen';
 import PostpartumCareListScreen from './PostpartumCareListScreen';
@@ -58,10 +64,18 @@ const LearnStack = () => {
       <Stack.Screen name="PregnancyBasics" component={PregnancyBasicsScreen} />
       <Stack.Screen name="PregnancyBasicsList" component={PregnancyBasicsListScreen} />
       <Stack.Screen name="PregnancyBasicsDetail" component={PregnancyBasicsDetailScreen} />
-      {/* Video module screens */}
+      {/* Nutrition & Diet screens */}
       <Stack.Screen name="NutritionDiet" component={NutritionDietScreen} />
+      <Stack.Screen name="NutritionDietList" component={NutritionDietListScreen} />
+      <Stack.Screen name="NutritionDietDetail" component={NutritionDietDetailScreen} />
+      {/* Newborn Care screens */}
       <Stack.Screen name="NewbornCare" component={NewbornCareScreen} />
+      <Stack.Screen name="NewbornCareList" component={NewbornCareListScreen} />
+      <Stack.Screen name="NewbornCareDetail" component={NewbornCareDetailScreen} />
+      {/* Maternal Wellness screens */}
       <Stack.Screen name="MaternalWellness" component={MaternalWellnessScreen} />
+      <Stack.Screen name="MaternalWellnessList" component={MaternalWellnessListScreen} />
+      <Stack.Screen name="MaternalWellnessDetail" component={MaternalWellnessDetailScreen} />
     </Stack.Navigator>
   );
 };

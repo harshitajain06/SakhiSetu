@@ -95,13 +95,13 @@ export default function LearnScreen() {
         // Navigate to pregnancy basics list screen
         navigation.navigate('PregnancyBasics');
       } else if (module.route === 'NutritionDiet') {
-        // Navigate to video screen
+        // Navigate to nutrition diet list screen
         navigation.navigate('NutritionDiet');
       } else if (module.route === 'NewbornCare') {
-        // Navigate to video screen
+        // Navigate to newborn care list screen
         navigation.navigate('NewbornCare');
       } else if (module.route === 'MaternalWellness') {
-        // Navigate to video screen
+        // Navigate to maternal wellness list screen
         navigation.navigate('MaternalWellness');
       } else {
         // Handle other module navigations here
