@@ -8,8 +8,8 @@ import {
   orderBy,
   query
 } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Dimensions, Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../../config/firebase';
 
 const { width } = Dimensions.get('window');
@@ -29,6 +29,10 @@ export default function MaternalHealthHomeScreen() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [sessionModalVisible, setSessionModalVisible] = useState(false);
+  const [sessionTime, setSessionTime] = useState(900); // 15 minutes in seconds
+  const [isSessionRunning, setIsSessionRunning] = useState(false);
+  const timerRef = useRef(null);
 
   // Get current user ID
   const getCurrentUserId = () => {
@@ -324,6 +328,99 @@ export default function MaternalHealthHomeScreen() {
     Linking.openURL(url).catch(err => console.error('Error opening phone dialer:', err));
   };
 
+  // Session timer functions
+  const startSession = () => {
+    setSessionModalVisible(true);
+    setSessionTime(900); // Reset to 15 minutes
+    setIsSessionRunning(true);
+  };
+
+  const toggleSessionTimer = () => {
+    setIsSessionRunning(!isSessionRunning);
+  };
+
+  const resetSession = () => {
+    setSessionTime(900);
+    setIsSessionRunning(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const closeSessionModal = () => {
+    setIsSessionRunning(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setSessionModalVisible(false);
+    setSessionTime(900);
+  };
+
+  // Timer effect
+  useEffect(() => {
+    if (isSessionRunning && sessionTime > 0) {
+      timerRef.current = setInterval(() => {
+        setSessionTime((prevTime) => {
+          if (prevTime <= 1) {
+            setIsSessionRunning(false);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isSessionRunning, sessionTime]);
+
+  // Format time helper
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Session steps for each minute (15 minutes total)
+  const sessionSteps = [
+    { minute: 1, title: "Centering & Breathing", instruction: "Sit comfortably with your back straight. Close your eyes and take 3 deep breaths. Inhale through your nose for 4 counts, hold for 2, exhale for 6 counts." },
+    { minute: 2, title: "Neck & Shoulder Release", instruction: "Slowly roll your shoulders back 5 times, then forward 5 times. Gently tilt your head to the right, hold for 15 seconds, then to the left. Repeat once more." },
+    { minute: 3, title: "Gentle Spinal Warm-up", instruction: "Sit tall and gently twist your torso to the right, placing your left hand on your right knee. Hold for 20 seconds, then switch sides. Repeat once." },
+    { minute: 4, title: "Cat-Cow Stretch", instruction: "Come to hands and knees. Arch your back (cow pose) on inhale, round your back (cat pose) on exhale. Repeat 8 times slowly, moving with your breath." },
+    { minute: 5, title: "Modified Child's Pose", instruction: "From hands and knees, sit back on your heels (if comfortable) or keep knees slightly apart. Extend arms forward and rest forehead down. Hold for 1 minute, breathing deeply." },
+    { minute: 6, title: "Hip Circles", instruction: "Come to standing or seated. Place hands on hips and slowly circle your hips clockwise 8 times, then counterclockwise 8 times. Keep movements gentle and controlled." },
+    { minute: 7, title: "Standing Forward Fold (Modified)", instruction: "Stand with feet hip-width apart. Bend knees slightly and fold forward, letting your arms hang. Hold for 30 seconds, then slowly rise up. Repeat once." },
+    { minute: 8, title: "Warrior II Pose (Modified)", instruction: "Step right foot forward, left foot back. Bend right knee (not past ankle), keep left leg straight. Arms out to sides, gaze over right hand. Hold 30 seconds, switch sides." },
+    { minute: 9, title: "Tree Pose (Supported)", instruction: "Stand near a wall for support. Place right foot on left inner calf or thigh (avoid knee). Hands at heart center or overhead. Hold 30 seconds, switch sides." },
+    { minute: 10, title: "Seated Side Stretch", instruction: "Sit with legs crossed. Inhale and raise right arm up, exhale and lean left. Hold for 30 seconds, feeling the stretch. Return to center and switch sides." },
+    { minute: 11, title: "Butterfly Pose", instruction: "Sit with soles of feet together, knees out to sides. Hold your feet and gently bounce knees up and down 10 times, then hold still for 30 seconds, breathing deeply." },
+    { minute: 12, title: "Legs Up the Wall (Modified)", instruction: "Sit sideways near a wall, then swing legs up the wall. If uncomfortable, use a pillow under your lower back. Rest here for 1 minute, breathing naturally." },
+    { minute: 13, title: "Body Scan Meditation", instruction: "Lie down comfortably. Close your eyes and slowly scan your body from toes to head. Notice any tension and breathe into those areas. Release and relax each part." },
+    { minute: 14, title: "Deep Relaxation", instruction: "Continue lying down. Focus on your breathing. With each exhale, release any remaining tension. Visualize your baby and send loving thoughts. Stay in this peaceful state." },
+    { minute: 15, title: "Gratitude & Closing", instruction: "Slowly bring awareness back. Wiggle fingers and toes. Take 3 deep breaths. When ready, gently roll to your side and slowly sit up. Take a moment to feel grateful for this time." }
+  ];
+
+  // Get current step based on elapsed time
+  const getCurrentStep = () => {
+    const elapsedSeconds = 900 - sessionTime;
+    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+    const currentMinute = Math.min(elapsedMinutes + 1, 15); // 1-15
+    return sessionSteps[currentMinute - 1] || sessionSteps[0];
+  };
+
+  const currentStep = getCurrentStep();
+
   // Show loading screen while data is being fetched
   if (loading) {
     return (
@@ -491,7 +588,7 @@ export default function MaternalHealthHomeScreen() {
             <>
               <Text style={styles.focusMainText}>Prenatal Yoga & Meditation</Text>
               <Text style={styles.focusSubText}>15 minutes of gentle stretching and breathing exercises</Text>
-              <TouchableOpacity style={styles.focusButton}>
+              <TouchableOpacity style={styles.focusButton} onPress={startSession}>
                 <Text style={styles.focusButtonText}>Start Session</Text>
                 <Ionicons name="play" size={16} color="#fff" />
               </TouchableOpacity>
@@ -661,6 +758,106 @@ export default function MaternalHealthHomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Session Timer Modal */}
+      <Modal
+        visible={sessionModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeSessionModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollContent}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Prenatal Yoga & Meditation</Text>
+                <TouchableOpacity onPress={closeSessionModal} style={styles.closeButton}>
+                  <Ionicons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.timerContainer}>
+                <Text style={styles.timerText}>{formatTime(sessionTime)}</Text>
+                <Text style={styles.timerLabel}>
+                  {sessionTime === 0 ? 'Session Complete!' : isSessionRunning ? 'Session in Progress' : 'Session Paused'}
+                </Text>
+              </View>
+
+              {/* Current Step Display */}
+              {sessionTime < 900 && (
+                <View style={styles.currentStepContainer}>
+                  <View style={styles.stepHeader}>
+                    <View style={styles.stepIndicator}>
+                      <Text style={styles.stepNumber}>{currentStep.minute}</Text>
+                    </View>
+                    <Text style={styles.stepTitle}>{currentStep.title}</Text>
+                  </View>
+                  <Text style={styles.stepInstruction}>{currentStep.instruction}</Text>
+                  <View style={styles.stepProgress}>
+                    <View style={styles.stepProgressBar}>
+                      <View 
+                        style={[
+                          styles.stepProgressFill, 
+                          { width: `${(currentStep.minute / 15) * 100}%` }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.stepProgressText}>
+                      Step {currentStep.minute} of 15
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.sessionControls}>
+                <TouchableOpacity
+                  style={[styles.controlButton, styles.primaryButton]}
+                  onPress={toggleSessionTimer}
+                  disabled={sessionTime === 0}
+                >
+                  <Ionicons
+                    name={isSessionRunning ? 'pause' : 'play'}
+                    size={24}
+                    color="#fff"
+                  />
+                  <Text style={styles.controlButtonText}>
+                    {isSessionRunning ? 'Pause' : 'Resume'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.controlButton, styles.secondaryButton]}
+                  onPress={resetSession}
+                >
+                  <Ionicons name="refresh" size={24} color="#E91E63" />
+                  <Text style={[styles.controlButtonText, styles.secondaryButtonText]}>
+                    Reset
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.sessionTips}>
+                <Text style={styles.sessionTipsTitle}>Session Tips</Text>
+                <View style={styles.tipItem}>
+                  <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                  <Text style={styles.tipItemText}>Find a quiet, comfortable space</Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                  <Text style={styles.tipItemText}>Focus on your breathing</Text>
+                </View>
+                <View style={styles.tipItem}>
+                  <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                  <Text style={styles.tipItemText}>Move gently and listen to your body</Text>
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -1158,5 +1355,168 @@ const styles = StyleSheet.create({
     color: '#555',
     lineHeight: 22,
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: width * 0.9,
+    maxWidth: 400,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+    overflow: 'hidden',
+  },
+  modalScrollContent: {
+    padding: 25,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  closeButton: {
+    padding: 5,
+  },
+  timerContainer: {
+    alignItems: 'center',
+    marginVertical: 30,
+  },
+  timerText: {
+    fontSize: 64,
+    fontWeight: 'bold',
+    color: '#E91E63',
+    marginBottom: 10,
+    fontFamily: 'monospace',
+  },
+  timerLabel: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '600',
+  },
+  sessionControls: {
+    flexDirection: 'row',
+    gap: 15,
+    marginBottom: 25,
+  },
+  controlButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 12,
+    gap: 8,
+  },
+  primaryButton: {
+    backgroundColor: '#E91E63',
+  },
+  secondaryButton: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: '#E91E63',
+  },
+  controlButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  secondaryButtonText: {
+    color: '#E91E63',
+  },
+  sessionTips: {
+    marginTop: 10,
+  },
+  sessionTipsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  tipItemText: {
+    fontSize: 14,
+    color: '#666',
+    flex: 1,
+  },
+  currentStepContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#E91E63',
+  },
+  stepHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  stepIndicator: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E91E63',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  stepTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  stepInstruction: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 20,
+    marginBottom: 15,
+  },
+  stepProgress: {
+    marginTop: 10,
+  },
+  stepProgressBar: {
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  stepProgressFill: {
+    height: '100%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 3,
+  },
+  stepProgressText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
