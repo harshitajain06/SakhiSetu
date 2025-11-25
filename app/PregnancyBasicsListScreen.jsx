@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import { pregnancyBasicsData } from './data/pregnancyBasicsData';
 
 export default function PregnancyBasicsListScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const renderWeekCard = ({ item }) => (
     <TouchableOpacity
@@ -18,7 +20,7 @@ export default function PregnancyBasicsListScreen() {
       </View>
       <View style={styles.weekTextContainer}>
         <Text style={styles.weekTitle}>{item.title}</Text>
-        <Text style={styles.weekTrimester}>{item.trimester} Trimester</Text>
+        <Text style={styles.weekTrimester}>{item.trimester} {t('pregnancyBasics.trimester')}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color="#ccc" />
     </TouchableOpacity>
@@ -33,7 +35,7 @@ export default function PregnancyBasicsListScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pregnancy Week by Week</Text>
+        <Text style={styles.headerTitle}>{t('pregnancyBasics.weekByWeek')}</Text>
         <View style={styles.placeholder} />
       </View>
 

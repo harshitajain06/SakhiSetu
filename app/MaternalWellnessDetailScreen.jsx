@@ -2,16 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 
 export default function MaternalWellnessDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params || {};
+  const { t } = useTranslation();
 
   if (!item) {
     return (
       <View style={styles.container}>
-        <Text>Content not found</Text>
+        <Text>{t('general.contentNotFound')}</Text>
       </View>
     );
   }
@@ -26,7 +28,7 @@ export default function MaternalWellnessDetailScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Maternal Wellness</Text>
+        <Text style={styles.headerTitle}>{t('maternalWellness.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -45,7 +47,7 @@ export default function MaternalWellnessDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="checkmark-circle" size={24} color="#FFC107" />
-            <Text style={styles.sectionTitle}>Key Tips</Text>
+            <Text style={styles.sectionTitle}>{t('maternalWellness.keyTips')}</Text>
           </View>
           {item.tips.map((tip, index) => (
             <View key={index} style={styles.tipItem}>
@@ -61,7 +63,7 @@ export default function MaternalWellnessDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="information-circle" size={24} color="#FFC107" />
-            <Text style={styles.sectionTitle}>Important Note</Text>
+            <Text style={styles.sectionTitle}>{t('maternalWellness.importantNote')}</Text>
           </View>
           <View style={styles.noteContainer}>
             <Text style={styles.noteText}>{item.importantNote}</Text>

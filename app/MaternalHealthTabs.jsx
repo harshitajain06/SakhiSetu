@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import React, { useState } from 'react';
 import { Alert, Modal, View, StyleSheet } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 
 // Import screens
 import { auth } from '../config/firebase';
@@ -15,6 +16,7 @@ import CommunityScreen from './(screens)/CommunityScreen';
 import HomeScreen from './(screens)/HomeScreen';
 import InsightsScreen from './(screens)/InsightsScreens';
 import LearnScreen from './(screens)/LearnScreen';
+import LanguageSelectorScreen from './LanguageSelectorScreen';
 import PregnancyTrackerScreen from './PregnancyTrackerScreen';
 import FloatingChatButton from './components/FloatingChatButton';
 import ChatScreen from './(screens)/ChatScreen';
@@ -85,6 +87,7 @@ const LearnStack = () => {
 // Bottom Tab Navigator Component
 const BottomTabs = () => {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -114,17 +117,17 @@ const BottomTabs = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Community" component={CommunityScreen} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: t('nav.home') }} />
+      <Tab.Screen name="Community" component={CommunityScreen} options={{ title: t('nav.community') }} />
       <Tab.Screen
         name="Insights"
         component={PregnancyTrackerScreen}
-        options={{ title: "Insights" }}
+        options={{ title: t('nav.insights') }}
       />
       <Tab.Screen
         name="Learn"
         component={LearnStack}
-        options={{ title: "Learn" }}
+        options={{ title: t('nav.learn') }}
       />
     </Tab.Navigator>
   );
@@ -133,6 +136,7 @@ const BottomTabs = () => {
 // Drawer Navigator Component
 const DrawerNavigator = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     signOut(auth)
@@ -141,7 +145,7 @@ const DrawerNavigator = () => {
       })
       .catch((err) => {
         console.error("Logout Error:", err);
-        Alert.alert("Error", "Failed to logout. Please try again.");
+        Alert.alert(t('common.error'), "Failed to logout. Please try again.");
       });
   };
 
@@ -151,13 +155,24 @@ const DrawerNavigator = () => {
 
   return (
     <Drawer.Navigator initialRouteName="MainTabs">
-      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'Maternal Health' }} />
+      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: t('learn.title') }} />
+      
+      <Drawer.Screen
+        name="LanguageSelector"
+        component={LanguageSelectorScreen}
+        options={{
+          title: t('nav.language'),
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="language-outline" size={size} color={color} />
+          ),
+        }}
+      />
       
       <Drawer.Screen
         name="SwitchHealthFlow"
         component={BottomTabs}
         options={{
-          title: 'Switch Health Flow',
+          title: t('nav.switchHealthFlow'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="swap-horizontal-outline" size={size} color={color} />
           ),
@@ -174,7 +189,7 @@ const DrawerNavigator = () => {
         name="Logout"
         component={BottomTabs}
         options={{
-          title: 'Logout',
+          title: t('nav.logout'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),

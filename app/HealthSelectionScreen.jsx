@@ -2,22 +2,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation, languages } from '../contexts/TranslationContext';
 import ProfileScreen from './ProfileScreen';
 
 export default function HealthSelectionScreen() {
   const navigation = useNavigation();
+  const { t, language } = useTranslation();
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+  
+  const currentLanguage = languages.find(lang => lang.code === language) || languages[0];
 
   const tips = [
-    "Prioritize self-care today. Even small moments of peace can make a big difference.",
-    "Stay hydrated throughout the day. Aim for 8-10 glasses of water for optimal health.",
-    "Get 7-9 hours of quality sleep each night to support your body's natural healing processes.",
-    "Practice deep breathing exercises for 5 minutes daily to reduce stress and anxiety.",
-    "Include at least 30 minutes of physical activity in your daily routine.",
-    "Eat a balanced diet rich in fruits, vegetables, and whole grains.",
-    "Take regular breaks from screens to protect your eye health and mental well-being.",
-    "Connect with loved ones regularly - social support is crucial for mental health."
+    t('healthSelection.tip1'),
+    t('healthSelection.tip2'),
+    t('healthSelection.tip3'),
+    t('healthSelection.tip4'),
+    t('healthSelection.tip5'),
+    t('healthSelection.tip6'),
+    t('healthSelection.tip7'),
+    t('healthSelection.tip8'),
   ];
 
   const handleMaternalHealth = () => {
@@ -46,7 +50,7 @@ export default function HealthSelectionScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.appTitle}>Sakhi Setu</Text>
+          <Text style={styles.appTitle}>{t('healthSelection.appTitle')}</Text>
           <View style={styles.headerIcons}>
             <TouchableOpacity
               style={styles.profileIcon}
@@ -60,10 +64,15 @@ export default function HealthSelectionScreen() {
         </View>
 
         {/* Language Selector */}
-        <View style={styles.languageSelector}>
+        <TouchableOpacity 
+          style={styles.languageSelector}
+          onPress={() => navigation.navigate('LanguageSelector')}
+          activeOpacity={0.7}
+        >
           <Ionicons name="globe-outline" size={20} color="#666" />
-          <Text style={styles.languageText}>English</Text>
-        </View>
+          <Text style={styles.languageText}>{currentLanguage.nativeName}</Text>
+          <Ionicons name="chevron-forward" size={16} color="#666" />
+        </TouchableOpacity>
 
         {/* Main Content Cards */}
         <View style={styles.cardsContainer}>
@@ -74,12 +83,12 @@ export default function HealthSelectionScreen() {
                 <Ionicons name="heart-outline" size={30} color="#fff" />
               </View>
             </View>
-            <Text style={styles.cardTitle}>Menstrual Health</Text>
+            <Text style={styles.cardTitle}>{t('healthSelection.menstrualHealth')}</Text>
             <Text style={styles.cardDescription}>
-              Track your cycle, understand symptoms, and access wellness resources for every stage.
+              {t('healthSelection.menstrualHealthDesc')}
             </Text>
             <TouchableOpacity style={styles.cardButton}>
-              <Text style={styles.cardButtonText}>Explore Cycle Tracking</Text>
+              <Text style={styles.cardButtonText}>{t('healthSelection.exploreCycleTracking')}</Text>
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -90,12 +99,12 @@ export default function HealthSelectionScreen() {
                 <Ionicons name="medical-outline" size={30} color="#fff" />
               </View>
             </View>
-            <Text style={styles.cardTitle}>Maternal Wellness</Text>
+            <Text style={styles.cardTitle}>{t('healthSelection.maternalWellness')}</Text>
             <Text style={styles.cardDescription}>
-              Comprehensive guidance through pregnancy, postpartum recovery, and new parenthood.
+              {t('healthSelection.maternalWellnessDesc')}
             </Text>
             <TouchableOpacity style={styles.cardButton}>
-              <Text style={styles.cardButtonText}>View Maternal Guide</Text>
+              <Text style={styles.cardButtonText}>{t('healthSelection.exploreMaternalWellness')}</Text>
             </TouchableOpacity>
           </TouchableOpacity>
 
@@ -103,7 +112,7 @@ export default function HealthSelectionScreen() {
           <View style={styles.tipsSection}>
             <View style={styles.tipsHeader}>
               <Ionicons name="bulb-outline" size={24} color="#333" />
-              <Text style={styles.tipsTitle}>Tips</Text>
+              <Text style={styles.tipsTitle}>{t('healthSelection.dailyTips')}</Text>
             </View>
             <Text style={styles.tipText}>{tips[currentTipIndex]}</Text>
             <View style={styles.tipsNavigation}>
@@ -185,6 +194,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
     gap: 8,
+    justifyContent: 'space-between',
   },
   languageText: {
     fontSize: 16,

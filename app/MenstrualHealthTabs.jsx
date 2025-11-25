@@ -8,13 +8,16 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { signOut } from 'firebase/auth';
 import React, { useState } from 'react';
 import { Alert, Modal, StyleSheet, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 
 // Import menstrual health specific screens
 import { auth } from '../config/firebase';
 import ChatScreen from './(screens)/ChatScreen';
+import FloatingChatButton from './components/FloatingChatButton';
 import CycleInsightsScreen from './CycleInsightsScreen';
 import HealthDietCareScreen from './HealthDietCareScreen';
 import JourneyToUnderstandingScreen from './JourneyToUnderstandingScreen';
+import LanguageSelectorScreen from './LanguageSelectorScreen';
 import MenstrualHomeScreen from './MenstrualHomeScreen';
 import MenstrualLearnScreen from './MenstrualLearnScreen';
 import MythDetailScreen from './MythDetailScreen';
@@ -24,7 +27,6 @@ import StayingCleanDetailScreen from './StayingCleanDetailScreen';
 import StayingCleanListScreen from './StayingCleanListScreen';
 import WellbeingConfidenceDetailScreen from './WellbeingConfidenceDetailScreen';
 import WellbeingConfidenceListScreen from './WellbeingConfidenceListScreen';
-import FloatingChatButton from './components/FloatingChatButton';
 
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
@@ -54,6 +56,7 @@ const LearnStack = () => {
 // Bottom Tab Navigator Component
 const BottomTabs = () => {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -84,22 +87,22 @@ const BottomTabs = () => {
       <Tab.Screen 
         name="MenstrualHome" 
         component={MenstrualHomeScreen}
-        options={{ title: "Home" }}
+        options={{ title: t('menstrual.home') }}
       />
       <Tab.Screen 
         name="PeriodTracker" 
         component={PeriodTrackerScreen}
-        options={{ title: "Tracker" }}
+        options={{ title: t('menstrual.tracker') }}
       />
       <Tab.Screen
         name="CycleInsights"
         component={CycleInsightsScreen}
-        options={{ title: "Insights" }}
+        options={{ title: t('menstrual.insights') }}
       />
       <Tab.Screen
         name="MenstrualLearn"
         component={LearnStack}
-        options={{ title: "Learn" }}
+        options={{ title: t('menstrual.learn') }}
       />
     </Tab.Navigator>
   );
@@ -108,6 +111,7 @@ const BottomTabs = () => {
 // Drawer Navigator Component
 const DrawerNavigator = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     signOut(auth)
@@ -116,7 +120,7 @@ const DrawerNavigator = () => {
       })
       .catch((err) => {
         console.error("Logout Error:", err);
-        Alert.alert("Error", "Failed to logout. Please try again.");
+        Alert.alert(t('common.error'), "Failed to logout. Please try again.");
       });
   };
 
@@ -126,13 +130,24 @@ const DrawerNavigator = () => {
 
   return (
     <Drawer.Navigator initialRouteName="MainTabs">
-      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'Menstrual Health' }} />
+      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: t('menstrual.menstrualHealth') }} />
+      
+      <Drawer.Screen
+        name="LanguageSelector"
+        component={LanguageSelectorScreen}
+        options={{
+          title: t('nav.language'),
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="language-outline" size={size} color={color} />
+          ),
+        }}
+      />
       
       <Drawer.Screen
         name="SwitchHealthFlow"
         component={BottomTabs}
         options={{
-          title: 'Switch Health Flow',
+          title: t('nav.switchHealthFlow'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="swap-horizontal-outline" size={size} color={color} />
           ),
@@ -149,7 +164,7 @@ const DrawerNavigator = () => {
         name="Logout"
         component={BottomTabs}
         options={{
-          title: 'Logout',
+          title: t('nav.logout'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),

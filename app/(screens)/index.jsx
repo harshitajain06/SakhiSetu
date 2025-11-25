@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { auth } from '../../config/firebase';
+import { useTranslation } from '../../contexts/TranslationContext';
 
 const { width, height } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -23,6 +24,7 @@ export default function AuthPage() {
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
+  const { t } = useTranslation();
 
   const [user, loading, error] = useAuthState(auth);
 
@@ -242,7 +244,7 @@ export default function AuthPage() {
             </View>
           </View>
           <Text style={[styles.title, isDarkMode && { color: '#fff' }]}>
-            Welcome to SakhiSetu
+            {t('auth.welcome')}
           </Text>
 
           {/* Tabs */}
@@ -251,20 +253,20 @@ export default function AuthPage() {
               onPress={() => setMode('login')}
               style={[styles.tab, mode === 'login' && styles.activeTabBackground]}
             >
-              <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>Login</Text>
+              <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>{t('auth.login')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setMode('register')}
               style={[styles.tab, mode === 'register' && styles.activeTabBackground]}
             >
-              <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>Register</Text>
+              <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>{t('auth.register')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Forms */}
           {mode === 'login' ? (
             <View style={styles.form}>
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Email</Text>
+              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
               <TextInput
                 placeholder="name@example.com"
                 style={[
@@ -286,7 +288,7 @@ export default function AuthPage() {
               {loginErrors.email ? (
                 <Text style={styles.errorText}>{loginErrors.email}</Text>
               ) : null}
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Password</Text>
+              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
               <TextInput
                 placeholder="••••••••"
                 secureTextEntry
@@ -308,15 +310,15 @@ export default function AuthPage() {
                 <Text style={styles.errorText}>{loginErrors.password}</Text>
               ) : null}
               <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
-                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleLogin} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
-                {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign in</Text>}
+                {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('auth.signIn')}</Text>}
               </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.form}>
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Full Name</Text>
+              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.fullName')}</Text>
               <TextInput
                 placeholder="John Doe"
                 style={[
@@ -336,7 +338,7 @@ export default function AuthPage() {
               {registerErrors.name ? (
                 <Text style={styles.errorText}>{registerErrors.name}</Text>
               ) : null}
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Email</Text>
+              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
               <TextInput
                 placeholder="name@example.com"
                 style={[
@@ -358,7 +360,7 @@ export default function AuthPage() {
               {registerErrors.email ? (
                 <Text style={styles.errorText}>{registerErrors.email}</Text>
               ) : null}
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>Password</Text>
+              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
               <TextInput
                 placeholder="••••••••"
                 secureTextEntry

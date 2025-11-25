@@ -11,11 +11,13 @@ import {
   View
 } from "react-native";
 import YoutubeIframe from 'react-native-youtube-iframe';
+import { useTranslation } from '../contexts/TranslationContext';
 
 const { height, width } = Dimensions.get("window");
 
 export default function JourneyToUnderstandingScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
@@ -28,64 +30,64 @@ export default function JourneyToUnderstandingScreen() {
   const videoLessons = [
     {
       id: 1,
-      title: 'What is a Period?',
-      description: 'Understanding the basics of menstruation.',
+      title: t('journey.video1Title'),
+      description: t('journey.video1Desc'),
       icon: 'heart',
       duration: '2 min',
       videoId: 'faDgESel4Ng',
     },
     {
       id: 2,
-      title: 'How first periods feel like?',
-      description: 'A detailed breakdown of the four phases.',
+      title: t('journey.video2Title'),
+      description: t('journey.video2Desc'),
       icon: 'create',
       duration: '3 min',
       videoId: 'cfROFgkV43E',
     },
     {
       id: 3,
-      title: 'Period Cramps & Pain Relief',
-      description: 'Effective strategies and remedies.',
+      title: t('journey.video3Title'),
+      description: t('journey.video3Desc'),
       icon: 'bandage',
       duration: '4 min',
       videoId: '',
     },
     {
       id: 4,
-      title: 'What I do when I get my first period',
-      description: 'Emotional changes during your cycle.',
+      title: t('journey.video4Title'),
+      description: t('journey.video4Desc'),
       icon: 'chatbubble',
       duration: '3 min',
       videoId: 'ImzxzlPzbRk',
     },
     {
       id: 5,
-      title: 'Early Signs of Your Period',
-      description: 'Recognizing the subtle body signals.',
+      title: t('journey.video5Title'),
+      description: t('journey.video5Desc'),
       icon: 'time',
       duration: '2 min',
       videoId: '',
     },
     {
       id: 6,
-      title: 'How can I help my friends during their periods?',
-      description: 'Supporting others during their menstrual cycle.',
+      title: t('journey.video6Title'),
+      description: t('journey.video6Desc'),
       icon: 'people',
       duration: '3 min',
       videoId: 'gojy9QRRO68',
     },
     {
       id: 7,
-      title: 'How to maintain hygiene during periods?',
-      description: 'Essential hygiene practices.',
+      title: t('journey.video7Title'),
+      description: t('journey.video7Desc'),
       icon: 'water',
       duration: '4 min',
       videoId: 'qFLEIwY-SYE',
     },
     {
       id: 8,
-      title: 'What are sanitary pads, how to use them and dispose of them?',
-      description: 'Complete guide to using sanitary pads.',
+      title: t('journey.video8Title'),
+      description: t('journey.video8Desc'),
       icon: 'shield',
       duration: '5 min',
       videoId: 'J6bZsl1pi_o',
@@ -142,7 +144,7 @@ export default function JourneyToUnderstandingScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Your Journey to Understanding</Text>
+          <Text style={styles.headerTitle}>{t('journey.title')}</Text>
           <View style={{ width: 32 }} />
         </View>
 

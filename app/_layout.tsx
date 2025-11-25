@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { TranslationProvider } from '../contexts/TranslationContext';
 import MainLayout from './MainLayout';
 
 export default function RootLayout() {
@@ -18,9 +19,11 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <MainLayout />
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <TranslationProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <MainLayout />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </TranslationProvider>
   );
 }

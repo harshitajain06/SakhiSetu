@@ -2,80 +2,83 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../../contexts/TranslationContext';
 
 export default function LearnScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
+  
   const modules = [
     {
       id: 1,
-      title: 'Pregnancy Basics',
-      description: 'Understanding the fundamentals of pregnancy and what to expect.',
+      title: t('learn.pregnancyBasics'),
+      description: t('learn.pregnancyBasicsDesc'),
       icon: 'heart',
       iconColor: '#e91e63',
-      contentType: 'Videos',
+      contentType: t('contentType.videos'),
       route: 'PregnancyBasics'
     },
     {
       id: 2,
-      title: 'Prenatal Care',
-      description: 'Essential healthcare practices during your pregnancy journey.',
+      title: t('learn.prenatalCare'),
+      description: t('learn.prenatalCareDesc'),
       icon: 'medical',
       iconColor: '#2196F3',
-      contentType: 'Images and Text',
+      contentType: t('contentType.imagesAndText'),
       route: 'PrenatalCare'
     },
     {
       id: 3,
-      title: 'Nutrition & Diet',
-      description: 'Healthy eating habits and nutritional needs during pregnancy.',
+      title: t('learn.nutritionDiet'),
+      description: t('learn.nutritionDietDesc'),
       icon: 'restaurant',
       iconColor: '#4CAF50',
-      contentType: 'Videos',
+      contentType: t('contentType.videos'),
       route: 'NutritionDiet'
     },
     {
       id: 4,
-      title: 'Postpartum Care',
-      description: 'Recovery and self-care after giving birth.',
+      title: t('learn.postpartumCare'),
+      description: t('learn.postpartumCareDesc'),
       icon: 'flower',
       iconColor: '#FF9800',
-      contentType: 'Images and Text',
+      contentType: t('contentType.imagesAndText'),
       route: 'PostpartumCare'
     },
     {
       id: 5,
-      title: 'Newborn Care',
-      description: 'Essential tips for caring for your newborn baby.',
+      title: t('learn.newbornCare'),
+      description: t('learn.newbornCareDesc'),
       icon: 'baby',
       iconColor: '#9C27B0',
-      contentType: 'Videos',
+      contentType: t('contentType.videos'),
       route: 'NewbornCare'
     },
     {
       id: 6,
-      title: 'Breastfeeding Guide',
-      description: 'Comprehensive guide to successful breastfeeding.',
+      title: t('learn.breastfeedingGuide'),
+      description: t('learn.breastfeedingGuideDesc'),
       icon: 'water',
       iconColor: '#00BCD4',
-      contentType: 'Images and Text',
+      contentType: t('contentType.imagesAndText'),
       route: 'BreastfeedingGuide'
     },
     {
       id: 7,
-      title: 'Maternal Wellness',
-      description: 'Mental health and emotional well-being during and after pregnancy.',
+      title: t('learn.maternalWellness'),
+      description: t('learn.maternalWellnessDesc'),
       icon: 'happy',
       iconColor: '#FFC107',
-      contentType: 'Videos',
+      contentType: t('contentType.videos'),
       route: 'MaternalWellness'
     },
     {
       id: 8,
-      title: 'Exercise & Fitness',
-      description: 'Safe exercise routines and staying active during pregnancy.',
+      title: t('learn.exerciseFitness'),
+      description: t('learn.exerciseFitnessDesc'),
       icon: 'barbell',
       iconColor: '#F44336',
-      contentType: 'Images and Text',
+      contentType: t('contentType.imagesAndText'),
       route: 'ExerciseFitness'
     },
   ];
@@ -116,12 +119,12 @@ export default function LearnScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Maternal Health</Text>
+        <Text style={styles.headerTitle}>{t('learn.title')}</Text>
       </View>
 
       {/* Explore Modules Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Explore Modules</Text>
+        <Text style={styles.sectionTitle}>{t('learn.exploreModules')}</Text>
         <View style={styles.modulesGrid}>
           {modules.map((module) => (
             <TouchableOpacity

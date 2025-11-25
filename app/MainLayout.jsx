@@ -14,6 +14,7 @@ import InsightsScreen from "./(screens)/InsightsScreens";
 import LearnScreen from "./(screens)/LearnScreen";
 import LoginRegister from './(screens)/index';
 import HealthSelectionScreen from './HealthSelectionScreen';
+import LanguageSelectorScreen from './LanguageSelectorScreen';
 import MaternalHealthTabs from './MaternalHealthTabs';
 import MenstrualHealthTabs from './MenstrualHealthTabs';
 import WelcomeScreen from './WelcomeScreen';
@@ -151,6 +152,7 @@ export default function MainLayout() {
       <Stack.Screen name="HealthSelectionScreen" component={HealthSelectionScreen} />
       <Stack.Screen name="MaternalHealthTabs" component={MaternalHealthTabs} />
       <Stack.Screen name="MenstrualHealthTabs" component={MenstrualHealthTabs} />
+      <Stack.Screen name="LanguageSelector" component={LanguageSelectorScreen} />
       {/* Legacy routes for backward compatibility */}
       <Stack.Screen name="Drawer" component={DrawerNavigator} />
     </Stack.Navigator>

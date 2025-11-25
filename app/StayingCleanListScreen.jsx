@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import { stayingCleanData } from './data/stayingCleanData';
 
 export default function StayingCleanListScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const renderItemCard = ({ item }) => (
     <TouchableOpacity
@@ -32,7 +34,7 @@ export default function StayingCleanListScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Staying Clean</Text>
+        <Text style={styles.headerTitle}>{t('menstrual.stayingClean')}</Text>
         <View style={styles.placeholder} />
       </View>
 

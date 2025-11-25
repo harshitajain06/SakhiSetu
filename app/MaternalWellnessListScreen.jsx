@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import { maternalWellnessData } from './data/maternalWellnessData';
 
 export default function MaternalWellnessListScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const renderItemCard = ({ item }) => (
     <TouchableOpacity
@@ -32,7 +34,7 @@ export default function MaternalWellnessListScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Maternal Wellness</Text>
+        <Text style={styles.headerTitle}>{t('maternalWellness.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 

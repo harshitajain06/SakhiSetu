@@ -106,6 +106,7 @@ export default function ContentIllustration({ imageType = 'default', category = 
     <View style={styles.placeholderContainer}>
       <Ionicons name="image-outline" size={48} color="#ccc" />
       <Text style={styles.placeholderText}>
+        {/* Translation will be handled by parent component if needed */}
         Image not available
       </Text>
     </View>

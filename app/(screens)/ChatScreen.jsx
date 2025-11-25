@@ -14,12 +14,14 @@ import {
     View,
 } from 'react-native';
 import { getOpenAIApiKey, OPENAI_API_URL, SYSTEM_PROMPT } from '../../config/openai';
+import { useTranslation } from '../../contexts/TranslationContext';
 
 export default function ChatScreen({ onClose }) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm here to help you with questions about menstrual and maternal health. How can I assist you today?",
+      text: t('chat.initialMessage'),
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -94,16 +96,16 @@ export default function ChatScreen({ onClose }) {
     } catch (error) {
       console.error('Chat error:', error);
       
-      let errorMessage = "I'm sorry, I'm having trouble connecting right now. Please try again later.";
+      let errorMessage = t('chat.connectionError');
       
       if (error.response) {
         // API error response
         if (error.response.status === 401) {
-          errorMessage = "API key is invalid. Please check your OpenAI API key configuration.";
+          errorMessage = t('chat.apiKeyInvalid');
         } else if (error.response.status === 429) {
-          errorMessage = "Too many requests. Please wait a moment and try again.";
+          errorMessage = t('chat.tooManyRequests');
         } else {
-          errorMessage = `Error: ${error.response.data?.error?.message || 'Something went wrong'}`;
+          errorMessage = `${t('chat.error')}: ${error.response.data?.error?.message || t('chat.somethingWentWrong')}`;
         }
       } else if (error.message) {
         errorMessage = error.message;
@@ -203,7 +205,7 @@ export default function ChatScreen({ onClose }) {
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Type your question..."
+            placeholder={t('chat.typeQuestion')}
             placeholderTextColor="#999"
             multiline
             maxLength={500}

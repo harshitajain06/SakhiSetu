@@ -2,53 +2,56 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 
 export default function MenstrualLearnScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
+  
   const modules = [
     {
       id: 1,
-      title: 'Your Journey to Understanding',
-      description: 'Explore the basics of menstrual health and well-being.',
+      title: t('menstrual.journeyToUnderstanding'),
+      description: t('menstrual.journeyToUnderstandingDesc'),
       icon: 'heart',
       iconColor: '#e91e63',
-      contentType: 'Videos',
+      contentType: t('contentType.videos'),
       route: 'JourneyToUnderstanding'
     },
     {
       id: 2,
-      title: 'Myths & Facts',
-      description: 'Separate common beliefs from medical truths about menstruation.',
+      title: t('menstrual.mythsAndFacts'),
+      description: t('menstrual.mythsAndFactsDesc'),
       icon: 'bulb',
       iconColor: '#FFC107',
-      contentType: 'Images and Text',
+      contentType: t('contentType.imagesAndText'),
       route: 'MythsAndFacts'
     },
     {
       id: 3,
-      title: 'Staying Clean',
-      description: 'Guidance on hygiene practices during your menstrual cycle.',
+      title: t('menstrual.stayingClean'),
+      description: t('menstrual.stayingCleanDesc'),
       icon: 'water',
       iconColor: '#2196F3',
-      contentType: 'Images and Text',
+      contentType: t('contentType.imagesAndText'),
       route: 'StayingClean'
     },
     {
       id: 4,
-      title: 'Well-being & Confidence',
-      description: 'Tips for managing mood and staying confident during periods.',
+      title: t('menstrual.wellbeingConfidence'),
+      description: t('menstrual.wellbeingConfidenceDesc'),
       icon: 'barbell',
       iconColor: '#4CAF50',
-      contentType: 'Images and Text',
+      contentType: t('contentType.imagesAndText'),
       route: 'WellbeingConfidence'
     },
     {
       id: 5,
-      title: 'Health Diet & Care',
-      description: 'Nutrition advice and self-care tips for menstrual health.',
+      title: t('menstrual.healthDietCare'),
+      description: t('menstrual.healthDietCareDesc'),
       icon: 'restaurant',
       iconColor: '#FF9800',
-      contentType: 'Videos',
+      contentType: t('contentType.videos'),
       route: 'HealthDietCare'
     },
   ];
@@ -74,12 +77,12 @@ export default function MenstrualLearnScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Menstrual Health</Text>
+        <Text style={styles.headerTitle}>{t('menstrual.menstrualHealth')}</Text>
       </View>
 
       {/* Explore Modules Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Explore Modules</Text>
+        <Text style={styles.sectionTitle}>{t('menstrual.exploreModules')}</Text>
         <View style={styles.modulesGrid}>
           {modules.map((module) => (
             <TouchableOpacity

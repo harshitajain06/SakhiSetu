@@ -2,17 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import ContentIllustration from './components/ContentIllustration';
 
 export default function PregnancyBasicsDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params || {};
+  const { t } = useTranslation();
 
   if (!item) {
     return (
       <View style={styles.container}>
-        <Text>Content not found</Text>
+        <Text>{t('general.contentNotFound')}</Text>
       </View>
     );
   }
@@ -27,15 +29,15 @@ export default function PregnancyBasicsDetailScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Week {item.week}</Text>
+        <Text style={styles.headerTitle}>{t('pregnancyBasics.week')} {item.week}</Text>
         <View style={styles.placeholder} />
       </View>
 
       {/* Week Badge */}
       <View style={styles.weekBadgeContainer}>
         <View style={styles.weekBadge}>
-          <Text style={styles.weekBadgeText}>Week {item.week}</Text>
-          <Text style={styles.trimesterBadge}>{item.trimester} Trimester</Text>
+          <Text style={styles.weekBadgeText}>{t('pregnancyBasics.week')} {item.week}</Text>
+          <Text style={styles.trimesterBadge}>{item.trimester} {t('pregnancyBasics.trimester')}</Text>
         </View>
       </View>
 
@@ -53,7 +55,7 @@ export default function PregnancyBasicsDetailScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="information-circle" size={24} color="#e91e63" />
-          <Text style={styles.sectionTitle}>Overview</Text>
+          <Text style={styles.sectionTitle}>{t('pregnancyBasics.overview')}</Text>
         </View>
         <Text style={styles.contentText}>{item.overview}</Text>
       </View>
@@ -63,7 +65,7 @@ export default function PregnancyBasicsDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="heart" size={24} color="#e91e63" />
-            <Text style={styles.sectionTitle}>Baby Development</Text>
+            <Text style={styles.sectionTitle}>{t('pregnancyBasics.babyDevelopment')}</Text>
           </View>
           <Text style={styles.contentText}>{item.babyDevelopment}</Text>
         </View>
@@ -74,7 +76,7 @@ export default function PregnancyBasicsDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="body" size={24} color="#e91e63" />
-            <Text style={styles.sectionTitle}>Your Body</Text>
+            <Text style={styles.sectionTitle}>{t('pregnancyBasics.yourBody')}</Text>
           </View>
           <Text style={styles.contentText}>{item.yourBody}</Text>
         </View>
@@ -85,7 +87,7 @@ export default function PregnancyBasicsDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="medical" size={24} color="#e91e63" />
-            <Text style={styles.sectionTitle}>Common Symptoms</Text>
+            <Text style={styles.sectionTitle}>{t('pregnancyBasics.commonSymptoms')}</Text>
           </View>
           {item.symptoms.map((symptom, index) => (
             <View key={index} style={styles.symptomItem}>
@@ -101,7 +103,7 @@ export default function PregnancyBasicsDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="checkmark-circle" size={24} color="#e91e63" />
-            <Text style={styles.sectionTitle}>Tips for This Week</Text>
+            <Text style={styles.sectionTitle}>{t('pregnancyBasics.tipsForThisWeek')}</Text>
           </View>
           {item.tips.map((tip, index) => (
             <View key={index} style={styles.tipItem}>
@@ -117,7 +119,7 @@ export default function PregnancyBasicsDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="alert-circle" size={24} color="#e91e63" />
-            <Text style={styles.sectionTitle}>Important Note</Text>
+            <Text style={styles.sectionTitle}>{t('pregnancyBasics.importantNote')}</Text>
           </View>
           <View style={styles.noteContainer}>
             <Text style={styles.noteText}>{item.importantNote}</Text>

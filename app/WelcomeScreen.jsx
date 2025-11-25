@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import { auth } from '../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -20,6 +21,7 @@ const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [user] = useAuthState(auth);
   const [userName, setUserName] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -109,10 +111,10 @@ export default function WelcomeScreen() {
             },
           ]}
         >
-          <Text style={styles.welcomeText}>Welcome back!</Text>
+          <Text style={styles.welcomeText}>{t('welcome.welcomeBack')}</Text>
           <Text style={styles.nameText}>{displayName}</Text>
           <Text style={styles.subtitleText}>
-            We're here to support your health journey
+            {t('welcome.subtitle')}
           </Text>
         </Animated.View>
 
@@ -152,7 +154,7 @@ export default function WelcomeScreen() {
             onPress={handleContinue}
             activeOpacity={0.8}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
+            <Text style={styles.continueButtonText}>{t('welcome.continue')}</Text>
             <Ionicons name="arrow-forward" size={20} color="#fff" />
           </TouchableOpacity>
         </Animated.View>

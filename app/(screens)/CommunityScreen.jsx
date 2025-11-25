@@ -8,12 +8,14 @@ import {
   Linking,
   Platform,
 } from "react-native";
+import { useTranslation } from "../../contexts/TranslationContext";
 import { db } from "../../config/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function CommunityInfoScreen() {
+  const { t } = useTranslation();
   const [resources, setResources] = useState([]);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState('All');
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -34,8 +36,18 @@ export default function CommunityInfoScreen() {
     fetchResources();
   }, []);
 
+  // Map filter values (English keys) to translated display text
+  const getFilterDisplayText = (filterKey) => {
+    const filterMap = {
+      'All': t('community.filterAll'),
+      'Health Center': t('community.filterHealthCenter'),
+      'Local Counselor': t('community.filterLocalCounselor'),
+    };
+    return filterMap[filterKey] || filterKey;
+  };
+
   const filteredResources =
-    filter === "All"
+    filter === 'All'
       ? resources
       : resources.filter((item) => item.category === filter);
 
@@ -69,17 +81,19 @@ export default function CommunityInfoScreen() {
     </View>
   );
 
+  const filterOptions = ['All', 'Health Center', 'Local Counselor'];
+
   return (
     <View style={styles.container}>
       {/* Page Heading */}
-      <Text style={styles.heading}>Community Support Resources</Text>
+      <Text style={styles.heading}>{t('community.title')}</Text>
       <Text style={styles.subHeading}>
-        Find health centers, counselors, and emergency resources nearby.
+        {t('community.subtitle')}
       </Text>
 
       {/* Filter Buttons */}
       <View style={styles.filterContainer}>
-        {["All", "Health Center", "Local Counselor"].map((cat) => (
+        {filterOptions.map((cat) => (
           <TouchableOpacity
             key={cat}
             style={[
@@ -94,7 +108,7 @@ export default function CommunityInfoScreen() {
                 filter === cat && styles.activeFilterText,
               ]}
             >
-              {cat}
+              {getFilterDisplayText(cat)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -102,7 +116,7 @@ export default function CommunityInfoScreen() {
 
       {/* Nearby Hospitals Button */}
       <TouchableOpacity style={styles.nearbyButton} onPress={openNearbyHospitals}>
-        <Text style={styles.nearbyButtonText}>Find Nearby Hospitals</Text>
+        <Text style={styles.nearbyButtonText}>{t('community.findNearbyHospitals')}</Text>
       </TouchableOpacity>
 
       {/* Resource List */}
@@ -113,8 +127,7 @@ export default function CommunityInfoScreen() {
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
           <Text style={styles.footerNote}>
-            Phone numbers work offline, but calling requires an active internet
-            connection.
+            {t('community.footerNote')}
           </Text>
         }
       />

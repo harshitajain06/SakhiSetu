@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import { mythsData } from './data/mythsData';
 
 export default function MythsAndFactsListScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const renderMythCard = ({ item }) => (
     <TouchableOpacity
@@ -32,7 +34,7 @@ export default function MythsAndFactsListScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Myths & Facts</Text>
+        <Text style={styles.headerTitle}>{t('menstrual.mythsAndFacts')}</Text>
         <View style={styles.placeholder} />
       </View>
 

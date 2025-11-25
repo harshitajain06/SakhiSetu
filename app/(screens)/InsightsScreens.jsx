@@ -1,10 +1,11 @@
 // InsightsScreen.js
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { useTranslation } from '../../contexts/TranslationContext';
 
 export default function InsightsScreen() {
+  const { t } = useTranslation();
   const [selectedMonth, setSelectedMonth] = useState('July 2025');
 
   const markedDates = {
@@ -15,17 +16,17 @@ export default function InsightsScreen() {
   };
 
   const historyData = [
-    { month: 'March 2025', days: '6 7 8 9', status: 'On time', color: '#4CAF50' },
-    { month: 'April 2025', days: '10 11 12 13', status: 'Delayed 4 days', color: '#FF7043' },
-    { month: 'May 2025', days: '6 7 8 9', status: 'On time', color: '#4CAF50' },
-    { month: 'June 2025', days: '20 21 22 23', status: 'Delayed 14 days', color: '#E53935' },
+    { month: 'March 2025', days: '6 7 8 9', status: t('insights.onTime'), color: '#4CAF50' },
+    { month: 'April 2025', days: '10 11 12 13', status: t('insights.delayed', { days: 4 }), color: '#FF7043' },
+    { month: 'May 2025', days: '6 7 8 9', status: t('insights.onTime'), color: '#4CAF50' },
+    { month: 'June 2025', days: '20 21 22 23', status: t('insights.delayed', { days: 14 }), color: '#E53935' },
   ];
 
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Period Tracker</Text>
+        <Text style={styles.headerTitle}>{t('insights.myPeriodTracker')}</Text>
         <View style={styles.headerRight}>
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>AM</Text>
@@ -52,7 +53,7 @@ export default function InsightsScreen() {
 
       {/* Edit Button */}
       <TouchableOpacity style={styles.editButton}>
-        <Text style={styles.editButtonText}>Edit Period Dates</Text>
+        <Text style={styles.editButtonText}>{t('insights.editPeriodDates')}</Text>
       </TouchableOpacity>
 
       {/* Calendar */}
@@ -67,31 +68,31 @@ export default function InsightsScreen() {
 
       {/* Legend */}
       <View style={styles.legendBox}>
-        <Text style={styles.legendTitle}>Calendar Legend</Text>
+        <Text style={styles.legendTitle}>{t('insights.calendarLegend')}</Text>
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: '#8E24AA' }]} />
-          <Text>Period Days</Text>
+          <Text>{t('insights.periodDays')}</Text>
         </View>
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: '#F48FB1' }]} />
-          <Text>Predicted Days</Text>
+          <Text>{t('insights.predictedDays')}</Text>
         </View>
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: '#FFB300' }]} />
-          <Text>Today</Text>
+          <Text>{t('insights.today')}</Text>
         </View>
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: '#E53935' }]} />
-          <Text>Symptoms Logged</Text>
+          <Text>{t('insights.symptomsLogged')}</Text>
         </View>
       </View>
 
       {/* Cycle Insights */}
       <View style={styles.insightsBox}>
-        <Text style={styles.insightsTitle}>Cycle Insights</Text>
-        <Text style={styles.insightLabel}>Average Cycle Length: <Text style={{ fontWeight: 'bold' }}>28 days</Text></Text>
+        <Text style={styles.insightsTitle}>{t('insights.cycleInsights')}</Text>
+        <Text style={styles.insightLabel}>{t('insights.averageCycleLength')} <Text style={{ fontWeight: 'bold' }}>28 {t('insights.days')}</Text></Text>
         <Text style={styles.insightText}>
-          Based on your tracked history. Consistency is key for accurate predictions.
+          {t('insights.cycleInsightText')}
         </Text>
       </View>
     </ScrollView>

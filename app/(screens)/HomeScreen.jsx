@@ -11,11 +11,13 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../../config/firebase';
+import { useTranslation } from '../../contexts/TranslationContext';
 
 const { width } = Dimensions.get('window');
 
 export default function MaternalHealthHomeScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [pregnancyData, setPregnancyData] = useState({
     dueDate: null,
     lastPeriod: null,
@@ -426,7 +428,7 @@ export default function MaternalHealthHomeScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E91E63" />
-        <Text style={styles.loadingText}>Loading your pregnancy data...</Text>
+        <Text style={styles.loadingText}>{t('home.loadingData')}</Text>
       </View>
     );
   }
@@ -436,8 +438,8 @@ export default function MaternalHealthHomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Sakhi Setu</Text>
-          <Text style={styles.headerSubtitle}>Your Maternal Health Companion</Text>
+          <Text style={styles.headerTitle}>{t('home.appTitle')}</Text>
+          <Text style={styles.headerSubtitle}>{t('home.subtitle')}</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity 
@@ -466,9 +468,9 @@ export default function MaternalHealthHomeScreen() {
               <Ionicons name="heart" size={32} color="#fff" />
             </View>
             <View style={styles.pregnancyInfo}>
-              <Text style={styles.pregnancyTitle}>Pregnancy Progress</Text>
-              <Text style={styles.pregnancyWeek}>Week {currentWeek}</Text>
-              <Text style={styles.pregnancyTrimester}>Trimester {currentTrimester}</Text>
+              <Text style={styles.pregnancyTitle}>{t('home.pregnancyProgress')}</Text>
+              <Text style={styles.pregnancyWeek}>{t('home.week')} {currentWeek}</Text>
+              <Text style={styles.pregnancyTrimester}>{t('home.trimester')} {currentTrimester}</Text>
             </View>
           </View>
           
@@ -477,7 +479,7 @@ export default function MaternalHealthHomeScreen() {
       </View>
 
           <View style={styles.babyInfo}>
-            <Text style={styles.babySizeText}>Your baby is the size of a {babySize}</Text>
+            <Text style={styles.babySizeText}>{t('home.babySize')} {babySize}</Text>
             <View style={styles.milestonesContainer}>
               {milestones.map((milestone, index) => (
                 <View key={index} style={styles.milestoneItem}>
@@ -492,13 +494,13 @@ export default function MaternalHealthHomeScreen() {
         <View style={styles.setupCard}>
           <View style={styles.setupHeader}>
             <Ionicons name="heart" size={32} color="#E91E63" />
-            <Text style={styles.setupTitle}>Welcome to Your Pregnancy Journey</Text>
+            <Text style={styles.setupTitle}>{t('home.welcomeTitle')}</Text>
           </View>
           <Text style={styles.setupText}>
-            Set up your pregnancy tracker to get personalized insights and track your progress.
+            {t('home.welcomeText')}
           </Text>
           <TouchableOpacity style={styles.setupButton} onPress={navigateToPregnancyTracker}>
-            <Text style={styles.setupButtonText}>Set Up Pregnancy Tracker</Text>
+            <Text style={styles.setupButtonText}>{t('home.setupTracker')}</Text>
             <Ionicons name="arrow-forward" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -510,16 +512,16 @@ export default function MaternalHealthHomeScreen() {
           <View style={styles.developmentCard}>
             <View style={styles.developmentHeader}>
               <Ionicons name="heart-circle" size={28} color="#E91E63" />
-              <Text style={styles.developmentTitle}>Baby's Development</Text>
+              <Text style={styles.developmentTitle}>{t('home.babyDevelopment')}</Text>
             </View>
-            <Text style={styles.developmentWeek}>Week {currentWeek}</Text>
+            <Text style={styles.developmentWeek}>{t('home.week')} {currentWeek}</Text>
             <Text style={styles.developmentText}>{babyDevelopment}</Text>
           </View>
 
           <View style={styles.symptomsCard}>
             <View style={styles.symptomsHeader}>
               <Ionicons name="fitness" size={28} color="#9C27B0" />
-              <Text style={styles.symptomsTitle}>Symptoms You May Experience</Text>
+              <Text style={styles.symptomsTitle}>{t('home.symptomsTitle')}</Text>
             </View>
             <View style={styles.symptomsList}>
               {motherSymptoms.map((symptom, index) => (
@@ -539,22 +541,22 @@ export default function MaternalHealthHomeScreen() {
           <View style={styles.statCard}>
             <Ionicons name="calendar" size={24} color="#E91E63" />
             <Text style={styles.statNumber}>{Math.max(0, daysUntilDue)}</Text>
-            <Text style={styles.statLabel}>Days to Go</Text>
+            <Text style={styles.statLabel}>{t('home.daysToGo')}</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="heart" size={24} color="#E91E63" />
             <Text style={styles.statNumber}>{latestBP ? `${latestBP.systolic}/${latestBP.diastolic}` : 'N/A'}</Text>
-            <Text style={styles.statLabel}>Blood Pressure</Text>
+            <Text style={styles.statLabel}>{t('home.bloodPressure')}</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="scale" size={24} color="#E91E63" />
             <Text style={styles.statNumber}>+{pregnancyData.weightGain}</Text>
-            <Text style={styles.statLabel}>Weight Gain (kg)</Text>
+            <Text style={styles.statLabel}>{t('home.weightGain')}</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="medical" size={24} color="#E91E63" />
             <Text style={styles.statNumber}>{appointments.length}</Text>
-            <Text style={styles.statLabel}>Appointments</Text>
+            <Text style={styles.statLabel}>{t('home.appointments')}</Text>
           </View>
         </View>
       )}
@@ -563,12 +565,12 @@ export default function MaternalHealthHomeScreen() {
       <View style={styles.focusCard}>
         <View style={styles.focusHeader}>
           <Ionicons name="star" size={24} color="#FFC107" />
-          <Text style={styles.focusTitle}>Today's Focus</Text>
+          <Text style={styles.focusTitle}>{t('home.todaysFocus')}</Text>
         </View>
         <View style={styles.focusContent}>
           {nextAppointment ? (
             <>
-              <Text style={styles.focusMainText}>Upcoming Appointment</Text>
+              <Text style={styles.focusMainText}>{t('home.upcomingAppointment')}</Text>
               <Text style={styles.focusSubText}>
                 {nextAppointment.type} with {nextAppointment.doctor}
               </Text>
@@ -580,16 +582,16 @@ export default function MaternalHealthHomeScreen() {
                 })} at {nextAppointment.time}
             </Text>
               <TouchableOpacity style={styles.focusButton} onPress={navigateToPregnancyTracker}>
-                <Text style={styles.focusButtonText}>View Details</Text>
+                <Text style={styles.focusButtonText}>{t('home.viewDetails')}</Text>
                 <Ionicons name="calendar" size={16} color="#fff" />
               </TouchableOpacity>
             </>
           ) : (
             <>
-              <Text style={styles.focusMainText}>Prenatal Yoga & Meditation</Text>
-              <Text style={styles.focusSubText}>15 minutes of gentle stretching and breathing exercises</Text>
+              <Text style={styles.focusMainText}>{t('home.prenatalYoga')}</Text>
+              <Text style={styles.focusSubText}>{t('home.yogaDescription')}</Text>
               <TouchableOpacity style={styles.focusButton} onPress={startSession}>
-                <Text style={styles.focusButtonText}>Start Session</Text>
+                <Text style={styles.focusButtonText}>{t('home.startSession')}</Text>
                 <Ionicons name="play" size={16} color="#fff" />
               </TouchableOpacity>
             </>
@@ -599,86 +601,86 @@ export default function MaternalHealthHomeScreen() {
 
       {/* Health Tips Carousel */}
       <View style={styles.tipsSection}>
-        <Text style={styles.sectionTitle}>Health Tips for You</Text>
+        <Text style={styles.sectionTitle}>{t('home.healthTips')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tipsCarousel}>
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="nutrition" size={40} color="#4CAF50" />
             </View>
-            <Text style={styles.tipTitle}>Nutrition</Text>
-            <Text style={styles.tipDescription}>Focus on folate-rich foods like leafy greens and citrus fruits</Text>
+            <Text style={styles.tipTitle}>{t('home.nutrition')}</Text>
+            <Text style={styles.tipDescription}>{t('home.nutritionTip')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="fitness" size={40} color="#2196F3" />
             </View>
-            <Text style={styles.tipTitle}>Exercise</Text>
-            <Text style={styles.tipDescription}>30 minutes of moderate activity daily supports healthy pregnancy</Text>
+            <Text style={styles.tipTitle}>{t('home.exercise')}</Text>
+            <Text style={styles.tipDescription}>{t('home.exerciseTip')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="moon" size={40} color="#9C27B0" />
             </View>
-            <Text style={styles.tipTitle}>Sleep</Text>
-            <Text style={styles.tipDescription}>Aim for 7-9 hours of quality sleep for optimal recovery</Text>
+            <Text style={styles.tipTitle}>{t('home.sleep')}</Text>
+            <Text style={styles.tipDescription}>{t('home.sleepTip')}</Text>
           </View>
 
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="water" size={40} color="#00BCD4" />
             </View>
-            <Text style={styles.tipTitle}>Hydration</Text>
-            <Text style={styles.tipDescription}>Drink 8-10 glasses of water daily to support increased blood volume</Text>
+            <Text style={styles.tipTitle}>{t('home.hydration')}</Text>
+            <Text style={styles.tipDescription}>{t('home.hydrationTip')}</Text>
           </View>
 
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="happy" size={40} color="#FF9800" />
             </View>
-            <Text style={styles.tipTitle}>Mental Health</Text>
-            <Text style={styles.tipDescription}>Practice mindfulness and stress management techniques daily</Text>
+            <Text style={styles.tipTitle}>{t('home.mentalHealth')}</Text>
+            <Text style={styles.tipDescription}>{t('home.mentalHealthTip')}</Text>
           </View>
 
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="shield" size={40} color="#795548" />
             </View>
-            <Text style={styles.tipTitle}>Prenatal Vitamins</Text>
-            <Text style={styles.tipDescription}>Take your prenatal vitamins consistently for optimal nutrition</Text>
+            <Text style={styles.tipTitle}>{t('home.prenatalVitamins')}</Text>
+            <Text style={styles.tipDescription}>{t('home.vitaminsTip')}</Text>
           </View>
 
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="walk" size={40} color="#607D8B" />
             </View>
-            <Text style={styles.tipTitle}>Posture</Text>
-            <Text style={styles.tipDescription}>Maintain good posture and use proper body mechanics</Text>
+            <Text style={styles.tipTitle}>{t('home.posture')}</Text>
+            <Text style={styles.tipDescription}>{t('home.postureTip')}</Text>
           </View>
 
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="thermometer" size={40} color="#E91E63" />
             </View>
-            <Text style={styles.tipTitle}>Temperature</Text>
-            <Text style={styles.tipDescription}>Avoid hot tubs and saunas to prevent overheating</Text>
+            <Text style={styles.tipTitle}>{t('home.temperature')}</Text>
+            <Text style={styles.tipDescription}>{t('home.temperatureTip')}</Text>
           </View>
 
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="restaurant" size={40} color="#8BC34A" />
             </View>
-            <Text style={styles.tipTitle}>Food Safety</Text>
-            <Text style={styles.tipDescription}>Avoid raw fish, unpasteurized dairy, and deli meats</Text>
+            <Text style={styles.tipTitle}>{t('home.foodSafety')}</Text>
+            <Text style={styles.tipDescription}>{t('home.foodSafetyTip')}</Text>
           </View>
 
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="time" size={40} color="#FF5722" />
             </View>
-            <Text style={styles.tipTitle}>Regular Checkups</Text>
-            <Text style={styles.tipDescription}>Attend all scheduled prenatal appointments for monitoring</Text>
+            <Text style={styles.tipTitle}>{t('home.regularCheckups')}</Text>
+            <Text style={styles.tipDescription}>{t('home.checkupsTip')}</Text>
           </View>
         </ScrollView>
       </View>
@@ -687,23 +689,23 @@ export default function MaternalHealthHomeScreen() {
       <View style={styles.communityCard}>
         <View style={styles.communityHeader}>
           <Ionicons name="people" size={24} color="#E91E63" />
-          <Text style={styles.communityTitle}>Community Support</Text>
+          <Text style={styles.communityTitle}>{t('home.communitySupport')}</Text>
         </View>
         <Text style={styles.communityDescription}>
-          Connect with other expecting mothers and share your journey
+          {t('home.communityDescription')}
         </Text>
         <View style={styles.communityStats}>
           <View style={styles.communityStat}>
             <Text style={styles.communityNumber}>2.5k</Text>
-            <Text style={styles.communityLabel}>Active Members</Text>
+            <Text style={styles.communityLabel}>{t('home.activeMembers')}</Text>
           </View>
           <View style={styles.communityStat}>
             <Text style={styles.communityNumber}>156</Text>
-            <Text style={styles.communityLabel}>New Posts Today</Text>
+            <Text style={styles.communityLabel}>{t('home.newPostsToday')}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.communityButton} onPress={navigateToCommunity}>
-          <Text style={styles.communityButtonText}>Join Community</Text>
+          <Text style={styles.communityButtonText}>{t('home.joinCommunity')}</Text>
           <Ionicons name="arrow-forward" size={16} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -712,7 +714,7 @@ export default function MaternalHealthHomeScreen() {
       <View style={styles.emergencyCard}>
         <View style={styles.emergencyHeader}>
           <Ionicons name="call" size={24} color="#F44336" />
-          <Text style={styles.emergencyTitle}>Emergency Contacts</Text>
+          <Text style={styles.emergencyTitle}>{t('home.emergencyContacts')}</Text>
         </View>
         <View style={styles.contactList}>
           <TouchableOpacity 
@@ -773,7 +775,7 @@ export default function MaternalHealthHomeScreen() {
               contentContainerStyle={styles.modalScrollContent}
             >
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Prenatal Yoga & Meditation</Text>
+                <Text style={styles.modalTitle}>{t('home.prenatalYoga')}</Text>
                 <TouchableOpacity onPress={closeSessionModal} style={styles.closeButton}>
                   <Ionicons name="close" size={24} color="#666" />
                 </TouchableOpacity>
@@ -782,7 +784,7 @@ export default function MaternalHealthHomeScreen() {
               <View style={styles.timerContainer}>
                 <Text style={styles.timerText}>{formatTime(sessionTime)}</Text>
                 <Text style={styles.timerLabel}>
-                  {sessionTime === 0 ? 'Session Complete!' : isSessionRunning ? 'Session in Progress' : 'Session Paused'}
+                  {sessionTime === 0 ? t('home.sessionComplete') : isSessionRunning ? t('home.sessionInProgress') : t('home.sessionPaused')}
                 </Text>
               </View>
 
@@ -806,7 +808,7 @@ export default function MaternalHealthHomeScreen() {
                       />
                     </View>
                     <Text style={styles.stepProgressText}>
-                      Step {currentStep.minute} of 15
+                      {t('home.stepOf', { current: currentStep.minute, total: 15 })}
                     </Text>
                   </View>
                 </View>
@@ -824,7 +826,7 @@ export default function MaternalHealthHomeScreen() {
                     color="#fff"
                   />
                   <Text style={styles.controlButtonText}>
-                    {isSessionRunning ? 'Pause' : 'Resume'}
+                    {isSessionRunning ? t('home.pause') : t('home.resume')}
                   </Text>
                 </TouchableOpacity>
 
@@ -834,24 +836,24 @@ export default function MaternalHealthHomeScreen() {
                 >
                   <Ionicons name="refresh" size={24} color="#E91E63" />
                   <Text style={[styles.controlButtonText, styles.secondaryButtonText]}>
-                    Reset
+                    {t('home.reset')}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.sessionTips}>
-                <Text style={styles.sessionTipsTitle}>Session Tips</Text>
+                <Text style={styles.sessionTipsTitle}>{t('home.sessionTips')}</Text>
                 <View style={styles.tipItem}>
                   <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                  <Text style={styles.tipItemText}>Find a quiet, comfortable space</Text>
+                  <Text style={styles.tipItemText}>{t('home.tip1')}</Text>
                 </View>
                 <View style={styles.tipItem}>
                   <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                  <Text style={styles.tipItemText}>Focus on your breathing</Text>
+                  <Text style={styles.tipItemText}>{t('home.tip2')}</Text>
                 </View>
                 <View style={styles.tipItem}>
                   <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                  <Text style={styles.tipItemText}>Move gently and listen to your body</Text>
+                  <Text style={styles.tipItemText}>{t('home.tip3')}</Text>
                 </View>
               </View>
             </ScrollView>

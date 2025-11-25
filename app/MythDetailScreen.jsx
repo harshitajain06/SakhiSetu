@@ -2,17 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import MythIllustration from './components/MythIllustration';
 
 export default function MythDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { myth } = route.params || {};
+  const { t } = useTranslation();
 
   if (!myth) {
     return (
       <View style={styles.container}>
-        <Text>Myth not found</Text>
+        <Text>{t('myth.mythNotFound')}</Text>
       </View>
     );
   }
@@ -27,14 +29,14 @@ export default function MythDetailScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Myth Explainer</Text>
+        <Text style={styles.headerTitle}>{t('myth.mythExplainer')}</Text>
         <View style={styles.placeholder} />
       </View>
 
       {/* Myth Tag */}
       <View style={styles.mythTagContainer}>
         <View style={styles.mythTag}>
-          <Text style={styles.mythTagText}>Myth: {myth.shortTitle}</Text>
+          <Text style={styles.mythTagText}>{t('myth.myth')}: {myth.shortTitle}</Text>
         </View>
       </View>
 
@@ -42,7 +44,7 @@ export default function MythDetailScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="bulb" size={24} color="#FFC107" />
-          <Text style={styles.sectionTitle}>The Myth</Text>
+          <Text style={styles.sectionTitle}>{t('myth.theMyth')}</Text>
         </View>
         <Text style={styles.mythStatement}>{myth.mythStatement}</Text>
       </View>
@@ -56,7 +58,7 @@ export default function MythDetailScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-          <Text style={styles.sectionTitle}>FACT</Text>
+          <Text style={styles.sectionTitle}>{t('myth.fact')}</Text>
         </View>
         <Text style={styles.factText}>{myth.factCheck}</Text>
       </View>
@@ -66,7 +68,7 @@ export default function MythDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="document-text" size={24} color="#2196F3" />
-            <Text style={styles.sectionTitle}>Scientific Facts</Text>
+            <Text style={styles.sectionTitle}>{t('myth.scientificFacts')}</Text>
           </View>
           {myth.scientificFacts.map((fact, index) => (
             <View key={index} style={styles.factItem}>
@@ -82,7 +84,7 @@ export default function MythDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="leaf" size={24} color="#4CAF50" />
-            <Text style={styles.sectionTitle}>Healthy Tip</Text>
+            <Text style={styles.sectionTitle}>{t('myth.healthyTip')}</Text>
           </View>
           <Text style={styles.tipText}>{myth.healthyTip}</Text>
         </View>
@@ -92,7 +94,7 @@ export default function MythDetailScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-          <Text style={styles.sectionTitle}>Conclusion</Text>
+          <Text style={styles.sectionTitle}>{t('myth.conclusion')}</Text>
         </View>
         <Text style={styles.conclusionText}>{myth.conclusion}</Text>
       </View>

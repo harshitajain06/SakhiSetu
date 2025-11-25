@@ -2,17 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import ContentIllustration from './components/ContentIllustration';
 
 export default function WellbeingConfidenceDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params || {};
+  const { t } = useTranslation();
 
   if (!item) {
     return (
       <View style={styles.container}>
-        <Text>Content not found</Text>
+        <Text>{t('general.contentNotFound')}</Text>
       </View>
     );
   }
@@ -27,7 +29,7 @@ export default function WellbeingConfidenceDetailScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Well-being & Confidence</Text>
+        <Text style={styles.headerTitle}>{t('menstrual.wellbeingConfidence')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -51,7 +53,7 @@ export default function WellbeingConfidenceDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-            <Text style={styles.sectionTitle}>Key Tips</Text>
+            <Text style={styles.sectionTitle}>{t('prenatalCare.keyTips')}</Text>
           </View>
           {item.tips.map((tip, index) => (
             <View key={index} style={styles.tipItem}>
@@ -67,7 +69,7 @@ export default function WellbeingConfidenceDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="information-circle" size={24} color="#4CAF50" />
-            <Text style={styles.sectionTitle}>Important Note</Text>
+            <Text style={styles.sectionTitle}>{t('prenatalCare.importantNote')}</Text>
           </View>
           <View style={styles.noteContainer}>
             <Text style={styles.noteText}>{item.importantNote}</Text>
