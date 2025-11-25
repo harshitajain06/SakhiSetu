@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation, languages } from '../contexts/TranslationContext';
 import ProfileScreen from './ProfileScreen';
 
@@ -10,6 +10,7 @@ export default function HealthSelectionScreen() {
   const { t, language } = useTranslation();
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const isWeb = Platform.OS === 'web';
   
   const currentLanguage = languages.find(lang => lang.code === language) || languages[0];
 
@@ -47,7 +48,11 @@ export default function HealthSelectionScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={Platform.OS === 'web'}
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.appTitle}>{t('healthSelection.appTitle')}</Text>
@@ -57,7 +62,7 @@ export default function HealthSelectionScreen() {
               onPress={() => setProfileModalVisible(true)}
             >
               <View style={styles.profileImage}>
-                <Ionicons name="person" size={20} color="#fff" />
+                <Ionicons name="person" size={isWeb ? 18 : 20} color="#fff" />
               </View>
             </TouchableOpacity>
           </View>
@@ -69,9 +74,9 @@ export default function HealthSelectionScreen() {
           onPress={() => navigation.navigate('LanguageSelector')}
           activeOpacity={0.7}
         >
-          <Ionicons name="globe-outline" size={20} color="#666" />
+          <Ionicons name="globe-outline" size={isWeb ? 18 : 20} color="#666" />
           <Text style={styles.languageText}>{currentLanguage.nativeName}</Text>
-          <Ionicons name="chevron-forward" size={16} color="#666" />
+          <Ionicons name="chevron-forward" size={isWeb ? 14 : 16} color="#666" />
         </TouchableOpacity>
 
         {/* Main Content Cards */}
@@ -80,7 +85,7 @@ export default function HealthSelectionScreen() {
           <TouchableOpacity style={[styles.card, styles.menstrualHealthCard]} onPress={handleMenstrualHealth}>
             <View style={styles.cardIconContainer}>
               <View style={styles.cardIconCircle}>
-                <Ionicons name="heart-outline" size={30} color="#fff" />
+                <Ionicons name="heart-outline" size={isWeb ? 24 : 30} color="#fff" />
               </View>
             </View>
             <Text style={styles.cardTitle}>{t('healthSelection.menstrualHealth')}</Text>
@@ -96,7 +101,7 @@ export default function HealthSelectionScreen() {
           <TouchableOpacity style={[styles.card, styles.maternalWellnessCard]} onPress={handleMaternalWellness}>
             <View style={styles.cardIconContainer}>
               <View style={styles.cardIconCircle}>
-                <Ionicons name="medical-outline" size={30} color="#fff" />
+                <Ionicons name="medical-outline" size={isWeb ? 24 : 30} color="#fff" />
               </View>
             </View>
             <Text style={styles.cardTitle}>{t('healthSelection.maternalWellness')}</Text>
@@ -111,13 +116,13 @@ export default function HealthSelectionScreen() {
           {/* Today's Tip Section */}
           <View style={styles.tipsSection}>
             <View style={styles.tipsHeader}>
-              <Ionicons name="bulb-outline" size={24} color="#333" />
+              <Ionicons name="bulb-outline" size={isWeb ? 20 : 24} color="#333" />
               <Text style={styles.tipsTitle}>{t('healthSelection.dailyTips')}</Text>
             </View>
             <Text style={styles.tipText}>{tips[currentTipIndex]}</Text>
             <View style={styles.tipsNavigation}>
               <TouchableOpacity style={styles.tipNavButton} onPress={prevTip}>
-                <Ionicons name="chevron-back" size={20} color="#666" />
+                <Ionicons name="chevron-back" size={isWeb ? 18 : 20} color="#666" />
               </TouchableOpacity>
               <View style={styles.tipDots}>
                 {tips.map((_, index) => (
@@ -131,7 +136,7 @@ export default function HealthSelectionScreen() {
                 ))}
               </View>
               <TouchableOpacity style={styles.tipNavButton} onPress={nextTip}>
-                <Ionicons name="chevron-forward" size={20} color="#666" />
+                <Ionicons name="chevron-forward" size={isWeb ? 18 : 20} color="#666" />
               </TouchableOpacity>
             </View>
           </View>
@@ -145,6 +150,8 @@ export default function HealthSelectionScreen() {
   );
 }
 
+const isWeb = Platform.OS === 'web';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -153,16 +160,20 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: isWeb ? 10 : 20,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
+    paddingHorizontal: isWeb ? 16 : 20,
+    paddingTop: isWeb ? 8 : 10,
+    paddingBottom: isWeb ? 12 : 20,
   },
   appTitle: {
-    fontSize: 24,
+    fontSize: isWeb ? 20 : 24,
     fontWeight: 'bold',
     color: '#000',
   },
@@ -175,9 +186,9 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   profileImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: isWeb ? 28 : 32,
+    height: isWeb ? 28 : 32,
+    borderRadius: isWeb ? 14 : 16,
     backgroundColor: '#e91e63',
     justifyContent: 'center',
     alignItems: 'center',
@@ -186,10 +197,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    marginHorizontal: isWeb ? 16 : 20,
+    marginBottom: isWeb ? 12 : 20,
+    paddingHorizontal: isWeb ? 12 : 15,
+    paddingVertical: isWeb ? 8 : 12,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
@@ -197,18 +208,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   languageText: {
-    fontSize: 16,
+    fontSize: isWeb ? 14 : 16,
     color: '#333',
     fontWeight: '500',
   },
   cardsContainer: {
-    paddingHorizontal: 20,
-    gap: 20,
-    paddingBottom: 20,
+    paddingHorizontal: isWeb ? 16 : 20,
+    gap: isWeb ? 12 : 20,
+    paddingBottom: isWeb ? 12 : 20,
   },
   card: {
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: isWeb ? 12 : 16,
+    padding: isWeb ? 16 : 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -226,12 +237,12 @@ const styles = StyleSheet.create({
   },
   cardIconContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: isWeb ? 10 : 16,
   },
   cardIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: isWeb ? 48 : 60,
+    height: isWeb ? 48 : 60,
+    borderRadius: isWeb ? 24 : 30,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -239,55 +250,55 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   cardTitle: {
-    fontSize: 24,
+    fontSize: isWeb ? 20 : 24,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: isWeb ? 8 : 12,
   },
   cardDescription: {
-    fontSize: 16,
+    fontSize: isWeb ? 14 : 16,
     color: '#fff',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 20,
+    lineHeight: isWeb ? 20 : 22,
+    marginBottom: isWeb ? 12 : 20,
     opacity: 0.95,
   },
   cardButton: {
     backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: isWeb ? 8 : 12,
+    paddingHorizontal: isWeb ? 16 : 20,
     borderRadius: 8,
     alignSelf: 'center',
   },
   cardButtonText: {
-    fontSize: 16,
+    fontSize: isWeb ? 14 : 16,
     fontWeight: '600',
     color: '#333',
     textAlign: 'center',
   },
   tipsSection: {
     backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 10,
+    borderRadius: isWeb ? 12 : 16,
+    padding: isWeb ? 14 : 20,
+    marginTop: isWeb ? 4 : 10,
   },
   tipsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: isWeb ? 8 : 12,
     gap: 8,
   },
   tipsTitle: {
-    fontSize: 18,
+    fontSize: isWeb ? 16 : 18,
     fontWeight: 'bold',
     color: '#333',
   },
   tipText: {
-    fontSize: 16,
+    fontSize: isWeb ? 14 : 16,
     color: '#333',
-    lineHeight: 22,
-    marginBottom: 16,
+    lineHeight: isWeb ? 20 : 22,
+    marginBottom: isWeb ? 10 : 16,
   },
   tipsNavigation: {
     flexDirection: 'row',
