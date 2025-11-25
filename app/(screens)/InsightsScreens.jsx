@@ -8,6 +8,12 @@ export default function InsightsScreen() {
   const { t } = useTranslation();
   const [selectedMonth, setSelectedMonth] = useState('July 2025');
 
+  // Helper function to format month name with year
+  const formatMonthYear = (monthName, year) => {
+    const monthKey = monthName.toLowerCase();
+    return `${t(`insights.${monthKey}`)} ${year}`;
+  };
+
   const markedDates = {
     '2025-07-07': { selected: true, selectedColor: '#8E24AA' },
     '2025-07-08': { selected: true, selectedColor: '#8E24AA' },
@@ -16,10 +22,10 @@ export default function InsightsScreen() {
   };
 
   const historyData = [
-    { month: 'March 2025', days: '6 7 8 9', status: t('insights.onTime'), color: '#4CAF50' },
-    { month: 'April 2025', days: '10 11 12 13', status: t('insights.delayed', { days: 4 }), color: '#FF7043' },
-    { month: 'May 2025', days: '6 7 8 9', status: t('insights.onTime'), color: '#4CAF50' },
-    { month: 'June 2025', days: '20 21 22 23', status: t('insights.delayed', { days: 14 }), color: '#E53935' },
+    { month: formatMonthYear('march', '2025'), days: '6 7 8 9', status: t('insights.onTime'), color: '#4CAF50' },
+    { month: formatMonthYear('april', '2025'), days: '10 11 12 13', status: t('insights.delayed', { days: 4 }), color: '#FF7043' },
+    { month: formatMonthYear('may', '2025'), days: '6 7 8 9', status: t('insights.onTime'), color: '#4CAF50' },
+    { month: formatMonthYear('june', '2025'), days: '20 21 22 23', status: t('insights.delayed', { days: 14 }), color: '#E53935' },
   ];
 
   return (

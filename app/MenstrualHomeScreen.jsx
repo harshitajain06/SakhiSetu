@@ -1,20 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    orderBy,
-    query
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import InformationIcon from '../components/InformationIcon';
 import { auth, db } from '../config/firebase';
+import { useTranslation } from '../contexts/TranslationContext';
 
 export default function MenstrualHomeScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [menstrualData, setMenstrualData] = useState({
     cycleLength: 28,
     periodLength: 5,
@@ -171,7 +173,7 @@ export default function MenstrualHomeScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#e91e63" />
-        <Text style={styles.loadingText}>Loading your menstrual data...</Text>
+        <Text style={styles.loadingText}>{t('menstrualHome.loadingData')}</Text>
       </View>
     );
   }
@@ -180,7 +182,7 @@ export default function MenstrualHomeScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Menstrual Health</Text>
+        <Text style={styles.headerTitle}>{t('menstrualHome.menstrualHealth')}</Text>
         <View style={styles.headerRight}>
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
@@ -193,13 +195,13 @@ export default function MenstrualHomeScreen() {
         <View style={styles.statusCard}>
           <View style={styles.statusHeader}>
             <Ionicons name="heart" size={24} color="#e91e63" />
-            <Text style={styles.statusTitle}>Current Cycle</Text>
+            <Text style={styles.statusTitle}>{t('menstrualHome.currentCycle')}</Text>
           </View>
-          <Text style={styles.statusText}>Day {currentCycleDay} of {menstrualData.cycleLength}</Text>
+          <Text style={styles.statusText}>{t('menstrualHome.dayOf', { day: currentCycleDay, length: menstrualData.cycleLength })}</Text>
           <Text style={styles.statusSubtext}>
             {daysUntilNextPeriod > 0 
-              ? `Next period in ${daysUntilNextPeriod} days`
-              : 'Period is due'
+              ? t('menstrualHome.nextPeriodIn', { days: daysUntilNextPeriod })
+              : t('menstrualHome.periodDue')
             }
           </Text>
         </View>
@@ -207,13 +209,13 @@ export default function MenstrualHomeScreen() {
         <View style={styles.setupCard}>
           <View style={styles.setupHeader}>
             <Ionicons name="heart" size={24} color="#e91e63" />
-            <Text style={styles.setupTitle}>Welcome to Menstrual Health</Text>
+            <Text style={styles.setupTitle}>{t('menstrualHome.welcomeTitle')}</Text>
           </View>
           <Text style={styles.setupText}>
-            Set up your menstrual cycle tracking to get personalized insights and predictions.
+            {t('menstrualHome.setupText')}
           </Text>
           <TouchableOpacity style={styles.setupButton} onPress={navigateToTracker}>
-            <Text style={styles.setupButtonText}>Set Up Cycle Tracking</Text>
+            <Text style={styles.setupButtonText}>{t('menstrualHome.setupButton')}</Text>
             <Ionicons name="arrow-forward" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -221,46 +223,46 @@ export default function MenstrualHomeScreen() {
 
       {/* Quick Actions */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>{t('menstrualHome.quickActions')}</Text>
         <View style={styles.actionsGrid}>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToTracker}>
             <View style={styles.actionHeader}>
               <Ionicons name="add-circle-outline" size={32} color="#e91e63" />
               <InformationIcon 
-                info="Track the start and end dates of your menstrual period to monitor your cycle patterns and predict future periods. This helps you understand your body's natural rhythm and identify any irregularities."
+                info={t('menstrualHome.logPeriodInfo')}
                 size={16}
                 color="#e91e63"
-                title="Log Period"
+                title={t('menstrualHome.logPeriod')}
               />
             </View>
-            <Text style={styles.actionText}>Log Period</Text>
+            <Text style={styles.actionText}>{t('menstrualHome.logPeriod')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToTracker}>
             <View style={styles.actionHeader}>
               <Ionicons name="medical-outline" size={32} color="#e91e63" />
               <InformationIcon 
-                info="Record symptoms like cramps, mood changes, bloating, and other physical or emotional changes throughout your cycle. This data helps you and your healthcare provider understand patterns and manage your health better."
+                info={t('menstrualHome.logSymptomsInfo')}
                 size={16}
                 color="#e91e63"
-                title="Log Symptoms"
+                title={t('menstrualHome.logSymptoms')}
               />
             </View>
-            <Text style={styles.actionText}>Log Symptoms</Text>
+            <Text style={styles.actionText}>{t('menstrualHome.logSymptoms')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToTracker}>
             <Ionicons name="calendar-outline" size={32} color="#e91e63" />
-            <Text style={styles.actionText}>View Calendar</Text>
+            <Text style={styles.actionText}>{t('menstrualHome.viewCalendar')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToInsights}>
             <Ionicons name="analytics-outline" size={32} color="#e91e63" />
-            <Text style={styles.actionText}>Insights</Text>
+            <Text style={styles.actionText}>{t('menstrualHome.insights')}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Recent Activity */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
+        <Text style={styles.sectionTitle}>{t('menstrualHome.recentActivity')}</Text>
         <View style={styles.activityCard}>
           {periodHistory.length > 0 ? (
             periodHistory.slice(0, 2).map((period, index) => {
@@ -273,10 +275,10 @@ export default function MenstrualHomeScreen() {
                 <View key={period.id} style={styles.activityItem}>
                   <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
                   <Text style={styles.activityText}>
-                    Period logged for {isValidStart ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown'}-{isValidEnd ? endDate.toLocaleDateString('en-US', { day: 'numeric' }) : 'Unknown'}
+                    {t('menstrualHome.periodLoggedFor')} {isValidStart ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown'}-{isValidEnd ? endDate.toLocaleDateString('en-US', { day: 'numeric' }) : 'Unknown'}
                   </Text>
                   <Text style={styles.activityTime}>
-                    {isValidStart ? Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24)) : 0} days ago
+                    {isValidStart ? t('menstrualHome.daysAgo', { days: Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24)) }) : t('menstrualHome.daysAgo', { days: 0 })}
                   </Text>
                 </View>
               );
@@ -284,8 +286,8 @@ export default function MenstrualHomeScreen() {
           ) : (
             <View style={styles.activityItem}>
               <Ionicons name="information-circle" size={20} color="#666" />
-              <Text style={styles.activityText}>No recent activity</Text>
-              <Text style={styles.activityTime}>Start tracking your cycle</Text>
+              <Text style={styles.activityText}>{t('menstrualHome.noRecentActivity')}</Text>
+              <Text style={styles.activityTime}>{t('menstrualHome.startTracking')}</Text>
             </View>
           )}
           
@@ -293,10 +295,10 @@ export default function MenstrualHomeScreen() {
             <View style={styles.activityItem}>
               <Ionicons name="medical" size={20} color="#FF9800" />
               <Text style={styles.activityText}>
-                {symptoms[0].symptoms?.join(', ') || 'Symptoms logged'}
+                {symptoms[0].symptoms?.join(', ') || t('menstrualHome.symptomsLogged')}
               </Text>
               <Text style={styles.activityTime}>
-                {Math.floor((new Date() - new Date(symptoms[0].date)) / (1000 * 60 * 60 * 24))} days ago
+                {t('menstrualHome.daysAgo', { days: Math.floor((new Date() - new Date(symptoms[0].date)) / (1000 * 60 * 60 * 24)) })}
               </Text>
             </View>
           )}
@@ -306,29 +308,29 @@ export default function MenstrualHomeScreen() {
       {/* Cycle Insights Preview */}
       {menstrualData.isSetup && periodHistory.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cycle Insights</Text>
+          <Text style={styles.sectionTitle}>{t('menstrualHome.cycleInsights')}</Text>
           <View style={styles.insightsPreview}>
             <View style={styles.insightItem}>
               <Ionicons name="calendar" size={20} color="#e91e63" />
               <View style={styles.insightContent}>
-                <Text style={styles.insightTitle}>Average Cycle Length</Text>
+                <Text style={styles.insightTitle}>{t('menstrualHome.averageCycleLength')}</Text>
                 <Text style={styles.insightValue}>
-                  {Math.round(periodHistory.reduce((acc, period) => acc + period.cycleLength, 0) / periodHistory.length)} days
+                  {Math.round(periodHistory.reduce((acc, period) => acc + period.cycleLength, 0) / periodHistory.length)} {t('insights.days')}
                 </Text>
               </View>
             </View>
             <View style={styles.insightItem}>
               <Ionicons name="time" size={20} color="#2196F3" />
               <View style={styles.insightContent}>
-                <Text style={styles.insightTitle}>Average Period Length</Text>
+                <Text style={styles.insightTitle}>{t('menstrualHome.averagePeriodLength')}</Text>
                 <Text style={styles.insightValue}>
-                  {Math.round(periodHistory.reduce((acc, period) => acc + period.periodLength, 0) / periodHistory.length)} days
+                  {Math.round(periodHistory.reduce((acc, period) => acc + period.periodLength, 0) / periodHistory.length)} {t('insights.days')}
                 </Text>
               </View>
             </View>
           </View>
           <TouchableOpacity style={styles.viewMoreButton} onPress={navigateToInsights}>
-            <Text style={styles.viewMoreText}>View Detailed Insights</Text>
+            <Text style={styles.viewMoreText}>{t('menstrualHome.viewDetailedInsights')}</Text>
             <Ionicons name="arrow-forward" size={16} color="#e91e63" />
           </TouchableOpacity>
         </View>
@@ -336,55 +338,55 @@ export default function MenstrualHomeScreen() {
 
       {/* Health Tips Carousel */}
       <View style={styles.tipsSection}>
-        <Text style={styles.sectionTitle}>Health Tips for You</Text>
+        <Text style={styles.sectionTitle}>{t('menstrualHome.healthTipsForYou')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tipsCarousel}>
           {/* Menstrual Tips */}
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="trash-outline" size={40} color="#E91E63" />
             </View>
-            <Text style={styles.tipTitle}>Dispose Safely</Text>
-            <Text style={styles.tipDescription}>Wrap used pads properly and discard in bins; never flush pads.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.disposeSafely')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.disposeSafelyDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="calendar" size={40} color="#E91E63" />
             </View>
-            <Text style={styles.tipTitle}>Track Your Cycle</Text>
-            <Text style={styles.tipDescription}>Use the app calendar to note cycle length, flow, and symptoms. This will help you notice irregularities early.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.trackYourCycle')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.trackYourCycleDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="moon" size={40} color="#9C27B0" />
             </View>
-            <Text style={styles.tipTitle}>Rest Well</Text>
-            <Text style={styles.tipDescription}>Good sleep supports hormonal balance and reduces stress during periods.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.restWell')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.restWellDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="nutrition" size={40} color="#4CAF50" />
             </View>
-            <Text style={styles.tipTitle}>Eat Healthy</Text>
-            <Text style={styles.tipDescription}>Avoid excessive caffeine and junk food during menstruation as they may worsen cramps.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.eatHealthy')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.eatHealthyDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="thermometer" size={40} color="#FF5722" />
             </View>
-            <Text style={styles.tipTitle}>Ease Cramps</Text>
-            <Text style={styles.tipDescription}>Keep a small heating pad or hot water bottle ready during periods to ease abdominal cramps and back pain.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.easeCramps')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.easeCrampsDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="fitness" size={40} color="#2196F3" />
             </View>
-            <Text style={styles.tipTitle}>Exercise Timing</Text>
-            <Text style={styles.tipDescription}>Avoid high-intensity workouts. Engage in light physical activity like walking or yoga.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.exerciseTiming')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.exerciseTimingDesc')}</Text>
           </View>
 
           {/* Maternal Tips */}
@@ -392,48 +394,48 @@ export default function MenstrualHomeScreen() {
             <View style={styles.tipImage}>
               <Ionicons name="restaurant" size={40} color="#8BC34A" />
             </View>
-            <Text style={styles.tipTitle}>Eat Healthy</Text>
-            <Text style={styles.tipDescription}>Include milk, fruits, vegetables, and proteins every day to keep both mother and baby strong.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.eatHealthy')}</Text>
+            <Text style={styles.tipDescription}>{t('home.nutritionTip')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="time" size={40} color="#FF5722" />
             </View>
-            <Text style={styles.tipTitle}>Regular Checkups</Text>
-            <Text style={styles.tipDescription}>Visit the doctor often to monitor mother's health, baby's growth, and detect complications early.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.regularCheckups')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.regularCheckupsDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="walk" size={40} color="#607D8B" />
             </View>
-            <Text style={styles.tipTitle}>Stay Active</Text>
-            <Text style={styles.tipDescription}>Gentle walks or prenatal yoga improve circulation, reduce back pain, and keep the mother energetic.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.stayActive')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.stayActiveDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="moon" size={40} color="#9C27B0" />
             </View>
-            <Text style={styles.tipTitle}>Rest Well</Text>
-            <Text style={styles.tipDescription}>Sleeping 7–9 hours daily keeps the mother relaxed, reduces fatigue, and helps balance pregnancy hormones.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.restWell')}</Text>
+            <Text style={styles.tipDescription}>{t('home.sleepTip')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="happy" size={40} color="#FF9800" />
             </View>
-            <Text style={styles.tipTitle}>Manage Stress</Text>
-            <Text style={styles.tipDescription}>Simple breathing exercises, meditation, reduce anxiety and promote emotional well-being. Stress is not good for baby's health.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.manageStress')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.manageStressDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="medical" size={40} color="#E91E63" />
             </View>
-            <Text style={styles.tipTitle}>Postnatal Visits</Text>
-            <Text style={styles.tipDescription}>Doctor checkups ensure proper healing, family planning advice, and long-term maternal health.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.postnatalVisits')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.postnatalVisitsDesc')}</Text>
           </View>
 
           {/* General Health Tips */}
@@ -441,56 +443,56 @@ export default function MenstrualHomeScreen() {
             <View style={styles.tipImage}>
               <Ionicons name="fitness" size={40} color="#2196F3" />
             </View>
-            <Text style={styles.tipTitle}>Exercise Regularly</Text>
-            <Text style={styles.tipDescription}>At least 30 minutes of walking, cycling, or sports keeps the body fit and heart strong.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.exerciseRegularly')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.exerciseRegularlyDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="moon" size={40} color="#9C27B0" />
             </View>
-            <Text style={styles.tipTitle}>Get Enough Sleep</Text>
-            <Text style={styles.tipDescription}>7–9 hours of quality sleep helps the brain rest, improves memory, and reduces stress.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.getEnoughSleep')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.getEnoughSleepDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="phone-portrait-outline" size={40} color="#795548" />
             </View>
-            <Text style={styles.tipTitle}>Limit Screen Time</Text>
-            <Text style={styles.tipDescription}>Too much phone or computer use strains eyes, affects posture, and disturbs sleep.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.limitScreenTime')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.limitScreenTimeDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="body-outline" size={40} color="#607D8B" />
             </View>
-            <Text style={styles.tipTitle}>Practice Good Posture</Text>
-            <Text style={styles.tipDescription}>Sit and stand straight to avoid back pain, improve breathing, and boost self-confidence.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.practiceGoodPosture')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.practiceGoodPostureDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="tooth-outline" size={40} color="#00BCD4" />
             </View>
-            <Text style={styles.tipTitle}>Oral Care</Text>
-            <Text style={styles.tipDescription}>Brush twice a day and floss regularly to prevent cavities, gum disease, and weak teeth.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.oralCare')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.oralCareDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="water" size={40} color="#00BCD4" />
             </View>
-            <Text style={styles.tipTitle}>Personal Hygiene</Text>
-            <Text style={styles.tipDescription}>Regular bathing, clean clothes, and trimmed nails protect against germs and skin infections.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.personalHygiene')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.personalHygieneDesc')}</Text>
           </View>
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
               <Ionicons name="leaf-outline" size={40} color="#4CAF50" />
             </View>
-            <Text style={styles.tipTitle}>Safe Environment</Text>
-            <Text style={styles.tipDescription}>Keep your surroundings clean and avoid littering to reduce disease risk and promote community health.</Text>
+            <Text style={styles.tipTitle}>{t('menstrualHome.safeEnvironment')}</Text>
+            <Text style={styles.tipDescription}>{t('menstrualHome.safeEnvironmentDesc')}</Text>
           </View>
         </ScrollView>
       </View>

@@ -6,6 +6,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { signOut } from 'firebase/auth';
 import React from "react";
 import { Alert } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 
 // Import screens
 import CommunityScreen from "./(screens)/CommunityScreen";
@@ -30,6 +31,7 @@ const Drawer = createDrawerNavigator();
 // Bottom Tab Navigator Component (Legacy - for Maternal Health)
 const BottomTabs = () => {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -57,17 +59,17 @@ const BottomTabs = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: t('nav.home') }} />
       <Tab.Screen
         name="Learn"
         component={LearnScreen}
-        options={{ title: "Learn" }}
+        options={{ title: t('nav.learn') }}
       />
-      <Tab.Screen name="Community" component={CommunityScreen} />
+      <Tab.Screen name="Community" component={CommunityScreen} options={{ title: t('nav.community') }} />
       <Tab.Screen
         name="Insights"
         component={InsightsScreen}
-        options={{ title: "Insights" }}
+        options={{ title: t('nav.insights') }}
       />
     
     </Tab.Navigator>
@@ -77,6 +79,7 @@ const BottomTabs = () => {
 // Drawer Navigator Component (Legacy - for Maternal Health)
 const DrawerNavigator = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     signOut(auth)
@@ -85,7 +88,7 @@ const DrawerNavigator = () => {
       })
       .catch((err) => {
         console.error("Logout Error:", err);
-        Alert.alert("Error", "Failed to logout. Please try again.");
+        Alert.alert(t('common.error'), "Failed to logout. Please try again.");
       });
   };
 
@@ -95,13 +98,13 @@ const DrawerNavigator = () => {
 
   return (
     <Drawer.Navigator initialRouteName="MainTabs">
-      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'Home' }} />
+      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: t('nav.home') }} />
       
       <Drawer.Screen
         name="SwitchHealthFlow"
         component={BottomTabs}
         options={{
-          title: 'Switch Health Flow',
+          title: t('nav.switchHealthFlow'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="swap-horizontal-outline" size={size} color={color} />
           ),
@@ -118,7 +121,7 @@ const DrawerNavigator = () => {
         name="Logout"
         component={BottomTabs}
         options={{
-          title: 'Logout',
+          title: t('nav.logout'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),

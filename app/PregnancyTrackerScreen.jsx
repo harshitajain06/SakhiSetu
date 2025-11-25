@@ -13,10 +13,12 @@ import {
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { useTranslation } from '../contexts/TranslationContext';
 import InformationIcon from '../components/InformationIcon';
 import { auth, db } from '../config/firebase';
 
 export default function PregnancyTrackerScreen() {
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showDueDateModal, setShowDueDateModal] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
@@ -61,14 +63,28 @@ export default function PregnancyTrackerScreen() {
 
   const [appointments, setAppointments] = useState([]);
 
+  // Get translated severity text
+  const getSeverityText = (severity) => {
+    switch (severity) {
+      case 'Severe':
+        return t('pregnancyTracker.severe');
+      case 'Moderate':
+        return t('pregnancyTracker.moderate');
+      case 'Light':
+        return t('pregnancyTracker.light');
+      default:
+        return severity;
+    }
+  };
+
   // Pregnancy symptom options
   const pregnancySymptomOptions = [
-    'Back/leg pain',
-    'Frequent urination',
-    'Swollen breasts',
-    'Vomit/Nausea',
-    'Heartburn',
-    'Abdominal pain'
+    t('pregnancyTracker.backLegPain'),
+    t('pregnancyTracker.frequentUrination'),
+    t('pregnancyTracker.swollenBreasts'),
+    t('pregnancyTracker.vomitNausea'),
+    t('pregnancyTracker.heartburn'),
+    t('pregnancyTracker.abdominalPain')
   ];
 
   // Get symptom card background color based on severity
@@ -147,7 +163,7 @@ export default function PregnancyTrackerScreen() {
       console.log('Pregnancy data saved successfully');
     } catch (error) {
       console.error('Error saving pregnancy data:', error);
-      Alert.alert('Error', 'Failed to save pregnancy data');
+      Alert.alert(t('common.error'), t('pregnancyTracker.failedToSavePregnancyData'));
     } finally {
       setSaving(false);
     }
@@ -173,7 +189,7 @@ export default function PregnancyTrackerScreen() {
       }
     } catch (error) {
       console.error('Error fetching pregnancy data:', error);
-      Alert.alert('Error', 'Failed to load pregnancy data');
+      Alert.alert(t('common.error'), t('pregnancyTracker.failedToLoadPregnancyData'));
     } finally {
       setLoading(false);
     }
@@ -184,7 +200,7 @@ export default function PregnancyTrackerScreen() {
       setSaving(true);
       const userId = getCurrentUserId();
       if (!userId) {
-        Alert.alert('Error', 'User not authenticated');
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
         return;
       }
 
@@ -194,7 +210,7 @@ export default function PregnancyTrackerScreen() {
       console.log('Weight entry saved successfully');
     } catch (error) {
       console.error('Error saving weight entry:', error);
-      Alert.alert('Error', 'Failed to save weight entry');
+      Alert.alert(t('common.error'), t('pregnancyTracker.failedToSaveWeightEntry'));
     } finally {
       setSaving(false);
     }
@@ -225,7 +241,7 @@ export default function PregnancyTrackerScreen() {
       setSaving(true);
       const userId = getCurrentUserId();
       if (!userId) {
-        Alert.alert('Error', 'User not authenticated');
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
         return;
       }
 
@@ -235,7 +251,7 @@ export default function PregnancyTrackerScreen() {
       console.log('BP entry saved successfully');
     } catch (error) {
       console.error('Error saving BP entry:', error);
-      Alert.alert('Error', 'Failed to save blood pressure entry');
+      Alert.alert(t('common.error'), t('pregnancyTracker.failedToSaveBPEntry'));
     } finally {
       setSaving(false);
     }
@@ -290,7 +306,7 @@ export default function PregnancyTrackerScreen() {
       if (!userId) return;
 
       if (!newSymptom) {
-        Alert.alert('Error', 'Please select a symptom');
+        Alert.alert(t('common.error'), t('pregnancyTracker.pleaseSelectSymptom'));
         return;
       }
 
@@ -306,13 +322,13 @@ export default function PregnancyTrackerScreen() {
       // Refresh data
       await fetchPregnancySymptoms();
       
-      Alert.alert('Success', 'Symptom logged successfully!');
+      Alert.alert(t('common.success'), t('pregnancyTracker.symptomLogged'));
       setShowSymptomModal(false);
       setNewSymptom('');
       setSymptomSeverity('Light');
     } catch (error) {
       console.error('Error saving pregnancy symptom data:', error);
-      Alert.alert('Error', 'Failed to save symptom data. Please try again.');
+      Alert.alert(t('common.error'), t('pregnancyTracker.failedToSaveSymptomData'));
     } finally {
       setSaving(false);
     }
@@ -323,7 +339,7 @@ export default function PregnancyTrackerScreen() {
       setSaving(true);
       const userId = getCurrentUserId();
       if (!userId) {
-        Alert.alert('Error', 'User not authenticated');
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
         return;
       }
 
@@ -333,7 +349,7 @@ export default function PregnancyTrackerScreen() {
       console.log('Appointment saved successfully');
     } catch (error) {
       console.error('Error saving appointment:', error);
-      Alert.alert('Error', 'Failed to save appointment');
+      Alert.alert(t('common.error'), t('pregnancyTracker.failedToSaveAppointment'));
     } finally {
       setSaving(false);
     }
@@ -390,11 +406,11 @@ export default function PregnancyTrackerScreen() {
     const selectedDate = new Date(date);
     
     if (!date) {
-      errors.dueDate = 'Due date is required';
+      errors.dueDate = t('pregnancyTracker.dueDateRequired');
     } else if (isNaN(selectedDate.getTime())) {
-      errors.dueDate = 'Invalid date format';
+      errors.dueDate = t('pregnancyTracker.invalidDateFormat');
     } else if (selectedDate <= today) {
-      errors.dueDate = 'Due date must be in the future';
+      errors.dueDate = t('pregnancyTracker.dueDateMustBeFuture');
     } else {
     // Calculate LMP (40 weeks before due date)
     const lmpDate = new Date(selectedDate);
@@ -405,7 +421,7 @@ export default function PregnancyTrackerScreen() {
       maxLMPDate.setDate(maxLMPDate.getDate() - (42 * 7));
     
     if (lmpDate < maxLMPDate) {
-        errors.dueDate = 'Due date is too far in the future (max 10 months)';
+        errors.dueDate = t('pregnancyTracker.dueDateTooFar');
     }
     
     // Validate that due date is not too far in the future (max 10 months)
@@ -413,7 +429,7 @@ export default function PregnancyTrackerScreen() {
     maxDueDate.setMonth(maxDueDate.getMonth() + 10);
     
     if (selectedDate > maxDueDate) {
-        errors.dueDate = 'Due date is too far in the future (max 10 months)';
+        errors.dueDate = t('pregnancyTracker.dueDateTooFar');
       }
     }
     
@@ -428,11 +444,11 @@ export default function PregnancyTrackerScreen() {
     const selectedDate = new Date(date);
     
     if (!date) {
-      errors.appointmentDate = 'Appointment date is required';
+      errors.appointmentDate = t('pregnancyTracker.appointmentDateRequired');
     } else if (isNaN(selectedDate.getTime())) {
-      errors.appointmentDate = 'Invalid date format';
+      errors.appointmentDate = t('pregnancyTracker.invalidDateFormat');
     } else if (selectedDate < today) {
-      errors.appointmentDate = 'Appointment date cannot be in the past';
+      errors.appointmentDate = t('pregnancyTracker.appointmentDateCannotBePast');
     }
     
     setDateErrors(prev => ({ ...prev, ...errors }));
@@ -466,7 +482,7 @@ export default function PregnancyTrackerScreen() {
   const handleSetDueDate = async () => {
     // Validate due date
     if (!validateDueDate(tempDueDate)) {
-      Alert.alert('Validation Error', 'Please fix the date errors before saving');
+      Alert.alert(t('pregnancyTracker.validationError'), t('pregnancyTracker.fixDateErrors'));
       return;
     }
     
@@ -492,7 +508,7 @@ export default function PregnancyTrackerScreen() {
     
     setShowDueDateModal(false);
     setTempDueDate('');
-    Alert.alert('Success', 'Due date saved successfully!');
+    Alert.alert(t('common.success'), t('pregnancyTracker.dueDateSaved'));
   };
 
   const handleEditDueDate = () => {
@@ -530,12 +546,12 @@ export default function PregnancyTrackerScreen() {
   const getMilestones = () => {
     const currentWeek = getCurrentWeek;
     return [
-      { week: 8, title: 'Heartbeat detectable', completed: currentWeek >= 8 },
-      { week: 12, title: 'First trimester screening', completed: currentWeek >= 12 },
-      { week: 16, title: 'Gender reveal possible', completed: currentWeek >= 16 },
-      { week: 20, title: 'Anatomy scan', completed: currentWeek >= 20 },
-      { week: 24, title: 'Viability milestone', completed: currentWeek >= 24 },
-      { week: 28, title: 'Third trimester begins', completed: currentWeek >= 28 },
+      { week: 8, title: t('pregnancyTracker.heartbeatDetectable'), completed: currentWeek >= 8 },
+      { week: 12, title: t('pregnancyTracker.firstTrimesterScreening'), completed: currentWeek >= 12 },
+      { week: 16, title: t('pregnancyTracker.genderRevealPossible'), completed: currentWeek >= 16 },
+      { week: 20, title: t('pregnancyTracker.anatomyScan'), completed: currentWeek >= 20 },
+      { week: 24, title: t('pregnancyTracker.viabilityMilestone'), completed: currentWeek >= 24 },
+      { week: 28, title: t('pregnancyTracker.thirdTrimesterBegins'), completed: currentWeek >= 28 },
     ];
   };
 
@@ -569,13 +585,13 @@ export default function PregnancyTrackerScreen() {
 
   const handleSaveAppointment = async () => {
     if (!tempAppointment.type || !tempAppointment.date || !tempAppointment.time || !tempAppointment.doctor) {
-      Alert.alert('Error', 'Please fill in all appointment details');
+      Alert.alert(t('common.error'), t('pregnancyTracker.pleaseFillAllAppointmentDetails'));
       return;
     }
 
     // Validate appointment date
     if (!validateAppointmentDate(tempAppointment.date)) {
-      Alert.alert('Validation Error', 'Please fix the date errors before saving');
+      Alert.alert(t('pregnancyTracker.validationError'), t('pregnancyTracker.fixDateErrors'));
       return;
     }
 
@@ -600,7 +616,7 @@ export default function PregnancyTrackerScreen() {
       time: '',
       doctor: ''
     });
-    Alert.alert('Success', 'Appointment added successfully!');
+    Alert.alert(t('common.success'), t('pregnancyTracker.appointmentAdded'));
   };
 
   const handleLogWeight = () => {
@@ -610,13 +626,13 @@ export default function PregnancyTrackerScreen() {
 
   const handleSaveWeight = async () => {
     if (!tempWeight || isNaN(parseFloat(tempWeight))) {
-      Alert.alert('Error', 'Please enter a valid weight');
+      Alert.alert(t('common.error'), t('pregnancyTracker.pleaseEnterValidWeight'));
       return;
     }
 
     const weight = parseFloat(tempWeight);
     if (weight < 30 || weight > 200) {
-      Alert.alert('Error', 'Please enter a realistic weight (30-200 kg)');
+      Alert.alert(t('common.error'), t('pregnancyTracker.pleaseEnterRealisticWeight'));
       return;
     }
 
@@ -646,7 +662,7 @@ export default function PregnancyTrackerScreen() {
 
     setShowWeightModal(false);
     setTempWeight('');
-    Alert.alert('Success', 'Weight logged successfully!');
+    Alert.alert(t('common.success'), t('pregnancyTracker.weightLogged'));
   };
 
   const handleLogBloodPressure = () => {
@@ -657,7 +673,7 @@ export default function PregnancyTrackerScreen() {
 
   const handleSaveBloodPressure = async () => {
     if (!tempSystolic || !tempDiastolic || isNaN(parseInt(tempSystolic)) || isNaN(parseInt(tempDiastolic))) {
-      Alert.alert('Error', 'Please enter valid blood pressure values');
+      Alert.alert(t('common.error'), t('pregnancyTracker.pleaseEnterValidBP'));
       return;
     }
 
@@ -665,7 +681,7 @@ export default function PregnancyTrackerScreen() {
     const diastolic = parseInt(tempDiastolic);
 
     if (systolic < 70 || systolic > 200 || diastolic < 40 || diastolic > 120) {
-      Alert.alert('Error', 'Please enter realistic blood pressure values');
+      Alert.alert(t('common.error'), t('pregnancyTracker.pleaseEnterRealisticBP'));
       return;
     }
 
@@ -694,7 +710,7 @@ export default function PregnancyTrackerScreen() {
     setShowBPModal(false);
     setTempSystolic('');
     setTempDiastolic('');
-    Alert.alert('Success', 'Blood pressure logged successfully!');
+    Alert.alert(t('common.success'), t('pregnancyTracker.bpLogged'));
   };
 
   const getMarkedDates = () => {
@@ -864,7 +880,7 @@ export default function PregnancyTrackerScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#e91e63" />
-        <Text style={styles.loadingText}>Loading your pregnancy data...</Text>
+        <Text style={styles.loadingText}>{t('pregnancyTracker.loadingData')}</Text>
       </View>
     );
   }
@@ -873,7 +889,7 @@ export default function PregnancyTrackerScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Pregnancy Tracker</Text>
+        <Text style={styles.headerTitle}>{t('pregnancyTracker.pregnancyTracker')}</Text>
         <View style={styles.headerRight}>
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
@@ -887,12 +903,12 @@ export default function PregnancyTrackerScreen() {
           <View style={styles.statusHeader}>
             <Ionicons name="baby" size={24} color="#666" />
             <Text style={[styles.statusTitle, { color: '#666' }]}>
-              Welcome to Pregnancy Tracker
+              {t('pregnancyTracker.welcomeTitle')}
             </Text>
           </View>
-          <Text style={styles.statusText}>Set your due date to get started</Text>
+          <Text style={styles.statusText}>{t('pregnancyTracker.setDueDatePrompt')}</Text>
           <TouchableOpacity style={styles.setupButton} onPress={() => setShowDueDateModal(true)}>
-            <Text style={styles.setupButtonText}>Set Due Date</Text>
+            <Text style={styles.setupButtonText}>{t('pregnancyTracker.setDueDate')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -900,15 +916,15 @@ export default function PregnancyTrackerScreen() {
           <View style={styles.statusHeader}>
             <Ionicons name="baby" size={24} color={getTrimesterColor(getCurrentTrimester)} />
             <Text style={[styles.statusTitle, { color: getTrimesterColor(getCurrentTrimester) }]}>
-              Week {getCurrentWeek} - Trimester {getCurrentTrimester}
+              {t('pregnancyTracker.week')} {getCurrentWeek} - {t('pregnancyTracker.trimester')} {getCurrentTrimester}
             </Text>
             <TouchableOpacity onPress={handleEditDueDate} style={styles.editButton}>
               <Ionicons name="pencil" size={16} color="#666" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.statusText}>Due Date: {pregnancyData.dueDate}</Text>
+          <Text style={styles.statusText}>{t('pregnancyTracker.dueDate')} {pregnancyData.dueDate}</Text>
           <Text style={styles.statusSubtext}>
-            {calculateDaysUntilDue()} days to go
+            {t('pregnancyTracker.daysToGo', { days: calculateDaysUntilDue() })}
           </Text>
         </View>
       )}

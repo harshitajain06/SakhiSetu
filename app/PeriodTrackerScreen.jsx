@@ -13,9 +13,11 @@ import {
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { useTranslation } from '../contexts/TranslationContext';
 import { auth, db } from '../config/firebase';
 
 export default function PeriodTrackerScreen() {
+  const { t } = useTranslation();
   const [menstrualData, setMenstrualData] = useState({
     cycleLength: 28,
     periodLength: 5,
@@ -35,7 +37,7 @@ export default function PeriodTrackerScreen() {
   const [periodStartDate, setPeriodStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [periodEndDate, setPeriodEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [newSymptom, setNewSymptom] = useState('');
-  const [symptomSeverity, setSymptomSeverity] = useState('Light');
+  const [symptomSeverity, setSymptomSeverity] = useState('Light'); // Will be translated in UI
   const [dateErrors, setDateErrors] = useState({});
   const [showSymptomDropdown, setShowSymptomDropdown] = useState(false);
   const [showSymptomDetailModal, setShowSymptomDetailModal] = useState(false);
@@ -43,14 +45,28 @@ export default function PeriodTrackerScreen() {
 
   // Symptom options
   const symptomOptions = [
-    'Cramps',
-    'Bloating',
-    'Headache',
-    'Fatigue',
-    'Vomit/Nausea',
-    'Digestive issues',
-    'Mood swings'
+    t('periodTracker.cramps'),
+    t('periodTracker.bloating'),
+    t('periodTracker.headache'),
+    t('periodTracker.fatigue'),
+    t('periodTracker.vomitNausea'),
+    t('periodTracker.digestiveIssues'),
+    t('periodTracker.moodSwings')
   ];
+
+  // Get translated severity text
+  const getSeverityText = (severity) => {
+    switch (severity) {
+      case 'Severe':
+        return t('periodTracker.severe');
+      case 'Moderate':
+        return t('periodTracker.moderate');
+      case 'Light':
+        return t('periodTracker.light');
+      default:
+        return severity;
+    }
+  };
 
   // Get symptom card background color based on severity
   const getSymptomCardColor = (severity) => {
@@ -237,7 +253,7 @@ export default function PeriodTrackerScreen() {
 
       // Validate dates
       if (!validateDates()) {
-        Alert.alert('Validation Error', 'Please fix the date errors before saving');
+        Alert.alert(t('periodTracker.validationError'), t('periodTracker.fixDateErrors'));
         return;
       }
 
@@ -277,14 +293,14 @@ export default function PeriodTrackerScreen() {
       await fetchMenstrualData();
       await fetchPeriodHistory();
       
-      Alert.alert('Success', 'Period logged successfully!');
+      Alert.alert(t('common.success'), t('periodTracker.successPeriodLogged'));
       setShowPeriodModal(false);
       // Reset form
       setPeriodStartDate(new Date().toISOString().split('T')[0]);
       setPeriodEndDate(new Date().toISOString().split('T')[0]);
     } catch (error) {
       console.error('Error saving period data:', error);
-      Alert.alert('Error', 'Failed to save period data. Please try again.');
+      Alert.alert(t('common.error'), t('periodTracker.errorSavePeriod'));
     } finally {
       setSaving(false);
     }
@@ -308,33 +324,33 @@ export default function PeriodTrackerScreen() {
 
     // Check if start date is provided
     if (!periodStartDate) {
-      errors.startDate = 'Start date is required';
+      errors.startDate = t('periodTracker.startDateRequired');
     } else if (isNaN(startDate.getTime())) {
-      errors.startDate = 'Invalid start date format';
+      errors.startDate = t('periodTracker.invalidStartDate');
     } else if (startDate > todayDate) {
-      errors.startDate = 'Start date cannot be in the future';
+      errors.startDate = t('periodTracker.startDateFuture');
     }
 
     // Check if end date is provided
     if (!periodEndDate) {
-      errors.endDate = 'End date is required';
+      errors.endDate = t('periodTracker.endDateRequired');
     } else if (isNaN(endDate.getTime())) {
-      errors.endDate = 'Invalid end date format';
+      errors.endDate = t('periodTracker.invalidEndDate');
     } else if (endDate > todayDate) {
-      errors.endDate = 'End date cannot be in the future';
+      errors.endDate = t('periodTracker.endDateFuture');
     }
 
     // Check if end date is after start date
     if (periodStartDate && periodEndDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
       if (endDate < startDate) {
-        errors.endDate = 'End date cannot be before start date';
+        errors.endDate = t('periodTracker.endBeforeStart');
       }
       
       // Check if period is too long (more than 10 days)
       const diffTime = endDate - startDate;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
       if (diffDays > 10) {
-        errors.endDate = 'Period cannot be longer than 10 days';
+        errors.endDate = t('periodTracker.periodTooLong');
       }
     }
 
@@ -369,7 +385,7 @@ export default function PeriodTrackerScreen() {
       if (!userId) return;
 
       if (!newSymptom) {
-        Alert.alert('Error', 'Please select a symptom');
+        Alert.alert(t('common.error'), t('periodTracker.errorSelectSymptom'));
         return;
       }
 
@@ -385,13 +401,13 @@ export default function PeriodTrackerScreen() {
       // Refresh data
       await fetchSymptoms();
       
-      Alert.alert('Success', 'Symptom logged successfully!');
+      Alert.alert(t('common.success'), t('periodTracker.successSymptomLogged'));
       setShowSymptomModal(false);
       setNewSymptom('');
       setSymptomSeverity('Light');
     } catch (error) {
       console.error('Error saving symptom data:', error);
-      Alert.alert('Error', 'Failed to save symptom data. Please try again.');
+      Alert.alert(t('common.error'), t('periodTracker.errorSaveSymptom'));
     } finally {
       setSaving(false);
     }
@@ -425,7 +441,7 @@ export default function PeriodTrackerScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#e91e63" />
-        <Text style={styles.loadingText}>Loading your period data...</Text>
+        <Text style={styles.loadingText}>{t('periodTracker.loadingData')}</Text>
       </View>
     );
   }
@@ -434,7 +450,7 @@ export default function PeriodTrackerScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Period Tracker</Text>
+        <Text style={styles.headerTitle}>{t('periodTracker.periodTracker')}</Text>
         <View style={styles.headerRight}>
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
@@ -447,21 +463,21 @@ export default function PeriodTrackerScreen() {
       <View style={styles.statusCard}>
         <View style={styles.statusHeader}>
           <Ionicons name="calendar" size={24} color="#e91e63" />
-          <Text style={styles.statusTitle}>Next Period</Text>
+          <Text style={styles.statusTitle}>{t('periodTracker.nextPeriod')}</Text>
         </View>
           <Text style={styles.statusText}>
             {nextPeriod ? nextPeriod.toLocaleDateString('en-US', { 
               month: 'long', 
               day: 'numeric', 
               year: 'numeric' 
-            }) : 'Not predicted'}
+            }) : t('periodTracker.notPredicted')}
           </Text>
           <Text style={styles.statusSubtext}>
             {daysUntilNextPeriod > 0 
-              ? `In ${daysUntilNextPeriod} days`
+              ? t('periodTracker.inDays', { days: daysUntilNextPeriod })
               : daysUntilNextPeriod === 0 
-                ? 'Today'
-                : 'Overdue'
+                ? t('periodTracker.today')
+                : t('periodTracker.overdue')
             }
           </Text>
         </View>
@@ -469,16 +485,16 @@ export default function PeriodTrackerScreen() {
         <View style={styles.setupCard}>
           <View style={styles.setupHeader}>
             <Ionicons name="calendar" size={24} color="#e91e63" />
-            <Text style={styles.setupTitle}>Set Up Period Tracking</Text>
+            <Text style={styles.setupTitle}>{t('periodTracker.setupTitle')}</Text>
           </View>
           <Text style={styles.setupText}>
-            Start tracking your menstrual cycle to get personalized insights and predictions.
+            {t('periodTracker.setupText')}
           </Text>
           <TouchableOpacity 
             style={styles.setupButton} 
             onPress={openPeriodModal}
           >
-            <Text style={styles.setupButtonText}>Log Your First Period</Text>
+            <Text style={styles.setupButtonText}>{t('periodTracker.logFirstPeriod')}</Text>
             <Ionicons name="arrow-forward" size={16} color="#fff" />
           </TouchableOpacity>
       </View>
@@ -503,7 +519,7 @@ export default function PeriodTrackerScreen() {
 
       {/* Recent Symptoms */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Symptoms</Text>
+        <Text style={styles.sectionTitle}>{t('periodTracker.recentSymptoms')}</Text>
         {symptoms.length > 0 ? (
         <View style={styles.symptomsGrid}>
             {symptoms.slice(0, 4).map((symptom, index) => (
@@ -517,43 +533,43 @@ export default function PeriodTrackerScreen() {
               >
                 <Ionicons name="medical-outline" size={24} color="#e91e63" />
                 <Text style={styles.symptomName}>{symptom.symptom}</Text>
-                <Text style={styles.symptomSeverity}>{symptom.severity}</Text>
+                <Text style={styles.symptomSeverity}>{getSeverityText(symptom.severity)}</Text>
               </TouchableOpacity>
           ))}
         </View>
         ) : (
           <View style={styles.emptyState}>
             <Ionicons name="medical-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyStateText}>No symptoms logged yet</Text>
-            <Text style={styles.emptyStateSubtext}>Start tracking your symptoms</Text>
+            <Text style={styles.emptyStateText}>{t('periodTracker.noSymptomsLogged')}</Text>
+            <Text style={styles.emptyStateSubtext}>{t('periodTracker.startTrackingSymptoms')}</Text>
           </View>
         )}
       </View>
 
       {/* Quick Log */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Log</Text>
+        <Text style={styles.sectionTitle}>{t('periodTracker.quickLog')}</Text>
         <View style={styles.quickLogContainer}>
           <TouchableOpacity 
             style={styles.logButton}
             onPress={openPeriodModal}
           >
             <Ionicons name="add-circle" size={24} color="#e91e63" />
-            <Text style={styles.logButtonText}>Log Period</Text>
+            <Text style={styles.logButtonText}>{t('periodTracker.logPeriod')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.logButton}
             onPress={() => setShowSymptomModal(true)}
           >
             <Ionicons name="medical" size={24} color="#e91e63" />
-            <Text style={styles.logButtonText}>Log Symptoms</Text>
+            <Text style={styles.logButtonText}>{t('periodTracker.logSymptoms')}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Cycle History */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Cycles</Text>
+        <Text style={styles.sectionTitle}>{t('periodTracker.recentCycles')}</Text>
         {periodHistory.length > 0 ? (
         <View style={styles.historyCard}>
             {periodHistory.slice(0, 3).map((period) => {
@@ -569,10 +585,10 @@ export default function PeriodTrackerScreen() {
                     }) : 'Unknown Month'}
                   </Text>
                   <Text style={styles.historyDays}>
-                    {period.periodLength ? `${period.periodLength} days` : 'Unknown duration'}
+                    {period.periodLength ? `${period.periodLength} ${t('insights.days')}` : 'Unknown duration'}
                   </Text>
                   <Text style={styles.historyStatus}>
-                    {period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? 'Regular' : 'Irregular'}
+                    {period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? t('periodTracker.regular') : t('periodTracker.irregular')}
                   </Text>
                 </View>
               );
@@ -581,8 +597,8 @@ export default function PeriodTrackerScreen() {
         ) : (
           <View style={styles.emptyState}>
             <Ionicons name="calendar-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyStateText}>No cycle history yet</Text>
-            <Text style={styles.emptyStateSubtext}>Start logging your periods</Text>
+            <Text style={styles.emptyStateText}>{t('periodTracker.noCycleHistory')}</Text>
+            <Text style={styles.emptyStateSubtext}>{t('periodTracker.startLoggingPeriods')}</Text>
           </View>
         )}
       </View>
@@ -596,16 +612,16 @@ export default function PeriodTrackerScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Log Period</Text>
+            <Text style={styles.modalTitle}>{t('periodTracker.logPeriodModal')}</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Start Date</Text>
+              <Text style={styles.inputLabel}>{t('periodTracker.startDate')}</Text>
               <TouchableOpacity 
                 style={[styles.dateInput, dateErrors.startDate && styles.errorInput]}
                 onPress={() => setShowStartCalendar(true)}
               >
                 <Text style={[styles.dateInputText, dateErrors.startDate && styles.errorText]}>
-                  {periodStartDate || 'Select start date'}
+                  {periodStartDate || t('periodTracker.selectStartDate')}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />
               </TouchableOpacity>
@@ -615,13 +631,13 @@ export default function PeriodTrackerScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>End Date</Text>
+              <Text style={styles.inputLabel}>{t('periodTracker.endDate')}</Text>
               <TouchableOpacity 
                 style={[styles.dateInput, dateErrors.endDate && styles.errorInput]}
                 onPress={() => setShowEndCalendar(true)}
               >
                 <Text style={[styles.dateInputText, dateErrors.endDate && styles.errorText]}>
-                  {periodEndDate || 'Select end date'}
+                  {periodEndDate || t('periodTracker.selectEndDate')}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#666" />
               </TouchableOpacity>
@@ -635,7 +651,7 @@ export default function PeriodTrackerScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowPeriodModal(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t('periodTracker.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.saveButton, saving && styles.disabledButton]}
@@ -645,7 +661,7 @@ export default function PeriodTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.saveButtonText}>Save</Text>
+                  <Text style={styles.saveButtonText}>{t('periodTracker.save')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -662,23 +678,23 @@ export default function PeriodTrackerScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Log Symptom</Text>
+            <Text style={styles.modalTitle}>{t('periodTracker.logSymptomModal')}</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Symptom</Text>
+              <Text style={styles.inputLabel}>{t('periodTracker.symptom')}</Text>
               <TouchableOpacity 
                 style={styles.dropdownButton}
                 onPress={() => setShowSymptomDropdown(true)}
               >
                 <Text style={[styles.dropdownText, !newSymptom && styles.dropdownPlaceholder]}>
-                  {newSymptom || 'Select a symptom'}
+                  {newSymptom || t('periodTracker.selectSymptom')}
                 </Text>
                 <Ionicons name="chevron-down" size={20} color="#666" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Severity</Text>
+              <Text style={styles.inputLabel}>{t('periodTracker.severity')}</Text>
               <View style={styles.severityButtons}>
                 {['Light', 'Moderate', 'Severe'].map((severity) => (
                   <TouchableOpacity
@@ -693,7 +709,7 @@ export default function PeriodTrackerScreen() {
                       styles.severityButtonText,
                       symptomSeverity === severity && styles.activeSeverityButtonText
                     ]}>
-                      {severity}
+                      {severity === 'Light' ? t('periodTracker.light') : severity === 'Moderate' ? t('periodTracker.moderate') : t('periodTracker.severe')}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -705,7 +721,7 @@ export default function PeriodTrackerScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowSymptomModal(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t('periodTracker.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.saveButton, saving && styles.disabledButton]}
@@ -715,7 +731,7 @@ export default function PeriodTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.saveButtonText}>Save</Text>
+                  <Text style={styles.saveButtonText}>{t('periodTracker.save')}</Text>
                 )}
               </TouchableOpacity>
           </View>
@@ -733,7 +749,7 @@ export default function PeriodTrackerScreen() {
         <View style={styles.calendarModalOverlay}>
           <View style={styles.calendarModalContent}>
             <View style={styles.calendarHeader}>
-              <Text style={styles.calendarTitle}>Select Start Date</Text>
+              <Text style={styles.calendarTitle}>{t('periodTracker.selectStartDateTitle')}</Text>
               <TouchableOpacity 
                 style={styles.calendarCloseButton}
                 onPress={() => setShowStartCalendar(false)}
@@ -771,7 +787,7 @@ export default function PeriodTrackerScreen() {
         <View style={styles.calendarModalOverlay}>
           <View style={styles.calendarModalContent}>
             <View style={styles.calendarHeader}>
-              <Text style={styles.calendarTitle}>Select End Date</Text>
+              <Text style={styles.calendarTitle}>{t('periodTracker.selectEndDateTitle')}</Text>
               <TouchableOpacity 
                 style={styles.calendarCloseButton}
                 onPress={() => setShowEndCalendar(false)}
@@ -815,7 +831,7 @@ export default function PeriodTrackerScreen() {
           />
           <View style={styles.dropdownModal}>
             <View style={styles.dropdownHeader}>
-              <Text style={styles.dropdownTitle}>Select Symptom</Text>
+              <Text style={styles.dropdownTitle}>{t('periodTracker.selectSymptomTitle')}</Text>
               <TouchableOpacity 
                 onPress={() => setShowSymptomDropdown(false)}
               >
@@ -854,7 +870,7 @@ export default function PeriodTrackerScreen() {
           <View style={styles.modalContent}>
             <View style={styles.detailModalHeader}>
               <Text style={styles.modalTitle}>
-                {selectedSymptomDetail?.symptom || 'Symptom Details'}
+                {selectedSymptomDetail?.symptom || t('periodTracker.symptomDetails')}
               </Text>
               <TouchableOpacity 
                 onPress={() => setShowSymptomDetailModal(false)}
@@ -867,28 +883,28 @@ export default function PeriodTrackerScreen() {
               <View style={styles.detailContent}>
                 <View style={styles.severityBadge}>
                   <Text style={styles.severityBadgeText}>
-                    Severity: {selectedSymptomDetail.severity}
+                    {t('periodTracker.severityLabel')} {getSeverityText(selectedSymptomDetail.severity)}
                   </Text>
                 </View>
                 
                 <View style={styles.contentSection}>
-                  <Text style={styles.contentTitle}>Recommendations:</Text>
+                  <Text style={styles.contentTitle}>{t('periodTracker.recommendations')}</Text>
                   <View style={[
                     styles.contentBox,
-                    selectedSymptomDetail.severity === 'Severe' && styles.severeContentBox
+                    (selectedSymptomDetail.severity === 'Severe' || selectedSymptomDetail.severity === t('periodTracker.severe')) && styles.severeContentBox
                   ]}>
                     <Text style={[
                       styles.contentText,
-                      selectedSymptomDetail.severity === 'Severe' && styles.severeContentText
+                      (selectedSymptomDetail.severity === 'Severe' || selectedSymptomDetail.severity === t('periodTracker.severe')) && styles.severeContentText
                     ]}>
                       {getSymptomContent(selectedSymptomDetail.symptom, selectedSymptomDetail.severity)}
                     </Text>
                   </View>
                   
-                  {selectedSymptomDetail.severity === 'Severe' && (
+                  {(selectedSymptomDetail.severity === 'Severe' || selectedSymptomDetail.severity === t('periodTracker.severe')) && (
                     <View style={styles.alertBox}>
                       <Ionicons name="warning" size={24} color="#F44336" />
-                      <Text style={styles.alertText}>Please consult a doctor immediately</Text>
+                      <Text style={styles.alertText}>{t('periodTracker.consultDoctor')}</Text>
                     </View>
                   )}
                 </View>
@@ -899,7 +915,7 @@ export default function PeriodTrackerScreen() {
               style={styles.closeDetailButton}
               onPress={() => setShowSymptomDetailModal(false)}
             >
-              <Text style={styles.closeDetailButtonText}>Close</Text>
+              <Text style={styles.closeDetailButtonText}>{t('periodTracker.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

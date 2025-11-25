@@ -9,9 +9,11 @@ import {
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from '../contexts/TranslationContext';
 import { auth, db } from '../config/firebase';
 
 export default function CycleInsightsScreen() {
+  const { t } = useTranslation();
   const [selectedPeriod, setSelectedPeriod] = useState('3months');
   const [menstrualData, setMenstrualData] = useState({
     cycleLength: 28,
@@ -111,23 +113,23 @@ export default function CycleInsightsScreen() {
 
     const calculatedInsights = [
       {
-        title: 'Average Cycle Length',
-        value: `${avgCycleLength.toFixed(1)} days`,
-        description: avgCycleLength >= 21 && avgCycleLength <= 35 ? 'Your cycles are generally regular' : 'Your cycles may need attention',
+        title: t('cycleInsights.averageCycleLength'),
+        value: `${avgCycleLength.toFixed(1)} ${t('insights.days')}`,
+        description: avgCycleLength >= 21 && avgCycleLength <= 35 ? t('cycleInsights.cyclesRegular') : t('cycleInsights.cyclesNeedAttention'),
         icon: 'calendar-outline',
         color: avgCycleLength >= 21 && avgCycleLength <= 35 ? '#4CAF50' : '#FF7043'
       },
       {
-        title: 'Average Period Length',
-        value: `${avgPeriodLength.toFixed(1)} days`,
-        description: avgPeriodLength >= 3 && avgPeriodLength <= 7 ? 'Within normal range (3-7 days)' : 'May need medical attention',
+        title: t('cycleInsights.averagePeriodLength'),
+        value: `${avgPeriodLength.toFixed(1)} ${t('insights.days')}`,
+        description: avgPeriodLength >= 3 && avgPeriodLength <= 7 ? t('cycleInsights.withinNormalRange') : t('cycleInsights.mayNeedMedicalAttention'),
         icon: 'time-outline',
         color: avgPeriodLength >= 3 && avgPeriodLength <= 7 ? '#2196F3' : '#FF7043'
       },
       {
-        title: 'Consistency Score',
+        title: t('cycleInsights.consistencyScore'),
         value: `${consistencyScore.toFixed(0)}%`,
-        description: consistencyScore >= 80 ? 'Very consistent cycle patterns' : consistencyScore >= 60 ? 'Moderately consistent' : 'Inconsistent patterns',
+        description: consistencyScore >= 80 ? t('cycleInsights.veryConsistent') : consistencyScore >= 60 ? t('cycleInsights.moderatelyConsistent') : t('cycleInsights.inconsistentPatterns'),
         icon: 'trending-up-outline',
         color: consistencyScore >= 80 ? '#4CAF50' : consistencyScore >= 60 ? '#FF9800' : '#FF7043'
       },
@@ -198,13 +200,13 @@ export default function CycleInsightsScreen() {
     const isValidStart = !isNaN(startDate.getTime());
     const isValidEnd = !isNaN(endDate.getTime());
     
-    return {
-      month: isValidStart ? startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown Month',
-      days: (isValidStart && isValidEnd) ? `${startDate.getDate()}-${endDate.getDate()}` : 'Invalid dates',
-      length: period.cycleLength ? period.cycleLength.toString() : 'Unknown',
-      status: period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? 'Regular' : 'Irregular',
-      color: period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? '#4CAF50' : '#FF7043'
-    };
+      return {
+        month: isValidStart ? startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown Month',
+        days: (isValidStart && isValidEnd) ? `${startDate.getDate()}-${endDate.getDate()}` : 'Invalid dates',
+        length: period.cycleLength ? period.cycleLength.toString() : 'Unknown',
+        status: period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? t('periodTracker.regular') : t('periodTracker.irregular'),
+        color: period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? '#4CAF50' : '#FF7043'
+      };
   });
 
   // Show loading screen
@@ -212,7 +214,7 @@ export default function CycleInsightsScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#e91e63" />
-        <Text style={styles.loadingText}>Loading your cycle insights...</Text>
+        <Text style={styles.loadingText}>{t('cycleInsights.loadingInsights')}</Text>
       </View>
     );
   }
@@ -221,7 +223,7 @@ export default function CycleInsightsScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cycle Insights</Text>
+        <Text style={styles.headerTitle}>{t('cycleInsights.cycleInsights')}</Text>
         <View style={styles.headerRight}>
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
@@ -249,17 +251,17 @@ export default function CycleInsightsScreen() {
         <View style={styles.setupCard}>
           <View style={styles.setupHeader}>
             <Ionicons name="analytics" size={24} color="#e91e63" />
-            <Text style={styles.setupTitle}>No Cycle Data Yet</Text>
+            <Text style={styles.setupTitle}>{t('cycleInsights.noCycleDataYet')}</Text>
           </View>
           <Text style={styles.setupText}>
-            Start tracking your menstrual cycle to see personalized insights and predictions.
+            {t('cycleInsights.startTrackingText')}
           </Text>
         </View>
       ) : (
         <>
           {/* Key Insights */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Key Insights</Text>
+            <Text style={styles.sectionTitle}>{t('cycleInsights.keyInsights')}</Text>
             {insights.length > 0 ? (
               <View style={styles.insightsGrid}>
                 {insights.map((insight, index) => (
@@ -276,25 +278,25 @@ export default function CycleInsightsScreen() {
             ) : (
               <View style={styles.emptyState}>
                 <Ionicons name="analytics-outline" size={48} color="#ccc" />
-                <Text style={styles.emptyStateText}>Not enough data for insights</Text>
-                <Text style={styles.emptyStateSubtext}>Track more cycles to see patterns</Text>
+                <Text style={styles.emptyStateText}>{t('cycleInsights.notEnoughData')}</Text>
+                <Text style={styles.emptyStateSubtext}>{t('cycleInsights.trackMoreCycles')}</Text>
               </View>
             )}
           </View>
 
           {/* Cycle History */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Cycle History</Text>
+            <Text style={styles.sectionTitle}>{t('cycleInsights.cycleHistory')}</Text>
             {cycleData.length > 0 ? (
               <View style={styles.historyCard}>
                 {cycleData.map((cycle, index) => (
                   <View key={index} style={styles.historyRow}>
                     <View style={styles.historyInfo}>
                       <Text style={styles.historyMonth}>{cycle.month}</Text>
-                      <Text style={styles.historyDays}>Days {cycle.days}</Text>
+                      <Text style={styles.historyDays}>{t('cycleInsights.days')} {cycle.days}</Text>
                     </View>
                     <View style={styles.historyStats}>
-                      <Text style={styles.historyLength}>{cycle.length} days</Text>
+                      <Text style={styles.historyLength}>{cycle.length} {t('insights.days')}</Text>
                       <View style={[styles.statusBadge, { borderColor: cycle.color }]}>
                         <Text style={[styles.statusText, { color: cycle.color }]}>{cycle.status}</Text>
                       </View>
@@ -305,8 +307,8 @@ export default function CycleInsightsScreen() {
             ) : (
               <View style={styles.emptyState}>
                 <Ionicons name="calendar-outline" size={48} color="#ccc" />
-                <Text style={styles.emptyStateText}>No cycle history yet</Text>
-                <Text style={styles.emptyStateSubtext}>Start logging your periods</Text>
+                <Text style={styles.emptyStateText}>{t('cycleInsights.noCycleHistoryYet')}</Text>
+                <Text style={styles.emptyStateSubtext}>{t('cycleInsights.startLoggingPeriods')}</Text>
               </View>
             )}
           </View>
@@ -314,12 +316,12 @@ export default function CycleInsightsScreen() {
           {/* Predictions */}
           {predictions.nextPeriod && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Predictions</Text>
+              <Text style={styles.sectionTitle}>{t('cycleInsights.predictions')}</Text>
               <View style={styles.predictionCard}>
                 <View style={styles.predictionItem}>
                   <Ionicons name="calendar" size={20} color="#e91e63" />
                   <View style={styles.predictionContent}>
-                    <Text style={styles.predictionTitle}>Next Period</Text>
+                    <Text style={styles.predictionTitle}>{t('cycleInsights.nextPeriod')}</Text>
                     <Text style={styles.predictionValue}>
                       {predictions.nextPeriod.toLocaleDateString('en-US', { 
                         month: 'long', 
@@ -333,7 +335,7 @@ export default function CycleInsightsScreen() {
                   <View style={styles.predictionItem}>
                     <Ionicons name="heart" size={20} color="#FF9800" />
                     <View style={styles.predictionContent}>
-                      <Text style={styles.predictionTitle}>Fertile Window</Text>
+                      <Text style={styles.predictionTitle}>{t('cycleInsights.fertileWindow')}</Text>
                       <Text style={styles.predictionValue}>
                         {predictions.fertileWindow.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {predictions.fertileWindow.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </Text>
@@ -344,7 +346,7 @@ export default function CycleInsightsScreen() {
                   <View style={styles.predictionItem}>
                     <Ionicons name="thermometer" size={20} color="#2196F3" />
                     <View style={styles.predictionContent}>
-                      <Text style={styles.predictionTitle}>Ovulation</Text>
+                      <Text style={styles.predictionTitle}>{t('cycleInsights.ovulation')}</Text>
                       <Text style={styles.predictionValue}>
                         {predictions.ovulation.toLocaleDateString('en-US', { 
                           month: 'long', 
@@ -360,13 +362,13 @@ export default function CycleInsightsScreen() {
 
           {/* Health Recommendations */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Health Recommendations</Text>
+            <Text style={styles.sectionTitle}>{t('cycleInsights.healthRecommendations')}</Text>
             <View style={styles.recommendationCard}>
               <Ionicons name="bulb-outline" size={24} color="#FFC107" />
               <View style={styles.recommendationContent}>
-                <Text style={styles.recommendationTitle}>Stay Hydrated</Text>
+                <Text style={styles.recommendationTitle}>{t('cycleInsights.stayHydrated')}</Text>
                 <Text style={styles.recommendationText}>
-                  Your cycle patterns suggest you might benefit from increased water intake during your period.
+                  {t('cycleInsights.stayHydratedDesc')}
                 </Text>
               </View>
             </View>
