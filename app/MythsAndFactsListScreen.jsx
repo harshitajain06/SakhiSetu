@@ -7,23 +7,42 @@ import { mythsData } from './data/mythsData';
 
 export default function MythsAndFactsListScreen() {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
-  const renderMythCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.mythCard}
-      onPress={() => navigation.navigate('MythDetail', { myth: item })}
-      activeOpacity={0.7}
-    >
-      <View style={styles.mythIconContainer}>
-        <Ionicons name="help-circle" size={24} color="#fff" />
-      </View>
-      <View style={styles.mythTextContainer}>
-        <Text style={styles.mythText}>{item.title}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#ccc" />
-    </TouchableOpacity>
-  );
+  // Helper function to get translated title
+  const getTranslatedTitle = (itemId) => {
+    try {
+      const enTranslations = require('../contexts/translations/en').default;
+      const hiTranslations = require('../contexts/translations/hi').default;
+      const currentTranslations = language === 'hi' ? hiTranslations : enTranslations;
+      
+      const itemKey = `item${itemId}`;
+      const translatedTitle = currentTranslations?.myth?.mythsItems?.[itemKey]?.title;
+      return translatedTitle || mythsData.find(i => i.id === itemId)?.title || '';
+    } catch (error) {
+      console.log('Translation error:', error);
+      return mythsData.find(i => i.id === itemId)?.title || '';
+    }
+  };
+
+  const renderMythCard = ({ item }) => {
+    const translatedTitle = getTranslatedTitle(item.id);
+    return (
+      <TouchableOpacity
+        style={styles.mythCard}
+        onPress={() => navigation.navigate('MythDetail', { myth: item })}
+        activeOpacity={0.7}
+      >
+        <View style={styles.mythIconContainer}>
+          <Ionicons name="help-circle" size={24} color="#fff" />
+        </View>
+        <View style={styles.mythTextContainer}>
+          <Text style={styles.mythText}>{translatedTitle}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#ccc" />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>

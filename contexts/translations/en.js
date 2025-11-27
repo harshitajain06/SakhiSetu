@@ -129,6 +129,87 @@ export default {
     wellbeingConfidenceDesc: 'Tips for managing mood and staying confident during periods.',
     healthDietCare: 'Health Diet & Care',
     healthDietCareDesc: 'Nutrition advice and self-care tips for menstrual health.',
+    // StayingClean items
+    stayingCleanItems: {
+      item1: {
+        title: 'Daily Hygiene Practices',
+        content: 'Maintaining good hygiene during your period is essential for your health and comfort. Here are some key practices to follow:',
+        tips: [
+          'Change your sanitary pad, tampon, or menstrual cup regularly (every 4-6 hours for pads, every 4-8 hours for tampons, and every 8-12 hours for cups).',
+          'Wash your hands before and after changing your sanitary product.',
+          'Clean your genital area with warm water and mild soap at least twice a day.',
+          'Avoid using harsh soaps, douches, or scented products that can irritate sensitive skin.',
+          'Wear clean, breathable cotton underwear and change it daily.',
+          'Shower or bathe daily to stay fresh and comfortable.'
+        ],
+        importantNote: 'Proper hygiene helps prevent infections, reduces odor, and keeps you feeling confident throughout your period.'
+      },
+      item2: {
+        title: 'Choosing the Right Sanitary Product',
+        content: 'Selecting the right menstrual product is crucial for comfort and hygiene. Here\'s what you need to know:',
+        tips: [
+          'Pads: Best for beginners, easy to use, and available in various sizes. Change every 4-6 hours.',
+          'Tampons: Internal protection that allows for swimming and sports. Change every 4-8 hours.',
+          'Menstrual Cups: Reusable, eco-friendly option. Can be worn for up to 12 hours. Requires proper cleaning.',
+          'Period Underwear: Absorbent underwear that can be used alone or as backup. Wash after each use.',
+          'Choose products based on your flow (light, medium, or heavy) and comfort level.',
+          'Always read the instructions on the product packaging for proper use.'
+        ],
+        importantNote: 'The best product is one that you feel comfortable using and that fits your lifestyle and flow.'
+      },
+      item3: {
+        title: 'Proper Disposal of Sanitary Products',
+        content: 'Disposing of sanitary products correctly is important for hygiene and environmental responsibility:',
+        tips: [
+          'Wrap used pads or tampons in toilet paper or the wrapper from the new product.',
+          'Dispose of them in a covered trash bin - never flush pads or tampons down the toilet.',
+          'If using a menstrual cup, empty it into the toilet, wash it with soap and water, and reinsert.',
+          'Wash your hands thoroughly after handling any sanitary product.',
+          'In public restrooms, use the provided disposal bins in the stalls.',
+          'At home, empty your trash bin regularly to prevent odor.'
+        ],
+        importantNote: 'Proper disposal protects plumbing systems, prevents environmental pollution, and maintains cleanliness.'
+      },
+      item4: {
+        title: 'Preventing Infections',
+        content: 'Good hygiene practices can help prevent infections during your period:',
+        tips: [
+          'Change your sanitary product regularly to prevent bacterial growth.',
+          'Avoid using scented pads or tampons as they can cause irritation.',
+          'Wipe from front to back after using the toilet to prevent bacteria from entering the vagina.',
+          'Wear breathable cotton underwear instead of synthetic materials.',
+          'Avoid tight-fitting clothing that can trap moisture and heat.',
+          'If you experience unusual discharge, itching, or odor, consult a healthcare provider.'
+        ],
+        importantNote: 'If you notice any signs of infection (unusual discharge, strong odor, itching, or discomfort), seek medical advice promptly.'
+      },
+      item5: {
+        title: 'Bathing and Showering',
+        content: 'Bathing during your period is not only safe but recommended for maintaining hygiene:',
+        tips: [
+          'You can and should shower or bathe daily during your period.',
+          'Use warm water and mild, unscented soap to clean your body.',
+          'Washing helps remove blood, reduce odor, and prevent infections.',
+          'You can wash your hair during your period - it\'s completely safe.',
+          'A warm bath can help relieve menstrual cramps and relax your muscles.',
+          'After bathing, make sure to dry yourself thoroughly, especially the genital area.'
+        ],
+        importantNote: 'Bathing during your period is safe, hygienic, and can help you feel fresh and comfortable.'
+      },
+      item6: {
+        title: 'Managing Odor',
+        content: 'Some odor during menstruation is normal, but proper hygiene can help manage it:',
+        tips: [
+          'Change your sanitary product regularly - this is the most important step.',
+          'Wash your genital area with warm water and mild soap daily.',
+          'Wear breathable cotton underwear and change it daily.',
+          'Avoid using scented products, sprays, or douches in the genital area.',
+          'Stay hydrated and maintain a balanced diet.',
+          'If you notice a strong, unusual odor, it may indicate an infection - consult a healthcare provider.'
+        ],
+        importantNote: 'A slight metallic smell is normal during menstruation. Strong, fishy, or foul odors may indicate an infection and should be checked by a doctor.'
+      }
+    }
   },
 
   // Health Selection
@@ -272,6 +353,150 @@ export default {
     scientificFacts: 'Scientific Facts',
     healthyTip: 'Healthy Tip',
     conclusion: 'Conclusion',
+    // Myths items
+    mythsItems: {
+      item1: {
+        title: 'Can\'t enter temples during menstruation?',
+        shortTitle: 'Temple Entry',
+        mythStatement: 'Women should not enter a temple or perform religious rituals during menstruation because they are \'impure.\'',
+        factCheck: 'Scientifically, menstruation is simply the shedding of the uterine lining — a healthy, natural body function. There is no impurity involved. The body is cleansing itself and maintaining fertility health.',
+        scientificFacts: [
+          'In old times, women were given rest during their periods since there were no sanitary products, and menstrual pain or fatigue made daily work difficult.',
+          'To protect privacy and comfort, some traditions advised women to stay home — not because they were \'unclean,\' but to allow rest.',
+          'Over time, this practical rule was misinterpreted as a religious restriction.',
+          'Some later interpretations (like certain Smritis) added restrictions, but these are social customs, not divine commandments.',
+          'In modern Hinduism, many priests and scholars confirm that menstruation does not make a woman impure spiritually.',
+          'Many temples and spiritual leaders now openly say that women can enter temples and pray during menstruation.',
+          'Doctors and health experts agree there\'s no scientific or hygienic reason to stop them.'
+        ],
+        healthyTip: 'Menstruation is natural. There\'s no scriptural, scientific, or spiritual reason to restrict temple entry.',
+        conclusion: 'Menstruating women are not impure and should not be restricted from entering temples. Menstruation is natural, and there\'s no scriptural, scientific, or spiritual reason to restrict temple entry.'
+      },
+      item2: {
+        title: 'Is it unclean to touch pickles?',
+        shortTitle: 'Touch Pickles',
+        mythStatement: 'You cannot touch pickles during your period.',
+        factCheck: 'This is not true. Your period is a natural bodily process. It does not make you impure or affect food in any way.',
+        scientificFacts: [
+          'Menstruation is a normal and healthy part of a woman\'s life cycle.',
+          'It does not carry any negative impact on food preparation or preservation.',
+          'You can touch anything during your period without any concerns.'
+        ],
+        healthyTip: 'Feel free to continue your daily activities, including cooking and handling food, without any worries.',
+        conclusion: 'This is not true. Your period is a natural bodily process. It does not make you impure or affect food in any way. You can touch anything! Menstruation is a normal and healthy part of a woman\'s life cycle, and it does not carry any negative impact on food preparation or preservation.'
+      },
+      item3: {
+        title: 'Are you unclean during your period?',
+        shortTitle: 'Unclean During Period',
+        mythStatement: 'A woman is unclean or impure during her period.',
+        factCheck: 'Menstruation is natural, healthy, and normal. The idea of being \'unclean\' is a myth rooted in old beliefs, not science.',
+        scientificFacts: [
+          'These ideas developed in times when people didn\'t understand biology and had no access to sanitary products, so menstrual blood was seen as something to be avoided.',
+          'Over time, these beliefs turned into social rules and stigmas.',
+          'Menstrual blood is just blood and uterine tissue — not dirty or toxic.',
+          'As long as proper hygiene is maintained (regular changing of pads/tampons/cups and washing hands), there is no health risk to others.'
+        ],
+        healthyTip: 'Respect, education, and openness help end period stigma and ensure menstrual health for everyone.',
+        conclusion: 'Menstruation is natural, healthy, and normal. The idea of being \'unclean\' is a myth rooted in old beliefs, not science. Respect, education, and openness help end period stigma and ensure menstrual health for everyone.'
+      },
+      item4: {
+        title: 'Can\'t play sports during menstruation?',
+        shortTitle: 'Play Sports',
+        mythStatement: 'You can\'t or shouldn\'t play sports during your period.',
+        factCheck: 'You can play sports, train, and exercise safely. In fact, movement often reduces pain and improves mood.',
+        scientificFacts: [
+          'Light to moderate activity (like walking, swimming, yoga, or even competitive sports) can reduce cramps, bloating, and mood swings by improving blood flow and releasing endorphins — your body\'s natural painkillers.',
+          'There is no biological reason to avoid sports while on your period. Many professional athletes train and compete during menstruation.',
+          'Staying hydrated and eating balanced meals can help maintain energy levels and reduce fatigue.',
+          'Exercise usually relieves cramps and helps balance hormones.'
+        ],
+        healthyTip: 'If you have severe cramps, heavy bleeding, or dizziness, it\'s fine to rest or modify your workout — that\'s listening to your body, not giving in to a myth.',
+        conclusion: 'You can play sports, train, and exercise safely. In fact, movement often reduces pain and improves mood. Playing sports will not worsen cramps or bleeding — exercise usually relieves cramps and helps balance hormones.'
+      },
+      item5: {
+        title: 'Menstruation only for married women?',
+        shortTitle: 'Only Married Women',
+        mythStatement: 'Menstruation only happens to married women.',
+        factCheck: 'This is completely false. Menstruation is a natural biological process that begins during puberty, typically between ages 9-16, regardless of marital status.',
+        scientificFacts: [
+          'Menstruation is a sign of reproductive maturity and begins when a girl reaches puberty.',
+          'It has nothing to do with marriage or relationship status.',
+          'All women and girls who have reached puberty will experience menstruation.',
+          'The age of first period (menarche) varies but typically occurs between 9-16 years old.'
+        ],
+        healthyTip: 'Understanding that menstruation is a natural part of growing up helps reduce stigma and confusion.',
+        conclusion: 'Menstruation is a natural biological process that begins during puberty, not marriage. All women experience menstruation once they reach reproductive age, regardless of their marital status.'
+      },
+      item6: {
+        title: 'Will you get sick if you wash hair?',
+        shortTitle: 'Wash Hair',
+        mythStatement: 'You\'ll get sick if you wash your hair during your period.',
+        factCheck: 'You will not get sick from washing your hair while menstruating. There\'s no scientific evidence linking hair washing to illness or menstrual problems.',
+        scientificFacts: [
+          'Washing your hair or bathing during your period is completely safe and actually helps maintain hygiene.',
+          'The idea that cold water or washing could \'block blood flow\' or cause cramps is not true — menstrual flow is controlled by hormones, not water temperature.',
+          'Keeping clean can even reduce odor, discomfort, and infection risk.'
+        ],
+        healthyTip: 'Use warm water if you feel cramps — it can relax your muscles and relieve pain.',
+        conclusion: 'Washing your hair during your period does not make you sick. It\'s safe, hygienic, and can help you feel fresh and comfortable.'
+      },
+      item7: {
+        title: 'Can\'t share a bed with family members?',
+        shortTitle: 'Share Bed',
+        mythStatement: 'During menstruation, a woman should not share a bed with others.',
+        factCheck: 'There is no scientific or medical reason to avoid sharing a bed during your period. This belief comes from cultural taboos about \'impurity,\' not from facts or hygiene concerns.',
+        scientificFacts: [
+          'Menstrual blood is not dirty or contagious — it\'s just a mix of blood and uterine tissue.',
+          'Sleeping next to someone while menstruating does not affect their health in any way.',
+          'If proper hygiene is maintained (clean sanitary products, clean bedding, regular washing), there is no risk to anyone.',
+          'The myth likely began in traditional societies that associated menstruation with ritual impurity, not with science.'
+        ],
+        healthyTip: 'You can share a bed comfortably. Using a pad, tampon, or menstrual cup that fits well and sleeping on a towel or darker sheets can prevent stains and help you rest better.',
+        conclusion: 'Not sharing a bed during menstruation is a myth, not a health rule. Menstruation is natural and normal, and it\'s perfectly fine to sleep beside others during your period.'
+      },
+      item8: {
+        title: 'Menstrual blood is inherently impure?',
+        shortTitle: 'Blood Impure',
+        mythStatement: 'Menstrual blood is inherently impure or toxic.',
+        factCheck: 'Menstrual blood is just blood and uterine tissue — not dirty or toxic. It\'s a natural part of the reproductive cycle.',
+        scientificFacts: [
+          'Menstrual blood consists of blood, uterine tissue, and cervical mucus — all natural bodily substances.',
+          'It is not toxic, dirty, or harmful to others when proper hygiene is maintained.',
+          'The idea of impurity comes from cultural and religious beliefs, not scientific facts.',
+          'With proper hygiene practices, there is no health risk associated with menstrual blood.'
+        ],
+        healthyTip: 'Maintaining good hygiene during your period (changing pads/tampons regularly, washing hands) is important for your own health and comfort.',
+        conclusion: 'Menstrual blood is not impure or toxic. It\'s a natural part of the reproductive cycle. The idea of impurity is a cultural belief, not a scientific fact.'
+      },
+      item9: {
+        title: 'Avoid certain foods during period?',
+        shortTitle: 'Avoid Foods',
+        mythStatement: 'You should avoid certain foods during your period.',
+        factCheck: 'There\'s no medical reason to completely avoid specific foods while menstruating. However, some foods can affect how you feel, so it\'s more about balance, not restriction.',
+        scientificFacts: [
+          'You can eat anything, but some foods may worsen cramps, bloating, or mood swings if eaten in large amounts — like very salty, sugary, or processed foods.',
+          'Caffeine might increase breast tenderness or irritability for some people, so moderation helps.',
+          'Foods rich in iron, calcium, magnesium, and vitamin B (like leafy greens, fruits, nuts, and lean meats) can help restore energy and reduce fatigue.',
+          'Dark chocolate in small amounts can even boost mood by increasing serotonin levels.'
+        ],
+        healthyTip: 'Eat balanced meals, drink plenty of water, and listen to what your body craves — sometimes it\'s signaling what it needs.',
+        conclusion: 'You don\'t need to avoid any food during your period. Instead, focus on moderation and nourishment to feel your best.'
+      },
+      item10: {
+        title: 'Is it forbidden to cook food during your period?',
+        shortTitle: 'Cook Food',
+        mythStatement: 'It is forbidden to cook food during your period.',
+        factCheck: 'This is a myth based on cultural taboos, not on science or hygiene. There is no medical or biological reason that prevents a woman from cooking while menstruating.',
+        scientificFacts: [
+          'Menstruation is a normal bodily process, not a state of impurity.',
+          'Cooking during your period does not contaminate food or affect anyone\'s health.',
+          'These restrictions often originated in traditional beliefs about \'purity,\' not in scientific understanding.',
+          'With good hygiene, cooking while on your period is completely safe and normal.'
+        ],
+        healthyTip: 'If you feel cramps or fatigue, you can choose to rest — but that\'s about comfort, not forbidden rules.',
+        conclusion: 'Cooking during your period is not forbidden. It\'s a personal choice, and menstruation has no impact on food safety or cleanliness.'
+      }
+    }
   },
 
   // Insights Screen

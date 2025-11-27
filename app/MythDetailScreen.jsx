@@ -9,7 +9,7 @@ export default function MythDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { myth } = route.params || {};
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   if (!myth) {
     return (
@@ -18,6 +18,45 @@ export default function MythDetailScreen() {
       </View>
     );
   }
+
+  // Helper function to get translated myth content with fallback
+  const getTranslatedMyth = () => {
+    try {
+      const enTranslations = require('../contexts/translations/en').default;
+      const hiTranslations = require('../contexts/translations/hi').default;
+      const currentTranslations = language === 'hi' ? hiTranslations : enTranslations;
+      
+      const itemKey = `item${myth.id}`;
+      const translatedMyth = currentTranslations?.myth?.mythsItems?.[itemKey];
+      
+      if (translatedMyth) {
+        return {
+          title: translatedMyth.title || myth.title,
+          shortTitle: translatedMyth.shortTitle || myth.shortTitle,
+          mythStatement: translatedMyth.mythStatement || myth.mythStatement,
+          factCheck: translatedMyth.factCheck || myth.factCheck,
+          scientificFacts: translatedMyth.scientificFacts || myth.scientificFacts || [],
+          healthyTip: translatedMyth.healthyTip || myth.healthyTip,
+          conclusion: translatedMyth.conclusion || myth.conclusion
+        };
+      }
+    } catch (error) {
+      console.log('Translation error:', error);
+    }
+    
+    // Fallback to original myth
+    return {
+      title: myth.title,
+      shortTitle: myth.shortTitle,
+      mythStatement: myth.mythStatement,
+      factCheck: myth.factCheck,
+      scientificFacts: myth.scientificFacts || [],
+      healthyTip: myth.healthyTip,
+      conclusion: myth.conclusion
+    };
+  };
+
+  const translatedMyth = getTranslatedMyth();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -36,7 +75,7 @@ export default function MythDetailScreen() {
       {/* Myth Tag */}
       <View style={styles.mythTagContainer}>
         <View style={styles.mythTag}>
-          <Text style={styles.mythTagText}>{t('myth.myth')}: {myth.shortTitle}</Text>
+          <Text style={styles.mythTagText}>{t('myth.myth')}: {translatedMyth.shortTitle}</Text>
         </View>
       </View>
 
@@ -46,7 +85,7 @@ export default function MythDetailScreen() {
           <Ionicons name="bulb" size={24} color="#FFC107" />
           <Text style={styles.sectionTitle}>{t('myth.theMyth')}</Text>
         </View>
-        <Text style={styles.mythStatement}>{myth.mythStatement}</Text>
+        <Text style={styles.mythStatement}>{translatedMyth.mythStatement}</Text>
       </View>
 
       {/* Illustration */}
@@ -60,17 +99,17 @@ export default function MythDetailScreen() {
           <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
           <Text style={styles.sectionTitle}>{t('myth.fact')}</Text>
         </View>
-        <Text style={styles.factText}>{myth.factCheck}</Text>
+        <Text style={styles.factText}>{translatedMyth.factCheck}</Text>
       </View>
 
       {/* Scientific Facts Section */}
-      {myth.scientificFacts && myth.scientificFacts.length > 0 && (
+      {translatedMyth.scientificFacts && translatedMyth.scientificFacts.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="document-text" size={24} color="#2196F3" />
             <Text style={styles.sectionTitle}>{t('myth.scientificFacts')}</Text>
           </View>
-          {myth.scientificFacts.map((fact, index) => (
+          {translatedMyth.scientificFacts.map((fact, index) => (
             <View key={index} style={styles.factItem}>
               <View style={styles.bulletPoint} />
               <Text style={styles.factItemText}>{fact}</Text>
@@ -80,13 +119,13 @@ export default function MythDetailScreen() {
       )}
 
       {/* Healthy Tip Section */}
-      {myth.healthyTip && (
+      {translatedMyth.healthyTip && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="leaf" size={24} color="#4CAF50" />
             <Text style={styles.sectionTitle}>{t('myth.healthyTip')}</Text>
           </View>
-          <Text style={styles.tipText}>{myth.healthyTip}</Text>
+          <Text style={styles.tipText}>{translatedMyth.healthyTip}</Text>
         </View>
       )}
 
@@ -96,7 +135,7 @@ export default function MythDetailScreen() {
           <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
           <Text style={styles.sectionTitle}>{t('myth.conclusion')}</Text>
         </View>
-        <Text style={styles.conclusionText}>{myth.conclusion}</Text>
+        <Text style={styles.conclusionText}>{translatedMyth.conclusion}</Text>
       </View>
 
       <View style={styles.bottomSpacer} />
