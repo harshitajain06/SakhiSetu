@@ -170,6 +170,9 @@ export default {
     invalidEmail: 'अमान्य ईमेल पता',
     passwordTooShort: 'पासवर्ड कम से कम 6 वर्ण का होना चाहिए',
     passwordsDoNotMatch: 'पासवर्ड मेल नहीं खाते',
+    signInWithGoogle: 'Google के साथ साइन इन करें',
+    continueWithGoogle: 'Google के साथ जारी रखें',
+    or: 'या',
   },
 
   // Content Types

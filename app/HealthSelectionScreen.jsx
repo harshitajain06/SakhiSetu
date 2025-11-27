@@ -92,7 +92,7 @@ export default function HealthSelectionScreen() {
             <Text style={styles.cardDescription}>
               {t('healthSelection.menstrualHealthDesc')}
             </Text>
-            <TouchableOpacity style={styles.cardButton}>
+            <TouchableOpacity style={styles.cardButton} onPress={handleMenstrualHealth}>
               <Text style={styles.cardButtonText}>{t('healthSelection.exploreCycleTracking')}</Text>
             </TouchableOpacity>
           </TouchableOpacity>
@@ -108,7 +108,7 @@ export default function HealthSelectionScreen() {
             <Text style={styles.cardDescription}>
               {t('healthSelection.maternalWellnessDesc')}
             </Text>
-            <TouchableOpacity style={styles.cardButton}>
+            <TouchableOpacity style={styles.cardButton} onPress={handleMaternalWellness}>
               <Text style={styles.cardButtonText}>{t('healthSelection.exploreMaternalWellness')}</Text>
             </TouchableOpacity>
           </TouchableOpacity>

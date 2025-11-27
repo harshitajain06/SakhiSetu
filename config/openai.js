@@ -31,7 +31,7 @@ Always remind users that for serious health concerns, they should consult with q
  */
 export const getOpenAIApiKey = async () => {
   try {
-    const configDocRef = doc(db, 'appConfig', 'openai');
+    const configDocRef = doc(db, 'appConfigKratika', 'openai');
     const configDoc = await getDoc(configDocRef);
     
     if (configDoc.exists()) {

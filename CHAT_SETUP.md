@@ -22,7 +22,7 @@ The API key is stored securely in Firebase Firestore instead of being hardcoded 
 2. Select your project (`sakhisetu-7069d`)
 3. Navigate to **Firestore Database**
 4. Click **Start collection** (if you don't have one yet) or navigate to existing collections
-5. Create a collection named: `appConfig`
+5. Create a collection named: `appConfigKratika`
 6. Create a document with ID: `openai`
 7. Add a field:
    - **Field name**: `apiKey`

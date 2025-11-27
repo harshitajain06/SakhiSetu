@@ -1,6 +1,6 @@
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNavigation } from '@react-navigation/native';
-import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, updateProfile } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
@@ -223,6 +223,50 @@ export default function AuthPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      if (isWeb) {
+        // Web: Use signInWithPopup
+        const result = await signInWithPopup(auth, provider);
+        showToast('success', 'Success', 'Signed in with Google successfully!');
+      } else {
+        // Native: Use signInWithRedirect which works better for mobile
+        // The redirect will be handled by the app's deep linking
+        await signInWithRedirect(auth, provider);
+        // Note: signInWithRedirect doesn't return immediately
+        // The user will be redirected to Google sign-in and back
+        showToast('info', 'Redirecting', 'Opening Google sign-in...');
+        // Don't set loading to false here as the redirect will handle it
+        return;
+      }
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+      let errorMessage = 'Google sign-in failed. Please try again.';
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-in popup was closed. Please try again.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Popup was blocked. Please allow popups and try again.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'An account already exists with this email. Please sign in with your existing method.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Google sign-in is not enabled. Please contact support.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      showToast('error', 'Google Sign-In Failed', errorMessage);
+    }
+  };
+
   return (
     <View style={[styles.pageContainer, isDarkMode && { backgroundColor: '#121212' }]}>
       <ScrollView
@@ -315,6 +359,31 @@ export default function AuthPage() {
               <TouchableOpacity onPress={handleLogin} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('auth.signIn')}</Text>}
               </TouchableOpacity>
+              
+              {/* Divider */}
+              <View style={styles.dividerContainer}>
+                <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
+                <Text style={[styles.dividerText, isDarkMode && { color: '#999' }]}>{t('auth.or')}</Text>
+                <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
+              </View>
+
+              {/* Google Sign In Button */}
+              <TouchableOpacity 
+                onPress={handleGoogleSignIn} 
+                style={[styles.googleButton, isDarkMode && styles.googleButtonDark]} 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={isDarkMode ? "#fff" : "#4285F4"} />
+                ) : (
+                  <>
+                    <Text style={styles.googleIcon}>G</Text>
+                    <Text style={[styles.googleButtonText, isDarkMode && { color: '#fff' }]}>
+                      {t('auth.signInWithGoogle')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.form}>
@@ -388,6 +457,31 @@ export default function AuthPage() {
               )}
               <TouchableOpacity onPress={handleRegister} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create account</Text>}
+              </TouchableOpacity>
+              
+              {/* Divider */}
+              <View style={styles.dividerContainer}>
+                <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
+                <Text style={[styles.dividerText, isDarkMode && { color: '#999' }]}>{t('auth.or')}</Text>
+                <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
+              </View>
+
+              {/* Google Sign In Button */}
+              <TouchableOpacity 
+                onPress={handleGoogleSignIn} 
+                style={[styles.googleButton, isDarkMode && styles.googleButtonDark]} 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={isDarkMode ? "#fff" : "#4285F4"} />
+                ) : (
+                  <>
+                    <Text style={styles.googleIcon}>G</Text>
+                    <Text style={[styles.googleButtonText, isDarkMode && { color: '#fff' }]}>
+                      {t('auth.continueWithGoogle')}
+                    </Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           )}
@@ -598,5 +692,59 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 8,
     marginLeft: 4,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ced4da',
+  },
+  dividerLineDark: {
+    backgroundColor: '#555',
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 14,
+    color: '#6c757d',
+    fontWeight: '500',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dadce0',
+    ...(isWeb && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease-in-out',
+      ':hover': {
+        backgroundColor: '#f8f9fa',
+        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+      },
+    }),
+  },
+  googleButtonDark: {
+    backgroundColor: '#2d2d2d',
+    borderColor: '#555',
+  },
+  googleIcon: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4285F4',
+    marginRight: 12,
+    width: 20,
+    textAlign: 'center',
+  },
+  googleButtonText: {
+    color: '#3c4043',
+    fontWeight: '500',
+    fontSize: 16,
   },
 });

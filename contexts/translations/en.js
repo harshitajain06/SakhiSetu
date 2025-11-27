@@ -170,6 +170,9 @@ export default {
     invalidEmail: 'Invalid email address',
     passwordTooShort: 'Password must be at least 6 characters',
     passwordsDoNotMatch: 'Passwords do not match',
+    signInWithGoogle: 'Sign in with Google',
+    continueWithGoogle: 'Continue with Google',
+    or: 'OR',
   },
 
   // Content Types
