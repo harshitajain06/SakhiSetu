@@ -8,7 +8,7 @@ export default function PrenatalCareDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params || {};
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   if (!item) {
     return (
@@ -17,6 +17,39 @@ export default function PrenatalCareDetailScreen() {
       </View>
     );
   }
+
+  // Helper function to get translated content with fallback
+  const getTranslatedItem = () => {
+    try {
+      const enTranslations = require('../contexts/translations/en').default;
+      const hiTranslations = require('../contexts/translations/hi').default;
+      const currentTranslations = language === 'hi' ? hiTranslations : enTranslations;
+      
+      const itemKey = `item${item.id}`;
+      const translatedItem = currentTranslations?.prenatalCare?.prenatalCareItems?.[itemKey];
+      
+      if (translatedItem) {
+        return {
+          title: translatedItem.title || item.title,
+          content: translatedItem.content || item.content,
+          tips: translatedItem.tips || item.tips || [],
+          importantNote: translatedItem.importantNote || item.importantNote
+        };
+      }
+    } catch (error) {
+      console.log('Translation error:', error);
+    }
+    
+    // Fallback to original item
+    return {
+      title: item.title,
+      content: item.content,
+      tips: item.tips || [],
+      importantNote: item.importantNote
+    };
+  };
+
+  const translatedItem = getTranslatedItem();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -34,22 +67,22 @@ export default function PrenatalCareDetailScreen() {
 
       {/* Title */}
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.title}>{translatedItem.title}</Text>
       </View>
 
       {/* Content Section */}
       <View style={styles.section}>
-        <Text style={styles.contentText}>{item.content}</Text>
+        <Text style={styles.contentText}>{translatedItem.content}</Text>
       </View>
 
       {/* Tips Section */}
-      {item.tips && item.tips.length > 0 && (
+      {translatedItem.tips && translatedItem.tips.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="checkmark-circle" size={24} color="#2196F3" />
             <Text style={styles.sectionTitle}>{t('prenatalCare.keyTips')}</Text>
           </View>
-          {item.tips.map((tip, index) => (
+          {translatedItem.tips.map((tip, index) => (
             <View key={index} style={styles.tipItem}>
               <View style={styles.bulletPoint} />
               <Text style={styles.tipText}>{tip}</Text>
@@ -59,14 +92,14 @@ export default function PrenatalCareDetailScreen() {
       )}
 
       {/* Important Note Section */}
-      {item.importantNote && (
+      {translatedItem.importantNote && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Ionicons name="information-circle" size={24} color="#2196F3" />
             <Text style={styles.sectionTitle}>{t('prenatalCare.importantNote')}</Text>
           </View>
           <View style={styles.noteContainer}>
-            <Text style={styles.noteText}>{item.importantNote}</Text>
+            <Text style={styles.noteText}>{translatedItem.importantNote}</Text>
           </View>
         </View>
       )}

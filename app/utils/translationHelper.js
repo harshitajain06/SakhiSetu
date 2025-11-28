@@ -15,12 +15,19 @@ export const getTranslatedItem = (language, moduleKey, itemId, fallbackItem) => 
     const itemKey = `item${itemId}`;
     
     // Try to get from menstrual section first (for menstrual health modules)
+    // e.g., menstrual.stayingCleanItems.item1
     let translatedItem = currentTranslations?.menstrual?.[moduleKey]?.[itemKey];
     
-    // If not found, try other sections (for maternal health modules)
+    // If not found, try module-specific sections (for maternal health modules)
+    // e.g., prenatalCare.prenatalCareItems.item1
+    if (!translatedItem && moduleKey.endsWith('Items')) {
+      const moduleName = moduleKey.replace('Items', '');
+      translatedItem = currentTranslations?.[moduleName]?.[moduleKey]?.[itemKey];
+    }
+    
+    // If still not found, try learn section
     if (!translatedItem) {
-      translatedItem = currentTranslations?.learn?.[moduleKey]?.[itemKey] ||
-                      currentTranslations?.[moduleKey.replace('Items', '')]?.[moduleKey]?.[itemKey];
+      translatedItem = currentTranslations?.learn?.[moduleKey]?.[itemKey];
     }
     
     if (translatedItem) {
@@ -58,12 +65,19 @@ export const getTranslatedTitle = (language, moduleKey, itemId, fallbackTitle) =
     const itemKey = `item${itemId}`;
     
     // Try to get from menstrual section first (for menstrual health modules)
+    // e.g., menstrual.stayingCleanItems.item1.title
     let translatedTitle = currentTranslations?.menstrual?.[moduleKey]?.[itemKey]?.title;
     
-    // If not found, try other sections (for maternal health modules)
+    // If not found, try module-specific sections (for maternal health modules)
+    // e.g., prenatalCare.prenatalCareItems.item1.title
+    if (!translatedTitle && moduleKey.endsWith('Items')) {
+      const moduleName = moduleKey.replace('Items', '');
+      translatedTitle = currentTranslations?.[moduleName]?.[moduleKey]?.[itemKey]?.title;
+    }
+    
+    // If still not found, try learn section
     if (!translatedTitle) {
-      translatedTitle = currentTranslations?.learn?.[moduleKey]?.[itemKey]?.title ||
-                       currentTranslations?.[moduleKey.replace('Items', '')]?.[moduleKey]?.[itemKey]?.title;
+      translatedTitle = currentTranslations?.learn?.[moduleKey]?.[itemKey]?.title;
     }
     
     return translatedTitle || fallbackTitle;

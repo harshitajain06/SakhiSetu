@@ -7,23 +7,42 @@ import { wellbeingConfidenceData } from './data/wellbeingConfidenceData';
 
 export default function WellbeingConfidenceListScreen() {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
-  const renderItemCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.itemCard}
-      onPress={() => navigation.navigate('WellbeingConfidenceDetail', { item: item })}
-      activeOpacity={0.7}
-    >
-      <View style={styles.itemIconContainer}>
-        <Ionicons name="barbell" size={24} color="#fff" />
-      </View>
-      <View style={styles.itemTextContainer}>
-        <Text style={styles.itemText}>{item.title}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#ccc" />
-    </TouchableOpacity>
-  );
+  // Helper function to get translated title
+  const getTranslatedTitle = (itemId) => {
+    try {
+      const enTranslations = require('../contexts/translations/en').default;
+      const hiTranslations = require('../contexts/translations/hi').default;
+      const currentTranslations = language === 'hi' ? hiTranslations : enTranslations;
+      
+      const itemKey = `item${itemId}`;
+      const translatedTitle = currentTranslations?.menstrual?.wellbeingConfidenceItems?.[itemKey]?.title;
+      return translatedTitle || wellbeingConfidenceData.find(i => i.id === itemId)?.title || '';
+    } catch (error) {
+      console.log('Translation error:', error);
+      return wellbeingConfidenceData.find(i => i.id === itemId)?.title || '';
+    }
+  };
+
+  const renderItemCard = ({ item }) => {
+    const translatedTitle = getTranslatedTitle(item.id);
+    return (
+      <TouchableOpacity
+        style={styles.itemCard}
+        onPress={() => navigation.navigate('WellbeingConfidenceDetail', { item: item })}
+        activeOpacity={0.7}
+      >
+        <View style={styles.itemIconContainer}>
+          <Ionicons name="barbell" size={24} color="#fff" />
+        </View>
+        <View style={styles.itemTextContainer}>
+          <Text style={styles.itemText}>{translatedTitle}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#ccc" />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>

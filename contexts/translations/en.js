@@ -66,6 +66,93 @@ export default {
     title: 'Prenatal Care',
     keyTips: 'Key Tips',
     importantNote: 'Important Note',
+    // PrenatalCare items
+    prenatalCareItems: {
+      item1: {
+        title: 'First Trimester Care',
+        content: 'The first trimester (weeks 1-12) is crucial for your baby\'s development. Here\'s what you need to know:',
+        tips: [
+          'Schedule your first prenatal appointment as soon as you know you\'re pregnant.',
+          'Start taking prenatal vitamins with folic acid to prevent birth defects.',
+          'Avoid alcohol, smoking, and recreational drugs completely.',
+          'Limit caffeine intake to 200mg per day (about one cup of coffee).',
+          'Eat small, frequent meals to manage nausea and morning sickness.',
+          'Get plenty of rest - your body is working hard to support your baby\'s growth.',
+          'Stay hydrated by drinking at least 8-10 glasses of water daily.'
+        ],
+        importantNote: 'The first trimester is when most birth defects occur, so following these guidelines is especially important during this time.'
+      },
+      item2: {
+        title: 'Second Trimester Care',
+        content: 'The second trimester (weeks 13-27) is often called the \'honeymoon period\' of pregnancy:',
+        tips: [
+          'Continue taking prenatal vitamins and eating a balanced diet.',
+          'You\'ll likely have more energy now - enjoy light exercise like walking or prenatal yoga.',
+          'Start feeling your baby move around weeks 18-22 - this is a special milestone!',
+          'Schedule your anatomy scan (usually around week 20) to check your baby\'s development.',
+          'Begin thinking about childbirth classes and creating a birth plan.',
+          'Wear comfortable, supportive clothing as your body continues to change.',
+          'Practice good posture to help with back pain as your belly grows.'
+        ],
+        importantNote: 'This is a great time to bond with your baby and prepare for the arrival of your little one.'
+      },
+      item3: {
+        title: 'Third Trimester Care',
+        content: 'The final trimester (weeks 28-40) brings you closer to meeting your baby:',
+        tips: [
+          'Continue regular prenatal checkups - you\'ll see your doctor more frequently now.',
+          'Monitor your baby\'s movements daily - report any decrease in movement immediately.',
+          'Prepare for labor by learning about the signs of labor and when to go to the hospital.',
+          'Pack your hospital bag with essentials for you and your baby.',
+          'Get plenty of rest and sleep on your left side to improve circulation.',
+          'Eat smaller meals more frequently to avoid heartburn and indigestion.',
+          'Stay active with gentle exercises, but listen to your body and rest when needed.'
+        ],
+        importantNote: 'If you experience any concerning symptoms like severe headaches, vision changes, or decreased fetal movement, contact your healthcare provider immediately.'
+      },
+      item4: {
+        title: 'Prenatal Vitamins and Supplements',
+        content: 'Proper nutrition through vitamins and supplements is essential for your baby\'s development:',
+        tips: [
+          'Folic acid (400-800 mcg daily) prevents neural tube defects - start before conception if possible.',
+          'Iron helps prevent anemia and supports your baby\'s growth - your doctor will monitor your levels.',
+          'Calcium (1000mg daily) supports your baby\'s bone development and your bone health.',
+          'DHA/Omega-3 fatty acids support your baby\'s brain and eye development.',
+          'Vitamin D helps with calcium absorption and immune function.',
+          'Take your prenatal vitamins with food to reduce nausea.',
+          'Always consult your doctor before taking any additional supplements.'
+        ],
+        importantNote: 'A balanced diet combined with prenatal vitamins ensures you and your baby get all necessary nutrients.'
+      },
+      item5: {
+        title: 'Regular Checkups and Tests',
+        content: 'Regular prenatal visits are crucial for monitoring your health and your baby\'s development:',
+        tips: [
+          'First trimester: Initial blood work, ultrasound, and genetic screening options.',
+          'Second trimester: Anatomy scan, glucose screening for gestational diabetes, and blood tests.',
+          'Third trimester: More frequent visits (every 2 weeks, then weekly), Group B Strep test, and monitoring baby\'s position.',
+          'Keep track of your appointments and bring a list of questions to each visit.',
+          'Discuss any concerns or symptoms with your healthcare provider openly.',
+          'Understand the purpose of each test and screening recommended.',
+          'Maintain a record of your pregnancy progress and test results.'
+        ],
+        importantNote: 'Regular prenatal care helps identify and manage potential complications early, ensuring the best outcomes for you and your baby.'
+      },
+      item6: {
+        title: 'Managing Common Pregnancy Symptoms',
+        content: 'Pregnancy brings various symptoms - here\'s how to manage them:',
+        tips: [
+          'Morning sickness: Eat small, frequent meals, avoid strong smells, try ginger tea or crackers.',
+          'Fatigue: Get plenty of rest, take naps when possible, maintain a regular sleep schedule.',
+          'Back pain: Use proper posture, wear supportive shoes, try prenatal massage or yoga.',
+          'Heartburn: Eat smaller meals, avoid spicy foods, sleep propped up, avoid eating close to bedtime.',
+          'Swelling: Elevate your feet, stay hydrated, avoid standing for long periods, wear comfortable shoes.',
+          'Constipation: Eat fiber-rich foods, stay hydrated, exercise regularly, talk to your doctor about safe options.',
+          'Mood changes: Practice relaxation techniques, talk to your partner or a counselor, join a support group.'
+        ],
+        importantNote: 'While many symptoms are normal, always discuss severe or concerning symptoms with your healthcare provider.'
+      }
+    }
   },
 
   // Postpartum Care
@@ -208,6 +295,100 @@ export default {
           'If you notice a strong, unusual odor, it may indicate an infection - consult a healthcare provider.'
         ],
         importantNote: 'A slight metallic smell is normal during menstruation. Strong, fishy, or foul odors may indicate an infection and should be checked by a doctor.'
+      }
+    },
+    // WellbeingConfidence items
+    wellbeingConfidenceItems: {
+      item1: {
+        title: 'Understanding Mood Changes',
+        content: 'Mood changes during your period are normal and caused by hormonal fluctuations. Understanding this can help you manage your emotions better:',
+        tips: [
+          'Hormonal changes (estrogen and progesterone) affect neurotransmitters in your brain, which can cause mood swings.',
+          'Common emotional symptoms include irritability, sadness, anxiety, or feeling overwhelmed.',
+          'These feelings are temporary and usually improve once your period starts or ends.',
+          'Track your mood patterns to understand your unique cycle.',
+          'Remember that these emotions are valid and normal - you\'re not alone in experiencing them.',
+          'Be patient and kind to yourself during this time.'
+        ],
+        importantNote: 'If mood changes are severe and significantly impact your daily life, consider speaking with a healthcare provider about Premenstrual Syndrome (PMS) or Premenstrual Dysphoric Disorder (PMDD).'
+      },
+      item2: {
+        title: 'Managing Cramps and Discomfort',
+        content: 'Menstrual cramps are common but manageable. Here are effective ways to find relief:',
+        tips: [
+          'Apply a heating pad or hot water bottle to your lower abdomen for 15-20 minutes.',
+          'Take a warm bath to relax your muscles and ease discomfort.',
+          'Gentle exercise like walking, yoga, or stretching can help reduce cramps.',
+          'Over-the-counter pain relievers (like ibuprofen) can be effective - follow package instructions.',
+          'Practice deep breathing or meditation to help relax your body.',
+          'Stay hydrated and eat regular, balanced meals.'
+        ],
+        importantNote: 'If cramps are severe and don\'t respond to these methods, or if they interfere with your daily activities, consult a healthcare provider.'
+      },
+      item3: {
+        title: 'Building Self-Confidence',
+        content: 'Your period doesn\'t define you. Here are ways to maintain confidence during menstruation:',
+        tips: [
+          'Wear comfortable clothes that make you feel good about yourself.',
+          'Remember that menstruation is a natural, healthy process - nothing to be ashamed of.',
+          'Prepare ahead by having sanitary products ready so you feel prepared.',
+          'Practice positive self-talk and remind yourself of your strengths.',
+          'Surround yourself with supportive people who understand and respect your experience.',
+          'Focus on activities you enjoy and that make you feel accomplished.'
+        ],
+        importantNote: 'Confidence comes from understanding and accepting your body\'s natural processes. You are strong and capable, period or not.'
+      },
+      item4: {
+        title: 'Staying Active and Energized',
+        content: 'Physical activity can actually help improve your period symptoms and boost your mood:',
+        tips: [
+          'Light to moderate exercise can reduce cramps, bloating, and mood swings.',
+          'Activities like walking, yoga, swimming, or dancing are great options.',
+          'Exercise releases endorphins, which are natural mood boosters.',
+          'Listen to your body - if you feel tired, take it easy, but don\'t avoid all activity.',
+          'Stay hydrated and eat nutritious foods to maintain energy levels.',
+          'Get adequate sleep (7-9 hours) to help your body recover and maintain energy.'
+        ],
+        importantNote: 'You don\'t need to skip exercise during your period. In fact, staying active can make you feel better physically and emotionally.'
+      },
+      item5: {
+        title: 'Nutrition for Well-being',
+        content: 'Eating well during your period can help manage symptoms and maintain your energy:',
+        tips: [
+          'Eat iron-rich foods (leafy greens, beans, lean meats) to replace iron lost through bleeding.',
+          'Include foods rich in magnesium (nuts, seeds, whole grains) to help reduce cramps.',
+          'Stay hydrated by drinking plenty of water throughout the day.',
+          'Limit processed foods, excess salt, and sugar which can worsen bloating and mood swings.',
+          'Eat regular, balanced meals to maintain stable blood sugar and energy levels.',
+          'Consider small, frequent meals if you experience nausea or digestive issues.'
+        ],
+        importantNote: 'A balanced diet supports your body during menstruation and can help reduce symptoms like cramps, bloating, and fatigue.'
+      },
+      item6: {
+        title: 'Stress Management and Relaxation',
+        content: 'Managing stress is especially important during your period when you may feel more sensitive:',
+        tips: [
+          'Practice relaxation techniques like deep breathing, meditation, or mindfulness.',
+          'Get adequate sleep - aim for 7-9 hours per night.',
+          'Take breaks when you need them - it\'s okay to slow down.',
+          'Engage in activities you enjoy, such as reading, listening to music, or hobbies.',
+          'Talk to friends, family, or a counselor if you\'re feeling overwhelmed.',
+          'Avoid overcommitting yourself during your period - give yourself permission to rest.'
+        ],
+        importantNote: 'Taking care of your mental health is just as important as physical health. Don\'t hesitate to seek support when needed.'
+      },
+      item7: {
+        title: 'Sleep and Rest',
+        content: 'Quality sleep is essential for managing period symptoms and maintaining well-being:',
+        tips: [
+          'Aim for 7-9 hours of sleep per night, especially during your period.',
+          'Create a comfortable sleep environment with appropriate temperature and lighting.',
+          'Establish a regular sleep schedule, going to bed and waking up at similar times.',
+          'Avoid screens (phone, TV) at least an hour before bedtime.',
+          'Use a heating pad or warm bath before bed to help with cramps and promote relaxation.',
+          'If discomfort keeps you awake, try different sleeping positions or use extra pillows for support.'
+        ],
+        importantNote: 'Adequate rest helps your body manage period symptoms, supports mood regulation, and maintains your overall health and energy.'
       }
     }
   },
