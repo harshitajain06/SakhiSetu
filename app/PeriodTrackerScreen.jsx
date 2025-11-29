@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -11,7 +12,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useTranslation } from '../contexts/TranslationContext';
 import { auth, db } from '../config/firebase';
@@ -42,6 +43,12 @@ export default function PeriodTrackerScreen() {
   const [showSymptomDropdown, setShowSymptomDropdown] = useState(false);
   const [showSymptomDetailModal, setShowSymptomDetailModal] = useState(false);
   const [selectedSymptomDetail, setSelectedSymptomDetail] = useState(null);
+  const [showEditPeriodModal, setShowEditPeriodModal] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
+  const [dateToPeriodMap, setDateToPeriodMap] = useState({});
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageModalContent, setMessageModalContent] = useState({ title: '', message: '', type: 'success' });
 
   // Symptom options
   const symptomOptions = [
@@ -196,6 +203,7 @@ export default function PeriodTrackerScreen() {
   // Update marked dates for calendar
   const updateMarkedDates = (periods) => {
     const marked = {};
+    const dateMap = {};
     
     periods.forEach(period => {
       const startDate = new Date(period.startDate);
@@ -211,6 +219,8 @@ export default function PeriodTrackerScreen() {
           selectedColor: '#e91e63',
           selectedTextColor: '#fff'
         };
+        // Map each date to its period for easy lookup
+        dateMap[dateStr] = period;
       }
     });
 
@@ -231,6 +241,7 @@ export default function PeriodTrackerScreen() {
     }
     
     setMarkedDates(marked);
+    setDateToPeriodMap(dateMap);
   };
 
   // Calculate next period date
@@ -253,7 +264,13 @@ export default function PeriodTrackerScreen() {
 
       // Validate dates
       if (!validateDates()) {
-        Alert.alert(t('periodTracker.validationError'), t('periodTracker.fixDateErrors'));
+        setMessageModalContent({
+          title: t('periodTracker.validationError') || 'Validation Error',
+          message: t('periodTracker.fixDateErrors') || 'Please fix the date errors',
+          type: 'error'
+        });
+        setShowMessageModal(true);
+        setSaving(false);
         return;
       }
 
@@ -293,14 +310,26 @@ export default function PeriodTrackerScreen() {
       await fetchMenstrualData();
       await fetchPeriodHistory();
       
-      Alert.alert(t('common.success'), t('periodTracker.successPeriodLogged'));
       setShowPeriodModal(false);
       // Reset form
       setPeriodStartDate(new Date().toISOString().split('T')[0]);
       setPeriodEndDate(new Date().toISOString().split('T')[0]);
+      
+      // Show success message
+      setMessageModalContent({
+        title: t('common.success') || 'Success',
+        message: t('periodTracker.successPeriodLogged') || 'Period logged successfully',
+        type: 'success'
+      });
+      setShowMessageModal(true);
     } catch (error) {
       console.error('Error saving period data:', error);
-      Alert.alert(t('common.error'), t('periodTracker.errorSavePeriod'));
+      setMessageModalContent({
+        title: t('common.error') || 'Error',
+        message: t('periodTracker.errorSavePeriod') || 'Error saving period',
+        type: 'error'
+      });
+      setShowMessageModal(true);
     } finally {
       setSaving(false);
     }
@@ -311,6 +340,7 @@ export default function PeriodTrackerScreen() {
     setPeriodStartDate(new Date().toISOString().split('T')[0]);
     setPeriodEndDate(new Date().toISOString().split('T')[0]);
     setDateErrors({});
+    setSelectedPeriod(null);
     setShowPeriodModal(true);
   };
 
@@ -360,7 +390,12 @@ export default function PeriodTrackerScreen() {
 
   // Handle date selection from calendar
   const handleStartDateSelect = (day) => {
-    setPeriodStartDate(day.dateString);
+    // Toggle selection: if the same date is clicked, deselect it
+    if (periodStartDate === day.dateString) {
+      setPeriodStartDate('');
+    } else {
+      setPeriodStartDate(day.dateString);
+    }
     setShowStartCalendar(false);
     // Clear start date error when user selects a date
     if (dateErrors.startDate) {
@@ -369,11 +404,179 @@ export default function PeriodTrackerScreen() {
   };
 
   const handleEndDateSelect = (day) => {
-    setPeriodEndDate(day.dateString);
+    // Toggle selection: if the same date is clicked, deselect it
+    if (periodEndDate === day.dateString) {
+      setPeriodEndDate('');
+    } else {
+      setPeriodEndDate(day.dateString);
+    }
     setShowEndCalendar(false);
     // Clear end date error when user selects a date
     if (dateErrors.endDate) {
       setDateErrors(prev => ({ ...prev, endDate: null }));
+    }
+  };
+
+  // Clear date handlers
+  const clearStartDate = () => {
+    setPeriodStartDate('');
+    if (dateErrors.startDate) {
+      setDateErrors(prev => ({ ...prev, startDate: null }));
+    }
+  };
+
+  const clearEndDate = () => {
+    setPeriodEndDate('');
+    if (dateErrors.endDate) {
+      setDateErrors(prev => ({ ...prev, endDate: null }));
+    }
+  };
+
+  // Handle date click on main calendar
+  const handleCalendarDayPress = (day) => {
+    const clickedDate = day.dateString;
+    const period = dateToPeriodMap[clickedDate];
+    
+    if (period) {
+      // If the date belongs to a period, show edit modal
+      setSelectedPeriod(period);
+      setPeriodStartDate(period.startDate);
+      setPeriodEndDate(period.endDate);
+      setDateErrors({});
+      setShowEditPeriodModal(true);
+    }
+  };
+
+  // Show delete confirmation modal
+  const showDeleteConfirmation = () => {
+    if (!selectedPeriod) return;
+    setShowDeleteConfirmModal(true);
+  };
+
+  // Delete period (called after confirmation)
+  const confirmDeletePeriod = async () => {
+    if (!selectedPeriod) return;
+    
+    // Store period info before async operations
+    const periodToDelete = selectedPeriod;
+    
+    try {
+      setSaving(true);
+      setShowDeleteConfirmModal(false);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        setSaving(false);
+        return;
+      }
+
+      // Delete the period from Firestore
+      const periodDocRef = doc(db, 'users', userId, 'periodHistory', periodToDelete.id);
+      await deleteDoc(periodDocRef);
+
+      // Immediately update local state to remove the period from UI
+      const updatedHistory = periodHistory.filter(p => p.id !== periodToDelete.id);
+      setPeriodHistory(updatedHistory);
+      updateMarkedDates(updatedHistory);
+
+      // Close edit modal
+      setShowEditPeriodModal(false);
+      setSelectedPeriod(null);
+
+      // Refresh data from server to ensure consistency
+      await fetchMenstrualData();
+      await fetchPeriodHistory();
+      
+      // Show success message
+      setMessageModalContent({
+        title: t('common.success') || 'Success',
+        message: t('periodTracker.periodDeleted') || 'Period deleted successfully',
+        type: 'success'
+      });
+      setShowMessageModal(true);
+    } catch (error) {
+      console.error('Error deleting period:', error);
+      // Refresh data even on error to ensure UI is in sync
+      await fetchPeriodHistory();
+      setMessageModalContent({
+        title: t('common.error') || 'Error',
+        message: t('periodTracker.errorDeletePeriod') || 'Error deleting period',
+        type: 'error'
+      });
+      setShowMessageModal(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Update period
+  const updatePeriod = async () => {
+    if (!selectedPeriod) return;
+
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      // Validate dates
+      if (!validateDates()) {
+        setMessageModalContent({
+          title: t('periodTracker.validationError') || 'Validation Error',
+          message: t('periodTracker.fixDateErrors') || 'Please fix the date errors',
+          type: 'error'
+        });
+        setShowMessageModal(true);
+        setSaving(false);
+        return;
+      }
+
+      const periodData = {
+        startDate: periodStartDate,
+        endDate: periodEndDate,
+        periodLength: Math.ceil((new Date(periodEndDate) - new Date(periodStartDate)) / (1000 * 60 * 60 * 24)) + 1,
+        cycleLength: menstrualData.cycleLength,
+        createdAt: selectedPeriod.createdAt || new Date()
+      };
+
+      const periodDocRef = doc(db, 'users', userId, 'periodHistory', selectedPeriod.id);
+      await updateDoc(periodDocRef, periodData);
+
+      // Update lastPeriod if this was the most recent period
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.menstrualData?.lastPeriod === selectedPeriod.startDate) {
+          await updateDoc(userDocRef, {
+            'menstrualData.lastPeriod': periodStartDate
+          });
+        }
+      }
+
+      // Refresh data
+      await fetchMenstrualData();
+      await fetchPeriodHistory();
+      
+      setShowEditPeriodModal(false);
+      setSelectedPeriod(null);
+      
+      // Show success message
+      setMessageModalContent({
+        title: t('common.success') || 'Success',
+        message: t('periodTracker.periodUpdated') || 'Period updated successfully',
+        type: 'success'
+      });
+      setShowMessageModal(true);
+    } catch (error) {
+      console.error('Error updating period:', error);
+      setMessageModalContent({
+        title: t('common.error') || 'Error',
+        message: t('periodTracker.errorUpdatePeriod') || 'Error updating period',
+        type: 'error'
+      });
+      setShowMessageModal(true);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -385,7 +588,13 @@ export default function PeriodTrackerScreen() {
       if (!userId) return;
 
       if (!newSymptom) {
-        Alert.alert(t('common.error'), t('periodTracker.errorSelectSymptom'));
+        setMessageModalContent({
+          title: t('common.error') || 'Error',
+          message: t('periodTracker.errorSelectSymptom') || 'Please select a symptom',
+          type: 'error'
+        });
+        setShowMessageModal(true);
+        setSaving(false);
         return;
       }
 
@@ -401,13 +610,25 @@ export default function PeriodTrackerScreen() {
       // Refresh data
       await fetchSymptoms();
       
-      Alert.alert(t('common.success'), t('periodTracker.successSymptomLogged'));
       setShowSymptomModal(false);
       setNewSymptom('');
       setSymptomSeverity('Light');
+      
+      // Show success message
+      setMessageModalContent({
+        title: t('common.success') || 'Success',
+        message: t('periodTracker.successSymptomLogged') || 'Symptom logged successfully',
+        type: 'success'
+      });
+      setShowMessageModal(true);
     } catch (error) {
       console.error('Error saving symptom data:', error);
-      Alert.alert(t('common.error'), t('periodTracker.errorSaveSymptom'));
+      setMessageModalContent({
+        title: t('common.error') || 'Error',
+        message: t('periodTracker.errorSaveSymptom') || 'Error saving symptom',
+        type: 'error'
+      });
+      setShowMessageModal(true);
     } finally {
       setSaving(false);
     }
@@ -505,6 +726,7 @@ export default function PeriodTrackerScreen() {
         <Calendar
           monthFormat={'MMMM yyyy'}
           markedDates={markedDates}
+          onDayPress={handleCalendarDayPress}
           theme={{
             selectedDayBackgroundColor: '#e91e63',
             todayTextColor: '#e91e63',
@@ -616,15 +838,25 @@ export default function PeriodTrackerScreen() {
             
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('periodTracker.startDate')}</Text>
-              <TouchableOpacity 
-                style={[styles.dateInput, dateErrors.startDate && styles.errorInput]}
-                onPress={() => setShowStartCalendar(true)}
-              >
-                <Text style={[styles.dateInputText, dateErrors.startDate && styles.errorText]}>
-                  {periodStartDate || t('periodTracker.selectStartDate')}
-                </Text>
-                <Ionicons name="calendar-outline" size={20} color="#666" />
-              </TouchableOpacity>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity 
+                  style={[styles.dateInput, dateErrors.startDate && styles.errorInput]}
+                  onPress={() => setShowStartCalendar(true)}
+                >
+                  <Text style={[styles.dateInputText, dateErrors.startDate && styles.errorText]}>
+                    {periodStartDate || t('periodTracker.selectStartDate')}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                </TouchableOpacity>
+                {periodStartDate && (
+                  <TouchableOpacity 
+                    style={styles.clearButton}
+                    onPress={clearStartDate}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#F44336" />
+                  </TouchableOpacity>
+                )}
+              </View>
               {dateErrors.startDate && (
                 <Text style={styles.errorMessage}>{dateErrors.startDate}</Text>
               )}
@@ -632,15 +864,25 @@ export default function PeriodTrackerScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('periodTracker.endDate')}</Text>
-              <TouchableOpacity 
-                style={[styles.dateInput, dateErrors.endDate && styles.errorInput]}
-                onPress={() => setShowEndCalendar(true)}
-              >
-                <Text style={[styles.dateInputText, dateErrors.endDate && styles.errorText]}>
-                  {periodEndDate || t('periodTracker.selectEndDate')}
-                </Text>
-                <Ionicons name="calendar-outline" size={20} color="#666" />
-              </TouchableOpacity>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity 
+                  style={[styles.dateInput, dateErrors.endDate && styles.errorInput]}
+                  onPress={() => setShowEndCalendar(true)}
+                >
+                  <Text style={[styles.dateInputText, dateErrors.endDate && styles.errorText]}>
+                    {periodEndDate || t('periodTracker.selectEndDate')}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                </TouchableOpacity>
+                {periodEndDate && (
+                  <TouchableOpacity 
+                    style={styles.clearButton}
+                    onPress={clearEndDate}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#F44336" />
+                  </TouchableOpacity>
+                )}
+              </View>
               {dateErrors.endDate && (
                 <Text style={styles.errorMessage}>{dateErrors.endDate}</Text>
               )}
@@ -665,6 +907,201 @@ export default function PeriodTrackerScreen() {
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Period Modal */}
+      <Modal
+        visible={showEditPeriodModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowEditPeriodModal(false);
+          setSelectedPeriod(null);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.detailModalHeader}>
+              <Text style={styles.modalTitle}>{t('periodTracker.editPeriod') || 'Edit Period'}</Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  setShowEditPeriodModal(false);
+                  setSelectedPeriod(null);
+                }}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>{t('periodTracker.startDate')}</Text>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity 
+                  style={[styles.dateInput, dateErrors.startDate && styles.errorInput]}
+                  onPress={() => setShowStartCalendar(true)}
+                >
+                  <Text style={[styles.dateInputText, dateErrors.startDate && styles.errorText]}>
+                    {periodStartDate || t('periodTracker.selectStartDate')}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                </TouchableOpacity>
+                {periodStartDate && (
+                  <TouchableOpacity 
+                    style={styles.clearButton}
+                    onPress={clearStartDate}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#F44336" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              {dateErrors.startDate && (
+                <Text style={styles.errorMessage}>{dateErrors.startDate}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>{t('periodTracker.endDate')}</Text>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity 
+                  style={[styles.dateInput, dateErrors.endDate && styles.errorInput]}
+                  onPress={() => setShowEndCalendar(true)}
+                >
+                  <Text style={[styles.dateInputText, dateErrors.endDate && styles.errorText]}>
+                    {periodEndDate || t('periodTracker.selectEndDate')}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                </TouchableOpacity>
+                {periodEndDate && (
+                  <TouchableOpacity 
+                    style={styles.clearButton}
+                    onPress={clearEndDate}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#F44336" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              {dateErrors.endDate && (
+                <Text style={styles.errorMessage}>{dateErrors.endDate}</Text>
+              )}
+            </View>
+
+            <View style={styles.editModalButtons}>
+              <TouchableOpacity 
+                style={[styles.deleteButton, saving && styles.disabledButton]}
+                onPress={showDeleteConfirmation}
+                disabled={saving}
+              >
+                <Ionicons name="trash-outline" size={20} color="#fff" />
+                <Text style={styles.deleteButtonText}>{t('periodTracker.delete') || 'Delete'}</Text>
+              </TouchableOpacity>
+              <View style={styles.editModalButtonsRow}>
+                <TouchableOpacity 
+                  style={[styles.cancelButton, { flex: 1 }]}
+                  onPress={() => {
+                    setShowEditPeriodModal(false);
+                    setSelectedPeriod(null);
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>{t('periodTracker.cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.saveButton, { flex: 1 }, saving && styles.disabledButton]}
+                  onPress={updatePeriod}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>{t('periodTracker.update') || 'Update'}</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteConfirmModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.confirmModalHeader}>
+              <Ionicons name="warning" size={32} color="#F44336" />
+              <Text style={styles.confirmModalTitle}>
+                {t('periodTracker.deletePeriod') || 'Delete Period'}
+              </Text>
+            </View>
+            <Text style={styles.confirmModalMessage}>
+              {t('periodTracker.confirmDelete') || 'Are you sure you want to delete this period? This action cannot be undone.'}
+            </Text>
+            <View style={styles.confirmModalButtons}>
+              <TouchableOpacity 
+                style={[styles.confirmCancelButton, saving && styles.disabledButton]}
+                onPress={() => setShowDeleteConfirmModal(false)}
+                disabled={saving}
+              >
+                <Text style={styles.confirmCancelButtonText}>
+                  {t('periodTracker.cancel') || 'Cancel'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.confirmDeleteButton, saving && styles.disabledButton]}
+                onPress={confirmDeletePeriod}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="trash-outline" size={18} color="#fff" />
+                    <Text style={styles.confirmDeleteButtonText}>
+                      {t('periodTracker.delete') || 'Delete'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Message Modal (Success/Error) */}
+      <Modal
+        visible={showMessageModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowMessageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.messageModalContent}>
+            <View style={styles.messageModalHeader}>
+              {messageModalContent.type === 'success' ? (
+                <Ionicons name="checkmark-circle" size={48} color="#4CAF50" />
+              ) : (
+                <Ionicons name="close-circle" size={48} color="#F44336" />
+              )}
+              <Text style={styles.messageModalTitle}>
+                {messageModalContent.title}
+              </Text>
+            </View>
+            <Text style={styles.messageModalMessage}>
+              {messageModalContent.message}
+            </Text>
+            <TouchableOpacity 
+              style={[styles.messageModalButton, messageModalContent.type === 'success' ? styles.messageModalSuccessButton : styles.messageModalErrorButton]}
+              onPress={() => setShowMessageModal(false)}
+            >
+              <Text style={styles.messageModalButtonText}>
+                {t('common.ok') || 'OK'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -759,9 +1196,9 @@ export default function PeriodTrackerScreen() {
             </View>
             <Calendar
               onDayPress={handleStartDateSelect}
-              markedDates={{
+              markedDates={periodStartDate ? {
                 [periodStartDate]: { selected: true, selectedColor: '#e91e63' }
-              }}
+              } : {}}
               theme={{
                 selectedDayBackgroundColor: '#e91e63',
                 todayTextColor: '#e91e63',
@@ -797,9 +1234,9 @@ export default function PeriodTrackerScreen() {
             </View>
             <Calendar
               onDayPress={handleEndDateSelect}
-              markedDates={{
+              markedDates={periodEndDate ? {
                 [periodEndDate]: { selected: true, selectedColor: '#e91e63' }
-              }}
+              } : {}}
               theme={{
                 selectedDayBackgroundColor: '#e91e63',
                 todayTextColor: '#e91e63',
@@ -1210,6 +1647,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 20,
   },
+  editModalButtons: {
+    marginTop: 20,
+    gap: 12,
+  },
+  editModalButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
   cancelButton: {
     flex: 1,
     paddingVertical: 12,
@@ -1236,10 +1682,32 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
   },
+  deleteButton: {
+    flex: 1,
+    paddingVertical: 12,
+    marginRight: 8,
+    borderRadius: 8,
+    backgroundColor: '#F44336',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
   disabledButton: {
     opacity: 0.6,
   },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   dateInput: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
@@ -1251,6 +1719,11 @@ const styles = StyleSheet.create({
   dateInputText: {
     fontSize: 16,
     color: '#333',
+  },
+  clearButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorInput: {
     borderColor: '#F44336',
@@ -1426,5 +1899,108 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#fff',
+  },
+  confirmModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  confirmModalHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  confirmModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  confirmModalMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  confirmModalButtons: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+  },
+  confirmCancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  confirmCancelButtonText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#F44336',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  confirmDeleteButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  messageModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  messageModalHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  messageModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  messageModalMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  messageModalButton: {
+    width: '100%',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  messageModalSuccessButton: {
+    backgroundColor: '#4CAF50',
+  },
+  messageModalErrorButton: {
+    backgroundColor: '#F44336',
+  },
+  messageModalButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
   },
 });
