@@ -19,6 +19,15 @@ import { auth, db } from '../config/firebase';
 
 export default function PeriodTrackerScreen() {
   const { t } = useTranslation();
+  
+  // Helper function to get translation with fallback
+  // If translation returns the key itself, use the fallback
+  const getTranslation = (key, fallback) => {
+    const translation = t(key);
+    // If translation is the same as key, it means translation wasn't found
+    return translation === key ? fallback : (translation || fallback);
+  };
+  
   const [menstrualData, setMenstrualData] = useState({
     cycleLength: 28,
     periodLength: 5,
@@ -893,7 +902,7 @@ export default function PeriodTrackerScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowPeriodModal(false)}
               >
-                <Text style={styles.cancelButtonText}>{t('periodTracker.cancel')}</Text>
+                <Text style={styles.cancelButtonText}>{getTranslation('periodTracker.cancel', 'Cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.saveButton, saving && styles.disabledButton]}
@@ -903,7 +912,7 @@ export default function PeriodTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.saveButtonText}>{t('periodTracker.save')}</Text>
+                  <Text style={styles.saveButtonText}>{getTranslation('periodTracker.save', 'Save')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -994,7 +1003,7 @@ export default function PeriodTrackerScreen() {
                 disabled={saving}
               >
                 <Ionicons name="trash-outline" size={20} color="#fff" />
-                <Text style={styles.deleteButtonText}>{t('periodTracker.delete') || 'Delete'}</Text>
+                <Text style={styles.deleteButtonText}>{getTranslation('periodTracker.delete', 'Delete')}</Text>
               </TouchableOpacity>
               <View style={styles.editModalButtonsRow}>
                 <TouchableOpacity 
@@ -1004,7 +1013,7 @@ export default function PeriodTrackerScreen() {
                     setSelectedPeriod(null);
                   }}
                 >
-                  <Text style={styles.cancelButtonText}>{t('periodTracker.cancel')}</Text>
+                  <Text style={styles.cancelButtonText}>{getTranslation('periodTracker.cancel', 'Cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.saveButton, { flex: 1 }, saving && styles.disabledButton]}
@@ -1014,7 +1023,7 @@ export default function PeriodTrackerScreen() {
                   {saving ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={styles.saveButtonText}>{t('periodTracker.update') || 'Update'}</Text>
+                    <Text style={styles.saveButtonText}>{getTranslation('periodTracker.update', 'Update')}</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -1035,11 +1044,11 @@ export default function PeriodTrackerScreen() {
             <View style={styles.confirmModalHeader}>
               <Ionicons name="warning" size={32} color="#F44336" />
               <Text style={styles.confirmModalTitle}>
-                {t('periodTracker.deletePeriod') || 'Delete Period'}
+                {getTranslation('periodTracker.deletePeriod', 'Delete Period')}
               </Text>
             </View>
             <Text style={styles.confirmModalMessage}>
-              {t('periodTracker.confirmDelete') || 'Are you sure you want to delete this period? This action cannot be undone.'}
+              {getTranslation('periodTracker.confirmDelete', 'Are you sure you want to delete this period? This action cannot be undone.')}
             </Text>
             <View style={styles.confirmModalButtons}>
               <TouchableOpacity 
@@ -1048,7 +1057,7 @@ export default function PeriodTrackerScreen() {
                 disabled={saving}
               >
                 <Text style={styles.confirmCancelButtonText}>
-                  {t('periodTracker.cancel') || 'Cancel'}
+                  {getTranslation('periodTracker.cancel', 'Cancel')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity 
@@ -1062,7 +1071,7 @@ export default function PeriodTrackerScreen() {
                   <>
                     <Ionicons name="trash-outline" size={18} color="#fff" />
                     <Text style={styles.confirmDeleteButtonText}>
-                      {t('periodTracker.delete') || 'Delete'}
+                      {getTranslation('periodTracker.delete', 'Delete')}
                     </Text>
                   </>
                 )}
@@ -1099,7 +1108,7 @@ export default function PeriodTrackerScreen() {
               onPress={() => setShowMessageModal(false)}
             >
               <Text style={styles.messageModalButtonText}>
-                {t('common.ok') || 'OK'}
+                {getTranslation('common.ok', 'OK')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1158,7 +1167,7 @@ export default function PeriodTrackerScreen() {
                 style={styles.cancelButton}
                 onPress={() => setShowSymptomModal(false)}
               >
-                <Text style={styles.cancelButtonText}>{t('periodTracker.cancel')}</Text>
+                <Text style={styles.cancelButtonText}>{getTranslation('periodTracker.cancel', 'Cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.saveButton, saving && styles.disabledButton]}
@@ -1168,7 +1177,7 @@ export default function PeriodTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.saveButtonText}>{t('periodTracker.save')}</Text>
+                  <Text style={styles.saveButtonText}>{getTranslation('periodTracker.save', 'Save')}</Text>
                 )}
               </TouchableOpacity>
           </View>

@@ -1,6 +1,6 @@
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNavigation } from '@react-navigation/native';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, reload, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, updateProfile } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
@@ -29,6 +29,9 @@ export default function AuthPage() {
   const [user, loading, error] = useAuthState(auth);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isSendingVerification, setIsSendingVerification] = useState(false);
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [mode, setMode] = useState('login');
 
   const [loginEmail, setLoginEmail] = useState('');
@@ -43,10 +46,70 @@ export default function AuthPage() {
   const [registerErrors, setRegisterErrors] = useState({ name: '', email: '', password: '' });
 
   useEffect(() => {
+    const checkUserVerification = async () => {
+      if (user) {
+        // Reload user to get latest email verification status
+        try {
+          await reload(user);
+          
+          // Get the updated user from auth.currentUser after reload
+          const currentUser = auth.currentUser;
+          
+          // Check if email is verified
+          if (currentUser && !currentUser.emailVerified) {
+            // Don't navigate if email is not verified
+            setShowVerificationMessage(true);
+            showToast('info', 'Email Not Verified', 'Please verify your email address before accessing the app. Check your inbox for the verification email.');
+            return;
+          }
+          
+          // Only navigate if email is verified
+          if (currentUser && currentUser.emailVerified) {
+            setShowVerificationMessage(false);
+            navigation.replace('WelcomeScreen');
+          }
+        } catch (error) {
+          console.error('Error checking verification:', error);
+          // If reload fails, check current status from auth
+          const currentUser = auth.currentUser;
+          if (currentUser && !currentUser.emailVerified) {
+            setShowVerificationMessage(true);
+            return;
+          }
+          if (currentUser && currentUser.emailVerified) {
+            setShowVerificationMessage(false);
+            navigation.replace('WelcomeScreen');
+          }
+        }
+      }
+    };
+    
     if (user) {
-      navigation.replace('WelcomeScreen');
+      checkUserVerification();
     }
   }, [user]);
+
+  // Periodically check if user has verified their email (useful when they verify and come back)
+  useEffect(() => {
+    if (user && !user.emailVerified && showVerificationMessage) {
+      const interval = setInterval(async () => {
+        try {
+          await reload(user);
+          const currentUser = auth.currentUser;
+          if (currentUser && currentUser.emailVerified) {
+            setShowVerificationMessage(false);
+            showToast('success', 'Email Verified', 'Your email has been verified! Redirecting...');
+            navigation.replace('WelcomeScreen');
+            clearInterval(interval);
+          }
+        } catch (error) {
+          console.error('Error checking verification status:', error);
+        }
+      }, 3000); // Check every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [user, showVerificationMessage]);
 
   // Validation functions
   const validateEmail = (email) => {
@@ -113,8 +176,28 @@ export default function AuthPage() {
 
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, loginEmail.trim(), loginPassword);
-      showToast('success', 'Success', 'Logged in successfully!');
+      const userCredential = await signInWithEmailAndPassword(auth, loginEmail.trim(), loginPassword);
+      
+      // Reload user to get latest email verification status
+      await reload(userCredential.user);
+      
+      // Get updated user after reload
+      const currentUser = auth.currentUser;
+      
+      // Check if email is verified
+      if (currentUser && !currentUser.emailVerified) {
+        setIsLoading(false);
+        setShowVerificationMessage(true);
+        showToast('info', 'Email Not Verified', 'Please verify your email address before logging in. Check your inbox for the verification email.');
+        // Don't sign out - allow them to resend verification email
+        // Navigation will be blocked by useEffect
+        return;
+      }
+      
+      // Only show success if verified (navigation handled by useEffect)
+      if (currentUser && currentUser.emailVerified) {
+        showToast('success', 'Success', 'Logged in successfully!');
+      }
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -140,23 +223,29 @@ export default function AuthPage() {
 
   const handleForgotPassword = async () => {
     // Validate email
-    if (!loginEmail) {
+    if (!loginEmail || !loginEmail.trim()) {
       showToast('error', 'Email Required', 'Please enter your email address to reset your password.');
       setLoginErrors({ ...loginErrors, email: 'Email is required' });
       return;
     }
 
-    const emailError = validateEmail(loginEmail);
+    const emailError = validateEmail(loginEmail.trim());
     if (emailError) {
       showToast('error', 'Invalid Email', emailError);
       setLoginErrors({ ...loginErrors, email: emailError });
       return;
     }
 
+    setIsResettingPassword(true);
     try {
-      await sendPasswordResetEmail(auth, loginEmail.trim());
+      const trimmedEmail = loginEmail.trim();
+      await sendPasswordResetEmail(auth, trimmedEmail);
       showToast('success', 'Email Sent', 'Password reset email has been sent. Please check your inbox.');
+      // Clear the email field after successful send
+      setLoginEmail('');
+      setLoginErrors({ email: '', password: '' });
     } catch (error) {
+      console.error('Password reset error:', error);
       let errorMessage = 'Failed to send reset email. Please try again.';
       
       if (error.code === 'auth/user-not-found') {
@@ -167,9 +256,44 @@ export default function AuthPage() {
         errorMessage = 'Too many requests. Please try again later.';
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = 'Network error. Please check your connection.';
+      } else if (error.code === 'auth/missing-email') {
+        errorMessage = 'Email address is required.';
+      } else {
+        errorMessage = error.message || errorMessage;
       }
       
       showToast('error', 'Reset Failed', errorMessage);
+      setLoginErrors({ ...loginErrors, email: errorMessage });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!auth.currentUser) {
+      showToast('error', 'Error', 'Please log in first to resend verification email.');
+      return;
+    }
+
+    setIsSendingVerification(true);
+    try {
+      await sendEmailVerification(auth.currentUser);
+      showToast('success', 'Email Sent', 'Verification email has been sent. Please check your inbox.');
+    } catch (error) {
+      console.error('Error resending verification email:', error);
+      let errorMessage = 'Failed to send verification email. Please try again.';
+      
+      if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many requests. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'User not found. Please log in again.';
+      }
+      
+      showToast('error', 'Send Failed', errorMessage);
+    } finally {
+      setIsSendingVerification(false);
     }
   };
 
@@ -201,7 +325,17 @@ export default function AuthPage() {
       await updateProfile(userCredential.user, {
         displayName: registerName.trim(),
       });
-      showToast('success', 'Success', 'Account created successfully!');
+      
+      // Send verification email
+      try {
+        await sendEmailVerification(userCredential.user);
+        setShowVerificationMessage(true);
+        showToast('success', 'Account Created', 'Account created successfully! Please check your email to verify your account.');
+      } catch (verificationError) {
+        console.error('Error sending verification email:', verificationError);
+        showToast('warning', 'Account Created', 'Account created successfully, but verification email could not be sent. You can resend it later.');
+      }
+      
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -233,7 +367,15 @@ export default function AuthPage() {
       if (isWeb) {
         // Web: Use signInWithPopup
         const result = await signInWithPopup(auth, provider);
-        showToast('success', 'Success', 'Signed in with Google successfully!');
+        // Reload to get latest verification status
+        await reload(result.user);
+        // Google accounts are typically already verified, but check anyway
+        if (!result.user.emailVerified) {
+          setShowVerificationMessage(true);
+          showToast('info', 'Email Not Verified', 'Please verify your email address. Check your inbox for the verification email.');
+        } else {
+          showToast('success', 'Success', 'Signed in with Google successfully!');
+        }
       } else {
         // Native: Use signInWithRedirect which works better for mobile
         // The redirect will be handled by the app's deep linking
@@ -294,13 +436,19 @@ export default function AuthPage() {
           {/* Tabs */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
-              onPress={() => setMode('login')}
+              onPress={() => {
+                setMode('login');
+                setShowVerificationMessage(false);
+              }}
               style={[styles.tab, mode === 'login' && styles.activeTabBackground]}
             >
               <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>{t('auth.login')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setMode('register')}
+              onPress={() => {
+                setMode('register');
+                setShowVerificationMessage(false);
+              }}
               style={[styles.tab, mode === 'register' && styles.activeTabBackground]}
             >
               <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>{t('auth.register')}</Text>
@@ -353,9 +501,49 @@ export default function AuthPage() {
               {loginErrors.password ? (
                 <Text style={styles.errorText}>{loginErrors.password}</Text>
               ) : null}
-              <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
-                <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
+              <TouchableOpacity 
+                style={styles.forgotPassword} 
+                onPress={handleForgotPassword}
+                disabled={isResettingPassword || isLoading}
+              >
+                {isResettingPassword ? (
+                  <View style={styles.forgotPasswordLoading}>
+                    <ActivityIndicator size="small" color="#007bff" />
+                    <Text style={[styles.forgotPasswordText, { marginLeft: 8 }]}>Sending...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword')}</Text>
+                )}
               </TouchableOpacity>
+              
+              {/* Email Verification Message for Login */}
+              {showVerificationMessage && mode === 'login' && (
+                <View style={[styles.verificationBanner, isDarkMode && styles.verificationBannerDark]}>
+                  <View style={styles.verificationBannerContent}>
+                    <Text style={[styles.verificationBannerText, isDarkMode && { color: '#fff' }]}>
+                      Please verify your email address. Check your inbox for the verification email.
+                    </Text>
+                    <TouchableOpacity 
+                      onPress={handleResendVerification}
+                      disabled={isSendingVerification}
+                      style={styles.resendButton}
+                    >
+                      {isSendingVerification ? (
+                        <ActivityIndicator size="small" color="#007bff" />
+                      ) : (
+                        <Text style={styles.resendButtonText}>Resend Email</Text>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      onPress={() => setShowVerificationMessage(false)}
+                      style={styles.closeVerificationButton}
+                    >
+                      <Text style={styles.closeVerificationText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              
               <TouchableOpacity onPress={handleLogin} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('auth.signIn')}</Text>}
               </TouchableOpacity>
@@ -455,6 +643,35 @@ export default function AuthPage() {
                   Password strength: {registerPassword.length >= 8 && /(?=.*[a-z])(?=.*[A-Z])/.test(registerPassword) && /(?=.*\d)/.test(registerPassword) ? 'Strong' : 'Good'}
                 </Text>
               )}
+              
+              {/* Email Verification Message for Registration */}
+              {showVerificationMessage && mode === 'register' && (
+                <View style={[styles.verificationBanner, isDarkMode && styles.verificationBannerDark]}>
+                  <View style={styles.verificationBannerContent}>
+                    <Text style={[styles.verificationBannerText, isDarkMode && { color: '#fff' }]}>
+                      Verification email sent! Please check your inbox to verify your account.
+                    </Text>
+                    <TouchableOpacity 
+                      onPress={handleResendVerification}
+                      disabled={isSendingVerification}
+                      style={styles.resendButton}
+                    >
+                      {isSendingVerification ? (
+                        <ActivityIndicator size="small" color="#007bff" />
+                      ) : (
+                        <Text style={styles.resendButtonText}>Resend Email</Text>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      onPress={() => setShowVerificationMessage(false)}
+                      style={styles.closeVerificationButton}
+                    >
+                      <Text style={styles.closeVerificationText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              
               <TouchableOpacity onPress={handleRegister} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create account</Text>}
               </TouchableOpacity>
@@ -623,9 +840,14 @@ const styles = StyleSheet.create({
   forgotPassword: {
     alignItems: 'flex-end',
     marginBottom: 16,
+    minHeight: 20,
     ...(isWeb && {
       cursor: 'pointer',
     }),
+  },
+  forgotPasswordLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   forgotPasswordText: {
     color: '#007bff',
@@ -746,5 +968,57 @@ const styles = StyleSheet.create({
     color: '#3c4043',
     fontWeight: '500',
     fontSize: 16,
+  },
+  verificationBanner: {
+    backgroundColor: '#e3f2fd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#90caf9',
+  },
+  verificationBannerDark: {
+    backgroundColor: '#1e3a5f',
+    borderColor: '#1976d2',
+  },
+  verificationBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  verificationBannerText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1565c0',
+    marginBottom: 8,
+    minWidth: '100%',
+  },
+  resendButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#007bff',
+    marginRight: 8,
+    ...(isWeb && {
+      cursor: 'pointer',
+    }),
+  },
+  resendButtonText: {
+    color: '#007bff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  closeVerificationButton: {
+    padding: 4,
+    ...(isWeb && {
+      cursor: 'pointer',
+    }),
+  },
+  closeVerificationText: {
+    fontSize: 20,
+    color: '#666',
+    fontWeight: 'bold',
   },
 });
