@@ -1,21 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  updateDoc
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    orderBy,
+    query,
+    setDoc,
+    updateDoc
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useTranslation } from '../contexts/TranslationContext';
 import { auth, db } from '../config/firebase';
+import { useTranslation } from '../contexts/TranslationContext';
 
 export default function PeriodTrackerScreen() {
   const { t } = useTranslation();
@@ -56,6 +56,8 @@ export default function PeriodTrackerScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState(null);
   const [dateToPeriodMap, setDateToPeriodMap] = useState({});
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showSymptomDeleteConfirmModal, setShowSymptomDeleteConfirmModal] = useState(false);
+  const [selectedSymptomToDelete, setSelectedSymptomToDelete] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageModalContent, setMessageModalContent] = useState({ title: '', message: '', type: 'success' });
 
@@ -607,14 +609,36 @@ export default function PeriodTrackerScreen() {
         return;
       }
 
+      // Check if a symptom with the same type and date already exists
+      const symptomsCollectionRef = collection(db, 'users', userId, 'symptoms');
+      const querySnapshot = await getDocs(symptomsCollectionRef);
+      
+      let existingSymptomId = null;
+      let existingCreatedAt = null;
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.symptom === newSymptom && data.date === selectedDate) {
+          existingSymptomId = doc.id;
+          existingCreatedAt = data.createdAt || null;
+        }
+      });
+
       const symptomData = {
         symptom: newSymptom,
         severity: symptomSeverity,
         date: selectedDate,
-        createdAt: new Date()
+        createdAt: existingCreatedAt || new Date(),
+        updatedAt: new Date()
       };
 
-      await addDoc(collection(db, 'users', userId, 'symptoms'), symptomData);
+      if (existingSymptomId) {
+        // Update existing symptom
+        const symptomDocRef = doc(db, 'users', userId, 'symptoms', existingSymptomId);
+        await updateDoc(symptomDocRef, symptomData);
+      } else {
+        // Create new symptom
+        await addDoc(symptomsCollectionRef, symptomData);
+      }
 
       // Refresh data
       await fetchSymptoms();
@@ -626,7 +650,9 @@ export default function PeriodTrackerScreen() {
       // Show success message
       setMessageModalContent({
         title: t('common.success') || 'Success',
-        message: t('periodTracker.successSymptomLogged') || 'Symptom logged successfully',
+        message: existingSymptomId 
+          ? (t('periodTracker.symptomUpdated') || 'Symptom updated successfully')
+          : (t('periodTracker.successSymptomLogged') || 'Symptom logged successfully'),
         type: 'success'
       });
       setShowMessageModal(true);
@@ -640,6 +666,61 @@ export default function PeriodTrackerScreen() {
       setShowMessageModal(true);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Show delete confirmation for symptom
+  const showDeleteSymptomConfirmation = (symptom) => {
+    setSelectedSymptomToDelete(symptom);
+    setShowSymptomDeleteConfirmModal(true);
+  };
+
+  // Delete symptom (called after confirmation)
+  const confirmDeleteSymptom = async () => {
+    if (!selectedSymptomToDelete) return;
+    
+    const symptomToDelete = selectedSymptomToDelete;
+    
+    try {
+      setSaving(true);
+      setShowSymptomDeleteConfirmModal(false);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        setSaving(false);
+        return;
+      }
+
+      // Delete the symptom from Firestore
+      const symptomDocRef = doc(db, 'users', userId, 'symptoms', symptomToDelete.id);
+      await deleteDoc(symptomDocRef);
+
+      // Immediately update local state to remove the symptom from UI
+      const updatedSymptoms = symptoms.filter(s => s.id !== symptomToDelete.id);
+      setSymptoms(updatedSymptoms);
+
+      // Refresh data from server to ensure consistency
+      await fetchSymptoms();
+      
+      // Show success message
+      setMessageModalContent({
+        title: t('common.success') || 'Success',
+        message: t('periodTracker.symptomDeleted') || 'Symptom deleted successfully',
+        type: 'success'
+      });
+      setShowMessageModal(true);
+    } catch (error) {
+      console.error('Error deleting symptom:', error);
+      // Refresh data even on error to ensure UI is in sync
+      await fetchSymptoms();
+      setMessageModalContent({
+        title: t('common.error') || 'Error',
+        message: t('periodTracker.errorDeleteSymptom') || 'Error deleting symptom',
+        type: 'error'
+      });
+      setShowMessageModal(true);
+    } finally {
+      setSaving(false);
+      setSelectedSymptomToDelete(null);
     }
   };
 
@@ -753,20 +834,39 @@ export default function PeriodTrackerScreen() {
         <Text style={styles.sectionTitle}>{t('periodTracker.recentSymptoms')}</Text>
         {symptoms.length > 0 ? (
         <View style={styles.symptomsGrid}>
-            {symptoms.slice(0, 4).map((symptom, index) => (
-              <TouchableOpacity 
-                key={symptom.id} 
-                style={[styles.symptomCard, { backgroundColor: getSymptomCardColor(symptom.severity) }]}
-                onPress={() => {
-                  setSelectedSymptomDetail(symptom);
-                  setShowSymptomDetailModal(true);
-                }}
-              >
-                <Ionicons name="medical-outline" size={24} color="#e91e63" />
-                <Text style={styles.symptomName}>{symptom.symptom}</Text>
-                <Text style={styles.symptomSeverity}>{getSeverityText(symptom.severity)}</Text>
-              </TouchableOpacity>
-          ))}
+            {symptoms.slice(0, 4).map((symptom, index) => {
+              const symptomDate = symptom.date ? new Date(symptom.date) : null;
+              const isValidDate = symptomDate && !isNaN(symptomDate.getTime());
+              const formattedDate = isValidDate 
+                ? symptomDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : symptom.date || 'Unknown date';
+              
+              return (
+                <View 
+                  key={symptom.id} 
+                  style={[styles.symptomCard, { backgroundColor: getSymptomCardColor(symptom.severity) }]}
+                >
+                  <TouchableOpacity 
+                    style={styles.symptomDeleteButton}
+                    onPress={() => showDeleteSymptomConfirmation(symptom)}
+                  >
+                    <Ionicons name="close-circle" size={20} color="#F44336" />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.symptomCardContent}
+                    onPress={() => {
+                      setSelectedSymptomDetail(symptom);
+                      setShowSymptomDetailModal(true);
+                    }}
+                  >
+                    <Ionicons name="medical-outline" size={24} color="#e91e63" />
+                    <Text style={styles.symptomName}>{symptom.symptom}</Text>
+                    <Text style={styles.symptomSeverity}>{getSeverityText(symptom.severity)}</Text>
+                    <Text style={styles.symptomDate}>{formattedDate}</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
         </View>
         ) : (
           <View style={styles.emptyState}>
@@ -1063,6 +1163,58 @@ export default function PeriodTrackerScreen() {
               <TouchableOpacity 
                 style={[styles.confirmDeleteButton, saving && styles.disabledButton]}
                 onPress={confirmDeletePeriod}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="trash-outline" size={18} color="#fff" />
+                    <Text style={styles.confirmDeleteButtonText}>
+                      {getTranslation('periodTracker.delete', 'Delete')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Symptom Delete Confirmation Modal */}
+      <Modal
+        visible={showSymptomDeleteConfirmModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSymptomDeleteConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.confirmModalHeader}>
+              <Ionicons name="warning" size={32} color="#F44336" />
+              <Text style={styles.confirmModalTitle}>
+                {getTranslation('periodTracker.deleteSymptom', 'Delete Symptom')}
+              </Text>
+            </View>
+            <Text style={styles.confirmModalMessage}>
+              {getTranslation('periodTracker.confirmDeleteSymptom', 'Are you sure you want to delete this symptom? This action cannot be undone.')}
+            </Text>
+            <View style={styles.confirmModalButtons}>
+              <TouchableOpacity 
+                style={[styles.confirmCancelButton, saving && styles.disabledButton]}
+                onPress={() => {
+                  setShowSymptomDeleteConfirmModal(false);
+                  setSelectedSymptomToDelete(null);
+                }}
+                disabled={saving}
+              >
+                <Text style={styles.confirmCancelButtonText}>
+                  {getTranslation('periodTracker.cancel', 'Cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.confirmDeleteButton, saving && styles.disabledButton]}
+                onPress={confirmDeleteSymptom}
                 disabled={saving}
               >
                 {saving ? (
@@ -1507,6 +1659,18 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginBottom: 12,
+    position: 'relative',
+  },
+  symptomDeleteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    padding: 4,
+  },
+  symptomCardContent: {
+    width: '100%',
+    alignItems: 'center',
   },
   symptomName: {
     fontSize: 14,
@@ -1518,6 +1682,12 @@ const styles = StyleSheet.create({
   symptomSeverity: {
     fontSize: 12,
     color: '#666',
+    marginBottom: 4,
+  },
+  symptomDate: {
+    fontSize: 11,
+    color: '#999',
+    marginTop: 4,
   },
   emptyState: {
     alignItems: 'center',
