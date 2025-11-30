@@ -81,11 +81,17 @@ export default function AuthPage() {
             navigation.replace('WelcomeScreen');
           }
         }
+      } else {
+        // User logged out - reset verification message
+        setShowVerificationMessage(false);
       }
     };
     
     if (user) {
       checkUserVerification();
+    } else {
+      // Reset verification message when user logs out
+      setShowVerificationMessage(false);
     }
   }, [user]);
 
@@ -718,32 +724,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     minHeight: isWeb ? '100vh' : '100%',
+    ...(isWeb && {
+      width: '100%',
+      overflowX: 'hidden',
+      boxSizing: 'border-box',
+    }),
   },
   container: {
-    padding: isWeb ? Math.min(24, width * 0.05) : 24,
-    paddingTop: isWeb ? Math.min(60, height * 0.08) : 60,
+    padding: isWeb ? 16 : 24,
+    paddingTop: isWeb ? 40 : 60,
+    paddingBottom: isWeb ? 40 : 24,
     backgroundColor: '#fff',
     minHeight: isWeb ? '100vh' : '100%',
     justifyContent: 'center',
+    ...(isWeb && {
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+    }),
   },
   contentWrapper: {
-    maxWidth: isWeb ? 400 : '100%',
+    maxWidth: isWeb ? Math.min(420, width * 0.9) : '100%',
     width: '100%',
     alignSelf: 'center',
     ...(isWeb && {
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
       borderRadius: 12,
-      padding: 32,
+      padding: Math.min(24, width * 0.06),
       backgroundColor: '#fff',
+      boxSizing: 'border-box',
     }),
   },
   iconContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 2,
   },
   iconCircle: {
-    backgroundColor: '#e6f0ff',
-    padding: 12,
+    backgroundColor: 'transparent',
+    padding: 0,
     borderRadius: 999,
     ...(isWeb && {
       cursor: 'pointer',
@@ -755,18 +772,24 @@ const styles = StyleSheet.create({
     color: '#007bff',
   },
   iconImage: {
-    width: 80,
-    height: 80,
+    width: isWeb ? Math.min(120, width * 0.25) : 120,
+    height: isWeb ? Math.min(120, width * 0.25) : 120,
+    maxWidth: '100%',
+    ...(isWeb && {
+      width: 'clamp(80px, 20vw, 120px)',
+      height: 'clamp(80px, 20vw, 120px)',
+    }),
   },
   title: {
-    fontSize: isWeb ? Math.min(28, width * 0.07) : 24,
+    fontSize: isWeb ? 24 : 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 10,
     ...(isWeb && {
       background: 'linear-gradient(135deg, #007bff, #0056b3)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
+      fontSize: 'clamp(20px, 4vw, 28px)',
     }),
   },
   tabContainer: {
@@ -802,6 +825,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6c757d',
     fontWeight: '600',
+    ...(isWeb && {
+      fontSize: 'clamp(14px, 2vw, 16px)',
+    }),
   },
   activeTabText: {
     color: '#007bff',
@@ -811,6 +837,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#212529',
     fontSize: 14,
+    ...(isWeb && {
+      fontSize: 'clamp(12px, 1.8vw, 14px)',
+    }),
   },
   form: {
     marginBottom: 30,
@@ -826,6 +855,10 @@ const styles = StyleSheet.create({
     ...(isWeb && {
       outline: 'none',
       transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+      fontSize: 'clamp(14px, 2vw, 16px)',
+      padding: 'clamp(10px, 2vw, 12px)',
+      boxSizing: 'border-box',
+      width: '100%',
       ':focus': {
         borderColor: '#007bff',
         boxShadow: '0 0 0 3px rgba(0, 123, 255, 0.1)',
@@ -866,6 +899,9 @@ const styles = StyleSheet.create({
     ...(isWeb && {
       cursor: 'pointer',
       transition: 'all 0.2s ease-in-out',
+      padding: 'clamp(12px, 2vw, 14px)',
+      width: '100%',
+      boxSizing: 'border-box',
       ':hover': {
         backgroundColor: '#b3d9ff',
         transform: 'translateY(-1px)',
@@ -883,6 +919,9 @@ const styles = StyleSheet.create({
     color: '#007bff',
     fontWeight: 'bold',
     fontSize: 16,
+    ...(isWeb && {
+      fontSize: 'clamp(14px, 2vw, 16px)',
+    }),
   },
   privacyPolicy: {
     textAlign: 'center',
@@ -946,6 +985,9 @@ const styles = StyleSheet.create({
     ...(isWeb && {
       cursor: 'pointer',
       transition: 'all 0.2s ease-in-out',
+      padding: 'clamp(12px, 2vw, 14px)',
+      width: '100%',
+      boxSizing: 'border-box',
       ':hover': {
         backgroundColor: '#f8f9fa',
         boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
@@ -968,6 +1010,9 @@ const styles = StyleSheet.create({
     color: '#3c4043',
     fontWeight: '500',
     fontSize: 16,
+    ...(isWeb && {
+      fontSize: 'clamp(14px, 2vw, 16px)',
+    }),
   },
   verificationBanner: {
     backgroundColor: '#e3f2fd',

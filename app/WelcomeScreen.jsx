@@ -68,15 +68,6 @@ export default function WelcomeScreen() {
     navigation.replace('HealthSelectionScreen');
   };
 
-  // Auto-navigate after 3 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('HealthSelectionScreen');
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [navigation]);
-
   const displayName = userName || user?.email?.split('@')[0] || 'there';
 
   return (

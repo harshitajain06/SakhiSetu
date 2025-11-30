@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation, languages } from '../contexts/TranslationContext';
 import ProfileScreen from './ProfileScreen';
 
@@ -84,8 +84,12 @@ export default function HealthSelectionScreen() {
           {/* Menstrual Health Card */}
           <TouchableOpacity style={[styles.card, styles.menstrualHealthCard]} onPress={handleMenstrualHealth}>
             <View style={styles.cardIconContainer}>
-              <View style={styles.cardIconCircle}>
-                <Ionicons name="heart-outline" size={isWeb ? 24 : 30} color="#fff" />
+              <View style={styles.cardIconBackground}>
+                <Image 
+                  source={require('../assets/images/SakhiSetu_logo.png')} 
+                  style={styles.cardIconImage}
+                  resizeMode="contain"
+                />
               </View>
             </View>
             <Text style={styles.cardTitle}>{t('healthSelection.menstrualHealth')}</Text>
@@ -100,8 +104,12 @@ export default function HealthSelectionScreen() {
           {/* Maternal Wellness Card */}
           <TouchableOpacity style={[styles.card, styles.maternalWellnessCard]} onPress={handleMaternalWellness}>
             <View style={styles.cardIconContainer}>
-              <View style={styles.cardIconCircle}>
-                <Ionicons name="medical-outline" size={isWeb ? 24 : 30} color="#fff" />
+              <View style={styles.cardIconBackground}>
+                <Image 
+                  source={require('../assets/images/SakhiSetu_logo.png')} 
+                  style={styles.cardIconImage}
+                  resizeMode="contain"
+                />
               </View>
             </View>
             <Text style={styles.cardTitle}>{t('healthSelection.maternalWellness')}</Text>
@@ -239,15 +247,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: isWeb ? 10 : 16,
   },
-  cardIconCircle: {
-    width: isWeb ? 48 : 60,
-    height: isWeb ? 48 : 60,
-    borderRadius: isWeb ? 24 : 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  cardIconBackground: {
+    backgroundColor: '#fff',
+    width: isWeb ? 80 : 100,
+    height: isWeb ? 80 : 100,
+    borderRadius: isWeb ? 40 : 50,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
+    overflow: 'hidden',
+  },
+  cardIconImage: {
+    width: isWeb ? 80 : 100,
+    height: isWeb ? 80 : 100,
   },
   cardTitle: {
     fontSize: isWeb ? 20 : 24,
