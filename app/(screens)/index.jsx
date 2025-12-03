@@ -791,6 +791,9 @@ const styles = StyleSheet.create({
       width: '100%',
       overflowX: 'hidden',
       boxSizing: 'border-box',
+      // Global text rendering fix
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
     }),
   },
   container: {
@@ -852,6 +855,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
     ...(isWeb && {
+      display: 'block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       background: 'linear-gradient(135deg, #007bff, #0056b3)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
@@ -893,11 +900,21 @@ const styles = StyleSheet.create({
     color: '#6c757d',
     fontWeight: '600',
     ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       fontSize: 'clamp(14px, 2vw, 16px)',
     }),
   },
   activeTabText: {
     color: '#007bff',
+    ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
   label: {
     marginBottom: 6,
@@ -905,6 +922,10 @@ const styles = StyleSheet.create({
     color: '#212529',
     fontSize: 14,
     ...(isWeb && {
+      display: 'block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       fontSize: 'clamp(12px, 1.8vw, 14px)',
     }),
   },
@@ -920,6 +941,10 @@ const styles = StyleSheet.create({
     borderColor: '#ced4da',
     fontSize: 16,
     ...(isWeb && {
+      display: 'block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       outline: 'none',
       transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
       fontSize: 'clamp(14px, 2vw, 16px)',
@@ -956,6 +981,10 @@ const styles = StyleSheet.create({
     color: '#007bff',
     fontSize: 13,
     ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       ':hover': {
         textDecoration: 'underline',
       },
@@ -990,6 +1019,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       fontSize: 'clamp(14px, 2vw, 16px)',
     }),
   },
@@ -1000,6 +1033,10 @@ const styles = StyleSheet.create({
     color: '#007bff',
     textDecorationLine: 'underline',
     ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       cursor: 'pointer',
       ':hover': {
         color: '#0056b3',
@@ -1016,6 +1053,12 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 8,
     marginLeft: 4,
+    ...(isWeb && {
+      display: 'block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
   passwordHint: {
     color: '#28a745',
@@ -1023,6 +1066,12 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 8,
     marginLeft: 4,
+    ...(isWeb && {
+      display: 'block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -1045,6 +1094,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6c757d',
     fontWeight: '500',
+    ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
   googleButton: {
     flexDirection: 'row',
@@ -1079,12 +1134,22 @@ const styles = StyleSheet.create({
     marginRight: 12,
     width: 20,
     textAlign: 'center',
+    ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
   googleButtonText: {
     color: '#3c4043',
     fontWeight: '500',
     fontSize: 16,
     ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
       fontSize: 'clamp(14px, 2vw, 16px)',
     }),
   },
@@ -1114,6 +1179,12 @@ const styles = StyleSheet.create({
     color: '#1565c0',
     marginBottom: 8,
     minWidth: '100%',
+    ...(isWeb && {
+      display: 'block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
   resendButton: {
     paddingHorizontal: 12,
@@ -1131,6 +1202,12 @@ const styles = StyleSheet.create({
     color: '#007bff',
     fontSize: 12,
     fontWeight: '600',
+    ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
   closeVerificationButton: {
     padding: 4,
@@ -1142,5 +1219,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#666',
     fontWeight: 'bold',
+    ...(isWeb && {
+      display: 'inline-block',
+      whiteSpace: 'normal',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed',
+    }),
   },
 });
