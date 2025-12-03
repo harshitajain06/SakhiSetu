@@ -44,6 +44,14 @@ export default function AuthPage() {
   // Validation errors
   const [loginErrors, setLoginErrors] = useState({ email: '', password: '' });
   const [registerErrors, setRegisterErrors] = useState({ name: '', email: '', password: '' });
+  
+  // Track touched fields to only show errors after user interaction
+  const [loginTouched, setLoginTouched] = useState({ email: false, password: false });
+  const [registerTouched, setRegisterTouched] = useState({ name: false, email: false, password: false });
+  
+  // Track if form has been submitted to show all errors
+  const [loginSubmitted, setLoginSubmitted] = useState(false);
+  const [registerSubmitted, setRegisterSubmitted] = useState(false);
 
   useEffect(() => {
     const checkUserVerification = async () => {
@@ -166,6 +174,12 @@ export default function AuthPage() {
   };
 
   const handleLogin = async () => {
+    // Mark form as submitted
+    setLoginSubmitted(true);
+    
+    // Mark all fields as touched
+    setLoginTouched({ email: true, password: true });
+    
     // Validate fields
     const emailError = validateEmail(loginEmail);
     const passwordError = validatePassword(loginPassword, true);
@@ -304,6 +318,12 @@ export default function AuthPage() {
   };
 
   const handleRegister = async () => {
+    // Mark form as submitted
+    setRegisterSubmitted(true);
+    
+    // Mark all fields as touched
+    setRegisterTouched({ name: true, email: true, password: true });
+    
     // Validate all fields
     const nameError = validateName(registerName);
     const emailError = validateEmail(registerEmail);
@@ -445,6 +465,10 @@ export default function AuthPage() {
               onPress={() => {
                 setMode('login');
                 setShowVerificationMessage(false);
+                // Reset touched and submitted states when switching modes
+                setLoginTouched({ email: false, password: false });
+                setLoginSubmitted(false);
+                setLoginErrors({ email: '', password: '' });
               }}
               style={[styles.tab, mode === 'login' && styles.activeTabBackground]}
             >
@@ -454,6 +478,10 @@ export default function AuthPage() {
               onPress={() => {
                 setMode('register');
                 setShowVerificationMessage(false);
+                // Reset touched and submitted states when switching modes
+                setRegisterTouched({ name: false, email: false, password: false });
+                setRegisterSubmitted(false);
+                setRegisterErrors({ name: '', email: '', password: '' });
               }}
               style={[styles.tab, mode === 'register' && styles.activeTabBackground]}
             >
@@ -470,7 +498,7 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  loginErrors.email && styles.inputError
+                  (loginTouched.email || loginSubmitted) && loginErrors.email && styles.inputError
                 ]}
                 value={loginEmail}
                 onChangeText={(text) => {
@@ -479,11 +507,18 @@ export default function AuthPage() {
                     setLoginErrors({ ...loginErrors, email: '' });
                   }
                 }}
+                onBlur={() => {
+                  const newTouched = { ...loginTouched, email: true };
+                  setLoginTouched(newTouched);
+                  // Validate on blur after marking as touched
+                  const emailError = validateEmail(loginEmail);
+                  setLoginErrors({ ...loginErrors, email: emailError });
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
-              {loginErrors.email ? (
+              {(loginTouched.email || loginSubmitted) && loginErrors.email ? (
                 <Text style={styles.errorText}>{loginErrors.email}</Text>
               ) : null}
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
@@ -493,7 +528,7 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  loginErrors.password && styles.inputError
+                  (loginTouched.password || loginSubmitted) && loginErrors.password && styles.inputError
                 ]}
                 value={loginPassword}
                 onChangeText={(text) => {
@@ -502,9 +537,16 @@ export default function AuthPage() {
                     setLoginErrors({ ...loginErrors, password: '' });
                   }
                 }}
+                onBlur={() => {
+                  const newTouched = { ...loginTouched, password: true };
+                  setLoginTouched(newTouched);
+                  // Validate on blur after marking as touched
+                  const passwordError = validatePassword(loginPassword, true);
+                  setLoginErrors({ ...loginErrors, password: passwordError });
+                }}
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
-              {loginErrors.password ? (
+              {(loginTouched.password || loginSubmitted) && loginErrors.password ? (
                 <Text style={styles.errorText}>{loginErrors.password}</Text>
               ) : null}
               <TouchableOpacity 
@@ -587,7 +629,7 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  registerErrors.name && styles.inputError
+                  (registerTouched.name || registerSubmitted) && registerErrors.name && styles.inputError
                 ]}
                 value={registerName}
                 onChangeText={(text) => {
@@ -596,9 +638,16 @@ export default function AuthPage() {
                     setRegisterErrors({ ...registerErrors, name: '' });
                   }
                 }}
+                onBlur={() => {
+                  const newTouched = { ...registerTouched, name: true };
+                  setRegisterTouched(newTouched);
+                  // Validate on blur after marking as touched
+                  const nameError = validateName(registerName);
+                  setRegisterErrors({ ...registerErrors, name: nameError });
+                }}
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
-              {registerErrors.name ? (
+              {(registerTouched.name || registerSubmitted) && registerErrors.name ? (
                 <Text style={styles.errorText}>{registerErrors.name}</Text>
               ) : null}
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
@@ -607,7 +656,7 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  registerErrors.email && styles.inputError
+                  (registerTouched.email || registerSubmitted) && registerErrors.email && styles.inputError
                 ]}
                 value={registerEmail}
                 onChangeText={(text) => {
@@ -616,11 +665,18 @@ export default function AuthPage() {
                     setRegisterErrors({ ...registerErrors, email: '' });
                   }
                 }}
+                onBlur={() => {
+                  const newTouched = { ...registerTouched, email: true };
+                  setRegisterTouched(newTouched);
+                  // Validate on blur after marking as touched
+                  const emailError = validateEmail(registerEmail);
+                  setRegisterErrors({ ...registerErrors, email: emailError });
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
-              {registerErrors.email ? (
+              {(registerTouched.email || registerSubmitted) && registerErrors.email ? (
                 <Text style={styles.errorText}>{registerErrors.email}</Text>
               ) : null}
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
@@ -630,7 +686,7 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  registerErrors.password && styles.inputError
+                  (registerTouched.password || registerSubmitted) && registerErrors.password && styles.inputError
                 ]}
                 value={registerPassword}
                 onChangeText={(text) => {
@@ -639,9 +695,16 @@ export default function AuthPage() {
                     setRegisterErrors({ ...registerErrors, password: '' });
                   }
                 }}
+                onBlur={() => {
+                  const newTouched = { ...registerTouched, password: true };
+                  setRegisterTouched(newTouched);
+                  // Validate on blur after marking as touched
+                  const passwordError = validatePassword(registerPassword, false);
+                  setRegisterErrors({ ...registerErrors, password: passwordError });
+                }}
                 placeholderTextColor={isDarkMode ? '#999' : '#6c757d'}
               />
-              {registerErrors.password ? (
+              {(registerTouched.password || registerSubmitted) && registerErrors.password ? (
                 <Text style={styles.errorText}>{registerErrors.password}</Text>
               ) : null}
               {registerPassword && !registerErrors.password && registerPassword.length >= 6 && (
@@ -738,6 +801,7 @@ const styles = StyleSheet.create({
     minHeight: isWeb ? '100vh' : '100%',
     justifyContent: 'center',
     ...(isWeb && {
+      display: 'flex',
       maxWidth: '100%',
       boxSizing: 'border-box',
     }),
@@ -747,6 +811,8 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
     ...(isWeb && {
+      display: 'flex',
+      flexDirection: 'column',
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
       borderRadius: 12,
       padding: Math.min(24, width * 0.06),
@@ -799,6 +865,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
     ...(isWeb && {
+      display: 'flex',
       boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
     }),
   },
@@ -881,6 +948,9 @@ const styles = StyleSheet.create({
   forgotPasswordLoading: {
     flexDirection: 'row',
     alignItems: 'center',
+    ...(isWeb && {
+      display: 'flex',
+    }),
   },
   forgotPasswordText: {
     color: '#007bff',
@@ -958,6 +1028,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 20,
+    ...(isWeb && {
+      display: 'flex',
+    }),
   },
   dividerLine: {
     flex: 1,
@@ -983,6 +1056,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#dadce0',
     ...(isWeb && {
+      display: 'flex',
       cursor: 'pointer',
       transition: 'all 0.2s ease-in-out',
       padding: 'clamp(12px, 2vw, 14px)',
@@ -1030,6 +1104,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
+    ...(isWeb && {
+      display: 'flex',
+    }),
   },
   verificationBannerText: {
     flex: 1,
