@@ -24,6 +24,7 @@ export default function CycleInsightsScreen() {
   const [periodHistory, setPeriodHistory] = useState([]);
   const [symptoms, setSymptoms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [insights, setInsights] = useState([]);
 
   // Get current user ID
@@ -93,6 +94,37 @@ export default function CycleInsightsScreen() {
     }
   };
 
+  // Calculate actual cycle lengths from period history
+  const calculateActualCycleLengths = () => {
+    if (periodHistory.length < 2) {
+      return [];
+    }
+
+    // Sort periods by start date (ascending) to calculate actual cycle lengths
+    const sortedPeriods = [...periodHistory].sort((a, b) => {
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+      return dateA - dateB;
+    });
+
+    // Calculate actual cycle lengths (days between consecutive period start dates)
+    const actualCycleLengths = [];
+    for (let i = 1; i < sortedPeriods.length; i++) {
+      const prevStartDate = new Date(sortedPeriods[i - 1].startDate);
+      const currStartDate = new Date(sortedPeriods[i].startDate);
+      
+      // Validate dates
+      if (!isNaN(prevStartDate.getTime()) && !isNaN(currStartDate.getTime())) {
+        const daysDiff = Math.ceil((currStartDate - prevStartDate) / (1000 * 60 * 60 * 24));
+        if (daysDiff > 0 && daysDiff < 90) { // Sanity check: cycle should be between 1-90 days
+          actualCycleLengths.push(daysDiff);
+        }
+      }
+    }
+
+    return actualCycleLengths;
+  };
+
   // Calculate insights from period history
   const calculateInsights = () => {
     if (periodHistory.length === 0) {
@@ -100,16 +132,50 @@ export default function CycleInsightsScreen() {
       return;
     }
 
-    const cycleLengths = periodHistory.map(period => period.cycleLength);
-    const periodLengths = periodHistory.map(period => period.periodLength);
+    // Calculate actual cycle lengths
+    const actualCycleLengths = calculateActualCycleLengths();
+
+    // Sort periods by start date for period length calculation
+    const sortedPeriods = [...periodHistory].sort((a, b) => {
+      const dateA = new Date(a.startDate);
+      const dateB = new Date(b.startDate);
+      return dateA - dateB;
+    });
+
+    // Get period lengths
+    const periodLengths = sortedPeriods
+      .map(period => period.periodLength)
+      .filter(length => length && length > 0 && length < 15); // Sanity check: period should be 1-14 days
+
+    // Calculate averages
+    const avgCycleLength = actualCycleLengths.length > 0
+      ? actualCycleLengths.reduce((acc, length) => acc + length, 0) / actualCycleLengths.length
+      : (menstrualData.cycleLength || 28); // Fallback to configured cycle length
     
-    const avgCycleLength = cycleLengths.reduce((acc, length) => acc + length, 0) / cycleLengths.length;
-    const avgPeriodLength = periodLengths.reduce((acc, length) => acc + length, 0) / periodLengths.length;
+    const avgPeriodLength = periodLengths.length > 0
+      ? periodLengths.reduce((acc, length) => acc + length, 0) / periodLengths.length
+      : (menstrualData.periodLength || 5); // Fallback to configured period length
     
-    // Calculate consistency (how close cycle lengths are to average)
-    const cycleVariance = cycleLengths.reduce((acc, length) => acc + Math.pow(length - avgCycleLength, 2), 0) / cycleLengths.length;
-    const cycleStdDev = Math.sqrt(cycleVariance);
-    const consistencyScore = Math.max(0, 100 - (cycleStdDev * 10)); // Convert to percentage
+    // Calculate consistency score based on actual cycle lengths
+    let consistencyScore = 0;
+    if (actualCycleLengths.length >= 2) {
+      // Calculate coefficient of variation (CV) = stdDev / mean
+      const mean = avgCycleLength;
+      const variance = actualCycleLengths.reduce((acc, length) => acc + Math.pow(length - mean, 2), 0) / actualCycleLengths.length;
+      const stdDev = Math.sqrt(variance);
+      const coefficientOfVariation = mean > 0 ? stdDev / mean : 0;
+      
+      // Convert CV to consistency score (0-100)
+      // Lower CV = higher consistency
+      // CV of 0 = 100% consistency, CV of 0.2 (20%) = 0% consistency
+      consistencyScore = Math.max(0, Math.min(100, 100 - (coefficientOfVariation * 500)));
+    } else if (actualCycleLengths.length === 1) {
+      // With only one cycle, we can't calculate consistency, but we can give a neutral score
+      consistencyScore = 50;
+    } else {
+      // No cycle data available
+      consistencyScore = 0;
+    }
 
     const calculatedInsights = [
       {
@@ -128,10 +194,20 @@ export default function CycleInsightsScreen() {
       },
       {
         title: t('cycleInsights.consistencyScore'),
-        value: `${consistencyScore.toFixed(0)}%`,
-        description: consistencyScore >= 80 ? t('cycleInsights.veryConsistent') : consistencyScore >= 60 ? t('cycleInsights.moderatelyConsistent') : t('cycleInsights.inconsistentPatterns'),
+        value: actualCycleLengths.length >= 2 
+          ? `${consistencyScore.toFixed(0)}%`
+          : actualCycleLengths.length === 1
+          ? `${consistencyScore.toFixed(0)}%`
+          : 'N/A',
+        description: actualCycleLengths.length >= 2
+          ? (consistencyScore >= 80 ? t('cycleInsights.veryConsistent') : consistencyScore >= 60 ? t('cycleInsights.moderatelyConsistent') : t('cycleInsights.inconsistentPatterns'))
+          : actualCycleLengths.length === 1
+          ? t('cycleInsights.trackMoreCycles')
+          : t('cycleInsights.trackMoreCycles'),
         icon: 'trending-up-outline',
-        color: consistencyScore >= 80 ? '#4CAF50' : consistencyScore >= 60 ? '#FF9800' : '#FF7043'
+        color: actualCycleLengths.length >= 2
+          ? (consistencyScore >= 80 ? '#4CAF50' : consistencyScore >= 60 ? '#FF9800' : '#FF7043')
+          : '#999'
       },
     ];
 
@@ -148,8 +224,15 @@ export default function CycleInsightsScreen() {
       };
     }
 
+    // Calculate actual cycle lengths
+    const actualCycleLengths = calculateActualCycleLengths();
+    
+    // Use average of actual cycle lengths if available, otherwise fallback to configured cycle length
+    const avgCycleLength = actualCycleLengths.length > 0
+      ? actualCycleLengths.reduce((acc, length) => acc + length, 0) / actualCycleLengths.length
+      : (menstrualData.cycleLength || 28);
+
     const lastPeriodDate = new Date(menstrualData.lastPeriod);
-    const avgCycleLength = periodHistory.reduce((acc, period) => acc + period.cycleLength, 0) / periodHistory.length;
     
     const nextPeriodDate = new Date(lastPeriodDate);
     nextPeriodDate.setDate(nextPeriodDate.getDate() + avgCycleLength);
@@ -168,6 +251,22 @@ export default function CycleInsightsScreen() {
       fertileWindow: { start: fertileStart, end: fertileEnd },
       ovulation: ovulationDate
     };
+  };
+
+  // Reload data function
+  const reloadData = async () => {
+    try {
+      setRefreshing(true);
+      await Promise.all([
+        fetchMenstrualData(),
+        fetchPeriodHistory(),
+        fetchSymptoms()
+      ]);
+    } catch (error) {
+      console.error('Error reloading data:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   // Load data on component mount
@@ -225,6 +324,17 @@ export default function CycleInsightsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('cycleInsights.cycleInsights')}</Text>
         <View style={styles.headerRight}>
+          <TouchableOpacity 
+            style={styles.reloadButton}
+            onPress={reloadData}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color="#e91e63" />
+            ) : (
+              <Ionicons name="reload" size={24} color="#e91e63" />
+            )}
+          </TouchableOpacity>
           <View style={styles.profileCircle}>
             <Text style={styles.profileText}>HS</Text>
           </View>
@@ -409,6 +519,12 @@ const styles = StyleSheet.create({
   },
   headerRight: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  reloadButton: {
+    padding: 8,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   profileCircle: {

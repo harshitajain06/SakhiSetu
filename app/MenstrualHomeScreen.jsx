@@ -249,10 +249,6 @@ export default function MenstrualHomeScreen() {
             </View>
             <Text style={styles.actionText}>{t('menstrualHome.logSymptoms')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionCard} onPress={navigateToTracker}>
-            <Ionicons name="calendar-outline" size={32} color="#e91e63" />
-            <Text style={styles.actionText}>{t('menstrualHome.viewCalendar')}</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.actionCard} onPress={navigateToInsights}>
             <Ionicons name="analytics-outline" size={32} color="#e91e63" />
             <Text style={styles.actionText}>{t('menstrualHome.insights')}</Text>
