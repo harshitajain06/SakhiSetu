@@ -206,7 +206,7 @@ export default {
     menstrualHealth: 'Menstrual Health',
     exploreCycleTracking: 'Explore Cycle Tracking',
     exploreModules: 'Explore Modules',
-    journeyToUnderstanding: 'Your Journey to Understanding',
+    journeyToUnderstanding: 'Your Journey to Periods',
     journeyToUnderstandingDesc: 'Explore the basics of menstrual health and well-being.',
     mythsAndFacts: 'Myths & Facts',
     mythsAndFactsDesc: 'Separate common beliefs from medical truths about menstruation.',
@@ -712,7 +712,7 @@ export default {
 
   // Journey to Understanding Screen
   journey: {
-    title: 'Your Journey to Understanding',
+    title: 'Your Journey to Periods',
     video1Title: 'What is a Period?',
     video1Desc: 'Understanding the basics of menstruation.',
     video2Title: 'How first periods feel like?',
@@ -729,6 +729,31 @@ export default {
     video7Desc: 'Essential hygiene practices.',
     video8Title: 'What are sanitary pads, how to use them and dispose of them?',
     video8Desc: 'Complete guide to using sanitary pads.',
+  },
+
+  // Health Diet & Care Screen
+  healthDietCare: {
+    lessons: 'Lessons',
+    video1Title: 'Foods to Eat During Your Period',
+    video1Desc: 'Nutritious foods that help manage period symptoms.',
+    video2Title: 'Iron-Rich Foods for Menstrual Health',
+    video2Desc: 'Replenish iron lost during your period naturally.',
+    video3Title: 'Managing Period Cravings',
+    video3Desc: 'Healthy ways to satisfy cravings during your cycle.',
+    video4Title: 'Hydration During Menstruation',
+    video4Desc: 'Why staying hydrated is crucial during your period.',
+    video5Title: 'Foods to Avoid During Your Period',
+    video5Desc: 'Foods that may worsen cramps and bloating.',
+    video6Title: 'Meal Planning for Your Cycle',
+    video6Desc: 'Plan nutritious meals throughout your menstrual cycle.',
+    video7Title: 'Supplements for Menstrual Health',
+    video7Desc: 'Vitamins and minerals that support menstrual wellness.',
+    video8Title: 'Self-Care Practices During Periods',
+    video8Desc: 'Holistic self-care tips for your menstrual cycle.',
+    video9Title: 'Healthy Snacks for Period Days',
+    video9Desc: 'Quick and nutritious snack ideas for your period.',
+    video10Title: 'Managing Bloating Through Diet',
+    video10Desc: 'Dietary strategies to reduce period bloating.',
   },
 
   // Chat Screen

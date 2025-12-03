@@ -22,8 +22,8 @@ Actual Cycle Length = Days between consecutive period start dates
    cycleLength = (nextPeriod.startDate - previousPeriod.startDate) / (1000 * 60 * 60 * 24)
    ```
 3. Filter out invalid cycles:
-   - Must be positive (> 0 days)
-   - Must be realistic (< 90 days)
+   - Must be at least 14 days (minimum realistic cycle length)
+   - Must be less than 90 days (maximum realistic cycle length)
    - Dates must be valid
 
 #### Example:
@@ -32,8 +32,15 @@ Period 1: January 1, 2024
 Period 2: January 29, 2024
 Period 3: February 26, 2024
 
-Cycle Length 1: 29 - 1 = 28 days
-Cycle Length 2: 26 - 29 = 28 days (accounting for month boundaries)
+Cycle Length 1: 29 - 1 = 28 days ✓ (valid: 14-90 days)
+Cycle Length 2: 26 - 29 = 28 days ✓ (valid: 14-90 days, accounting for month boundaries)
+```
+
+**Note:** If two periods were entered in the same month with less than 14 days between them, that cycle would be filtered out. For example:
+```
+Period 1: January 5, 2024
+Period 2: January 15, 2024
+Cycle Length: 10 days ✗ (filtered out: < 14 days minimum)
 ```
 
 ### Step 2: Calculate Average Cycle Length
@@ -273,8 +280,73 @@ Cycle Lengths: [21, 35, 25, 32, 28, 38, 22]
 - Dates that cannot be parsed are filtered out
 - Only valid date pairs are used in calculations
 
-### Case 4: Unrealistic Cycle Lengths
-- Cycles < 1 day or > 90 days are filtered out
+### Case 4: Periods in the Same Month (Short Cycles)
+
+**Scenario:** Two periods are logged with start dates in the same calendar month.
+
+#### Example:
+```
+Period 1: January 5, 2024
+Period 2: January 20, 2024
+Cycle Length: 15 days
+```
+
+#### Handling:
+- **Minimum Threshold:** Cycles less than 14 days are **filtered out** and not included in calculations
+- **Reason:** Cycles shorter than 14 days are medically unrealistic and likely indicate:
+  - Data entry errors (user logged the same period twice)
+  - Spotting mistaken for a period
+  - Incorrect date selection
+
+#### What Happens:
+1. **If cycle length < 14 days:**
+   - The cycle is **excluded** from consistency score calculation
+   - The period data is still stored, but not used for cycle analysis
+   - Other valid cycles are still calculated normally
+
+2. **If cycle length ≥ 14 days:**
+   - The cycle is included in calculations
+   - Example: A 21-day cycle in the same month would be valid
+
+#### Example Scenarios:
+
+**Scenario A: Two periods in same month (15 days apart)**
+```
+Period 1: January 5, 2024
+Period 2: January 20, 2024
+Cycle Length: 15 days
+
+Result: INCLUDED (15 ≥ 14 days)
+```
+
+**Scenario B: Two periods in same month (10 days apart)**
+```
+Period 1: January 5, 2024
+Period 2: January 15, 2024
+Cycle Length: 10 days
+
+Result: EXCLUDED (10 < 14 days) - Filtered out as unrealistic
+```
+
+**Scenario C: Multiple periods with one short cycle**
+```
+Period 1: January 1, 2024
+Period 2: January 10, 2024 (9 days) → EXCLUDED
+Period 3: February 5, 2024 (26 days from Period 1) → INCLUDED
+Period 4: March 3, 2024 (26 days from Period 3) → INCLUDED
+
+Valid Cycle Lengths: [26, 26]
+Consistency Score: Calculated using only valid cycles
+```
+
+#### Why 14 Days Minimum?
+- **Medical Standard:** Normal menstrual cycles range from 21-35 days
+- **Data Quality:** Prevents errors from affecting consistency calculations
+- **User Experience:** Users can still log periods, but unrealistic cycles don't skew results
+
+### Case 5: Unrealistic Cycle Lengths
+- Cycles < 14 days are filtered out (same-month entries, data errors)
+- Cycles > 90 days are filtered out (unrealistic gaps, missing data)
 - These are considered data errors or outliers
 
 ## Score Interpretation
@@ -307,9 +379,10 @@ Cycle Lengths: [21, 35, 25, 32, 28, 38, 22]
 
 The implementation includes several validation checks:
 - Date validity (not NaN)
-- Cycle length bounds (1-90 days)
+- Cycle length bounds (14-90 days) - **Minimum 14 days to filter out same-month entries**
 - Period length bounds (1-14 days)
 - Minimum data requirements (2+ periods for consistency)
+- Same-month period filtering (cycles < 14 days are excluded)
 
 ## Mathematical Properties
 

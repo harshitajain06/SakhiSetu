@@ -886,14 +886,14 @@ export default function PeriodTrackerScreen() {
             onPress={openPeriodModal}
           >
             <Ionicons name="add-circle" size={24} color="#e91e63" />
-            <Text style={styles.logButtonText}>{t('periodTracker.logPeriod')}</Text>
+            <Text style={styles.logButtonText}>{getTranslation('periodTracker.recordMyPeriod', 'Record My Period')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.logButton}
             onPress={() => setShowSymptomModal(true)}
           >
             <Ionicons name="medical" size={24} color="#e91e63" />
-            <Text style={styles.logButtonText}>{t('periodTracker.logSymptoms')}</Text>
+            <Text style={styles.logButtonText}>{getTranslation('periodTracker.recordMySymptoms', 'Record My Symptoms')}</Text>
           </TouchableOpacity>
         </View>
       </View>

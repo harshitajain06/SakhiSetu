@@ -12,19 +12,21 @@ import {
   View
 } from 'react-native';
 import YoutubeIframe from 'react-native-youtube-iframe';
+import { useTranslation } from '../contexts/TranslationContext';
 
 const { height, width } = Dimensions.get("window");
 
 export default function HealthDietCareScreen() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
 
   const videoLessons = [
     {
       id: 1,
-      title: 'Foods to Eat During Your Period',
-      description: 'Nutritious foods that help manage period symptoms.',
+      title: t('healthDietCare.video1Title'),
+      description: t('healthDietCare.video1Desc'),
       icon: 'restaurant',
       duration: '3 min',
       videoUrl: 'https://www.youtube.com/watch?v=kmWbOC8Fbb0',
@@ -35,8 +37,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 2,
-      title: 'Iron-Rich Foods for Menstrual Health',
-      description: 'Replenish iron lost during your period naturally.',
+      title: t('healthDietCare.video2Title'),
+      description: t('healthDietCare.video2Desc'),
       icon: 'leaf',
       duration: '4 min',
       videoUrl: 'https://www.youtube.com/watch?v=faDgESel4Ng',
@@ -46,8 +48,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 3,
-      title: 'Managing Period Cravings',
-      description: 'Healthy ways to satisfy cravings during your cycle.',
+      title: t('healthDietCare.video3Title'),
+      description: t('healthDietCare.video3Desc'),
       icon: 'happy',
       duration: '3 min',
       videoUrl: 'https://www.youtube.com/watch?v=cfROFgkV43E',
@@ -57,8 +59,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 4,
-      title: 'Hydration During Menstruation',
-      description: 'Why staying hydrated is crucial during your period.',
+      title: t('healthDietCare.video4Title'),
+      description: t('healthDietCare.video4Desc'),
       icon: 'water',
       duration: '2 min',
       videoUrl: 'https://www.youtube.com/watch?v=qFLEIwY-SYE',
@@ -68,8 +70,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 5,
-      title: 'Foods to Avoid During Your Period',
-      description: 'Foods that may worsen cramps and bloating.',
+      title: t('healthDietCare.video5Title'),
+      description: t('healthDietCare.video5Desc'),
       icon: 'close-circle',
       duration: '3 min',
       videoUrl: 'https://www.youtube.com/watch?v=ImzxzlPzbRk',
@@ -79,8 +81,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 6,
-      title: 'Meal Planning for Your Cycle',
-      description: 'Plan nutritious meals throughout your menstrual cycle.',
+      title: t('healthDietCare.video6Title'),
+      description: t('healthDietCare.video6Desc'),
       icon: 'calendar',
       duration: '5 min',
       videoUrl: 'https://www.youtube.com/watch?v=gojy9QRRO68',
@@ -90,8 +92,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 7,
-      title: 'Supplements for Menstrual Health',
-      description: 'Vitamins and minerals that support menstrual wellness.',
+      title: t('healthDietCare.video7Title'),
+      description: t('healthDietCare.video7Desc'),
       icon: 'flask',
       duration: '4 min',
       videoUrl: 'https://www.youtube.com/watch?v=J6bZsl1pi_o',
@@ -101,8 +103,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 8,
-      title: 'Self-Care Practices During Periods',
-      description: 'Holistic self-care tips for your menstrual cycle.',
+      title: t('healthDietCare.video8Title'),
+      description: t('healthDietCare.video8Desc'),
       icon: 'spa',
       duration: '4 min',
       videoUrl: 'https://www.youtube.com/watch?v=oFf0-311F4E',
@@ -112,8 +114,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 9,
-      title: 'Healthy Snacks for Period Days',
-      description: 'Quick and nutritious snack ideas for your period.',
+      title: t('healthDietCare.video9Title'),
+      description: t('healthDietCare.video9Desc'),
       icon: 'cafe',
       duration: '3 min',
       videoUrl: 'https://www.youtube.com/watch?v=faDgESel4Ng',
@@ -123,8 +125,8 @@ export default function HealthDietCareScreen() {
     },
     {
       id: 10,
-      title: 'Managing Bloating Through Diet',
-      description: 'Dietary strategies to reduce period bloating.',
+      title: t('healthDietCare.video10Title'),
+      description: t('healthDietCare.video10Desc'),
       icon: 'fitness',
       duration: '3 min',
       videoUrl: 'https://www.youtube.com/watch?v=cfROFgkV43E',
@@ -206,7 +208,7 @@ export default function HealthDietCareScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Health Diet & Care</Text>
+        <Text style={styles.headerTitle}>{t('menstrual.healthDietCare')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -223,7 +225,7 @@ export default function HealthDietCareScreen() {
 
       {/* Lessons List */}
       <View style={styles.lessonsSection}>
-        <Text style={styles.sectionTitle}>Lessons</Text>
+        <Text style={styles.sectionTitle}>{t('healthDietCare.lessons')}</Text>
         {videoLessons.map((lesson) => (
           <TouchableOpacity
             key={lesson.id}

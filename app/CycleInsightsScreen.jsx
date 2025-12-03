@@ -8,7 +8,7 @@ import {
   query
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
 import { auth, db } from '../config/firebase';
 
@@ -26,6 +26,8 @@ export default function CycleInsightsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [insights, setInsights] = useState([]);
+  const [showCalculationModal, setShowCalculationModal] = useState(false);
+  const [calculationDetails, setCalculationDetails] = useState(null);
 
   // Get current user ID
   const getCurrentUserId = () => {
@@ -116,7 +118,10 @@ export default function CycleInsightsScreen() {
       // Validate dates
       if (!isNaN(prevStartDate.getTime()) && !isNaN(currStartDate.getTime())) {
         const daysDiff = Math.ceil((currStartDate - prevStartDate) / (1000 * 60 * 60 * 24));
-        if (daysDiff > 0 && daysDiff < 90) { // Sanity check: cycle should be between 1-90 days
+        // Sanity check: cycle should be between 14-90 days
+        // Minimum 14 days to filter out same-month entries or data entry errors
+        // Maximum 90 days to filter out unrealistic gaps
+        if (daysDiff >= 14 && daysDiff < 90) {
           actualCycleLengths.push(daysDiff);
         }
       }
@@ -158,6 +163,8 @@ export default function CycleInsightsScreen() {
     
     // Calculate consistency score based on actual cycle lengths
     let consistencyScore = 0;
+    let calculationDetails = null;
+    
     if (actualCycleLengths.length >= 2) {
       // Calculate coefficient of variation (CV) = stdDev / mean
       const mean = avgCycleLength;
@@ -169,12 +176,32 @@ export default function CycleInsightsScreen() {
       // Lower CV = higher consistency
       // CV of 0 = 100% consistency, CV of 0.2 (20%) = 0% consistency
       consistencyScore = Math.max(0, Math.min(100, 100 - (coefficientOfVariation * 500)));
+      
+      // Store calculation details for display
+      calculationDetails = {
+        cycleLengths: actualCycleLengths,
+        mean: mean,
+        variance: variance,
+        stdDev: stdDev,
+        coefficientOfVariation: coefficientOfVariation,
+        consistencyScore: consistencyScore,
+        formula: 'Score = 100 - (CV × 500)',
+        cvFormula: 'CV = Standard Deviation / Mean'
+      };
     } else if (actualCycleLengths.length === 1) {
       // With only one cycle, we can't calculate consistency, but we can give a neutral score
       consistencyScore = 50;
+      calculationDetails = {
+        cycleLengths: actualCycleLengths,
+        mean: avgCycleLength,
+        message: 'Need at least 2 cycles to calculate consistency'
+      };
     } else {
       // No cycle data available
       consistencyScore = 0;
+      calculationDetails = {
+        message: 'No cycle data available'
+      };
     }
 
     const calculatedInsights = [
@@ -207,7 +234,9 @@ export default function CycleInsightsScreen() {
         icon: 'trending-up-outline',
         color: actualCycleLengths.length >= 2
           ? (consistencyScore >= 80 ? '#4CAF50' : consistencyScore >= 60 ? '#FF9800' : '#FF7043')
-          : '#999'
+          : '#999',
+        calculationDetails: calculationDetails,
+        isClickable: actualCycleLengths.length >= 2
       },
     ];
 
@@ -290,8 +319,9 @@ export default function CycleInsightsScreen() {
   }, [periodHistory]);
 
   const predictions = calculatePredictions();
-  const cycleData = periodHistory.map(period => {
-    // Ensure dates are properly formatted
+  
+  // Group periods by month and year
+  const groupedCycleData = periodHistory.reduce((acc, period) => {
     const startDate = new Date(period.startDate);
     const endDate = new Date(period.endDate);
     
@@ -299,13 +329,51 @@ export default function CycleInsightsScreen() {
     const isValidStart = !isNaN(startDate.getTime());
     const isValidEnd = !isNaN(endDate.getTime());
     
-      return {
-        month: isValidStart ? startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown Month',
-        days: (isValidStart && isValidEnd) ? `${startDate.getDate()}-${endDate.getDate()}` : 'Invalid dates',
-        length: period.cycleLength ? period.cycleLength.toString() : 'Unknown',
-        status: period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? t('periodTracker.regular') : t('periodTracker.irregular'),
-        color: period.cycleLength && period.cycleLength >= 21 && period.cycleLength <= 35 ? '#4CAF50' : '#FF7043'
+    if (!isValidStart) return acc;
+    
+    // Create a key for month and year (e.g., "January 2024")
+    const monthKey = startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
+    // Initialize the month group if it doesn't exist
+    if (!acc[monthKey]) {
+      acc[monthKey] = {
+        month: monthKey,
+        dates: [],
+        periods: []
       };
+    }
+    
+    // Add the date range to the month group
+    if (isValidStart && isValidEnd) {
+      acc[monthKey].dates.push(`${startDate.getDate()}-${endDate.getDate()}`);
+    } else if (isValidStart) {
+      acc[monthKey].dates.push(`${startDate.getDate()}`);
+    }
+    
+    // Store period info for status calculation
+    acc[monthKey].periods.push(period);
+    
+    return acc;
+  }, {});
+  
+  // Convert grouped data to array and format for display
+  const cycleData = Object.values(groupedCycleData).map(group => {
+    // Determine status based on periods in this month (use first period's cycle length or calculate average)
+    const avgCycleLength = group.periods.reduce((sum, p) => sum + (p.cycleLength || 0), 0) / group.periods.length;
+    const isRegular = avgCycleLength >= 21 && avgCycleLength <= 35;
+    
+      return {
+      month: group.month,
+      days: group.dates.join(', '), // Join all dates with comma
+      length: avgCycleLength > 0 ? avgCycleLength.toFixed(0) : 'Unknown',
+      status: isRegular ? t('periodTracker.regular') : t('periodTracker.irregular'),
+      color: isRegular ? '#4CAF50' : '#FF7043'
+    };
+  }).sort((a, b) => {
+    // Sort by month/year (most recent first)
+    const dateA = new Date(a.month);
+    const dateB = new Date(b.month);
+    return dateB - dateA;
   });
 
   // Show loading screen
@@ -374,16 +442,32 @@ export default function CycleInsightsScreen() {
             <Text style={styles.sectionTitle}>{t('cycleInsights.keyInsights')}</Text>
             {insights.length > 0 ? (
               <View style={styles.insightsGrid}>
-                {insights.map((insight, index) => (
-                  <View key={index} style={styles.insightCard}>
+                {insights.map((insight, index) => {
+                  const isConsistencyScore = insight.title === t('cycleInsights.consistencyScore');
+                  const CardComponent = isConsistencyScore && insight.isClickable ? TouchableOpacity : View;
+                  
+                  return (
+                    <CardComponent
+                      key={index}
+                      style={[styles.insightCard, isConsistencyScore && insight.isClickable && styles.clickableCard]}
+                      onPress={isConsistencyScore && insight.isClickable ? () => {
+                        setCalculationDetails(insight.calculationDetails);
+                        setShowCalculationModal(true);
+                      } : undefined}
+                      activeOpacity={isConsistencyScore && insight.isClickable ? 0.7 : 1}
+                    >
                     <View style={styles.insightHeader}>
                       <Ionicons name={insight.icon} size={24} color={insight.color} />
                       <Text style={styles.insightTitle}>{insight.title}</Text>
+                        {isConsistencyScore && insight.isClickable && (
+                          <Ionicons name="information-circle-outline" size={18} color={insight.color} style={styles.infoIcon} />
+                        )}
                     </View>
                     <Text style={styles.insightValue}>{insight.value}</Text>
                     <Text style={styles.insightDescription}>{insight.description}</Text>
-                  </View>
-                ))}
+                    </CardComponent>
+                  );
+                })}
               </View>
             ) : (
               <View style={styles.emptyState}>
@@ -485,6 +569,160 @@ export default function CycleInsightsScreen() {
           </View>
         </>
       )}
+
+      {/* Calculation Details Modal */}
+      <Modal
+        visible={showCalculationModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowCalculationModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.calculationModalContent}>
+            <View style={styles.calculationModalHeader}>
+              <Text style={styles.calculationModalTitle}>
+                {t('cycleInsights.consistencyScore')} {t('cycleInsights.calculationDetails') || 'Calculation Details'}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => setShowCalculationModal(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.calculationScrollView}>
+              {calculationDetails && calculationDetails.cycleLengths ? (
+                <>
+                  {/* Cycle Lengths */}
+                  <View style={styles.calculationSection}>
+                    <Text style={styles.calculationSectionTitle}>1. Cycle Lengths (Days)</Text>
+                    <View style={styles.cycleLengthsContainer}>
+                      {calculationDetails.cycleLengths.map((length, index) => (
+                        <View key={index} style={styles.cycleLengthBadge}>
+                          <Text style={styles.cycleLengthText}>{length}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    <Text style={styles.calculationNote}>
+                      Calculated from consecutive period start dates
+                    </Text>
+                  </View>
+
+                  {/* Mean */}
+                  <View style={styles.calculationSection}>
+                    <Text style={styles.calculationSectionTitle}>2. Average Cycle Length</Text>
+                    <Text style={styles.calculationFormula}>
+                      Mean = Σ(Cycle Lengths) / n
+                    </Text>
+                    <Text style={styles.calculationValue}>
+                      = ({calculationDetails.cycleLengths.join(' + ')}) / {calculationDetails.cycleLengths.length}
+                    </Text>
+                    <Text style={styles.calculationResult}>
+                      = {calculationDetails.mean.toFixed(2)} days
+                    </Text>
+                  </View>
+
+                  {/* Variance */}
+                  <View style={styles.calculationSection}>
+                    <Text style={styles.calculationSectionTitle}>3. Variance</Text>
+                    <Text style={styles.calculationFormula}>
+                      Variance = Σ((Cycle Length - Mean)²) / n
+                    </Text>
+                    <View style={styles.calculationSteps}>
+                      {calculationDetails.cycleLengths.map((length, index) => {
+                        const diff = (length - calculationDetails.mean).toFixed(2);
+                        const squared = Math.pow(length - calculationDetails.mean, 2).toFixed(2);
+                        return (
+                          <Text key={index} style={styles.calculationValue}>
+                            ({length} - {calculationDetails.mean.toFixed(2)})² = ({diff})² = {squared}
+                          </Text>
+                        );
+                      })}
+                    </View>
+                    <Text style={styles.calculationValue}>
+                      Sum = {calculationDetails.cycleLengths.reduce((acc, length) => 
+                        acc + Math.pow(length - calculationDetails.mean, 2), 0
+                      ).toFixed(2)}
+                    </Text>
+                    <Text style={styles.calculationValue}>
+                      Variance = {calculationDetails.cycleLengths.reduce((acc, length) => 
+                        acc + Math.pow(length - calculationDetails.mean, 2), 0
+                      ).toFixed(2)} / {calculationDetails.cycleLengths.length}
+                    </Text>
+                    <Text style={styles.calculationResult}>
+                      = {calculationDetails.variance.toFixed(2)}
+                    </Text>
+                  </View>
+
+                  {/* Standard Deviation */}
+                  <View style={styles.calculationSection}>
+                    <Text style={styles.calculationSectionTitle}>4. Standard Deviation</Text>
+                    <Text style={styles.calculationFormula}>
+                      StdDev = √Variance
+                    </Text>
+                    <Text style={styles.calculationValue}>
+                      = √{calculationDetails.variance.toFixed(2)}
+                    </Text>
+                    <Text style={styles.calculationResult}>
+                      = {calculationDetails.stdDev.toFixed(2)} days
+                    </Text>
+                  </View>
+
+                  {/* Coefficient of Variation */}
+                  <View style={styles.calculationSection}>
+                    <Text style={styles.calculationSectionTitle}>5. Coefficient of Variation (CV)</Text>
+                    <Text style={styles.calculationFormula}>
+                      {calculationDetails.cvFormula}
+                    </Text>
+                    <Text style={styles.calculationValue}>
+                      = {calculationDetails.stdDev.toFixed(2)} / {calculationDetails.mean.toFixed(2)}
+                    </Text>
+                    <Text style={styles.calculationResult}>
+                      = {(calculationDetails.coefficientOfVariation * 100).toFixed(2)}%
+                    </Text>
+                    <Text style={styles.calculationNote}>
+                      Lower CV = Higher Consistency
+                    </Text>
+                  </View>
+
+                  {/* Consistency Score */}
+                  <View style={styles.calculationSection}>
+                    <Text style={styles.calculationSectionTitle}>6. Consistency Score</Text>
+                    <Text style={styles.calculationFormula}>
+                      {calculationDetails.formula}
+                    </Text>
+                    <Text style={styles.calculationValue}>
+                      = 100 - ({(calculationDetails.coefficientOfVariation * 100).toFixed(2)}% × 500)
+                    </Text>
+                    <Text style={styles.calculationValue}>
+                      = 100 - {(calculationDetails.coefficientOfVariation * 500).toFixed(2)}
+                    </Text>
+                    <Text style={[styles.calculationResult, styles.finalScore]}>
+                      = {calculationDetails.consistencyScore.toFixed(0)}%
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <View style={styles.calculationSection}>
+                  <Text style={styles.calculationNote}>
+                    {calculationDetails?.message || 'No calculation data available'}
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={styles.closeModalButton}
+              onPress={() => setShowCalculationModal(false)}
+            >
+              <Text style={styles.closeModalButtonText}>
+                {t('common.close') || 'Close'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -624,6 +862,119 @@ const styles = StyleSheet.create({
   insightDescription: {
     fontSize: 12,
     color: '#666',
+  },
+  clickableCard: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  infoIcon: {
+    marginLeft: 'auto',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calculationModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: '90%',
+    maxWidth: 500,
+    maxHeight: '80%',
+  },
+  calculationModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  calculationModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  calculationScrollView: {
+    maxHeight: 400,
+  },
+  calculationSection: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  calculationSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  calculationFormula: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  calculationValue: {
+    fontSize: 13,
+    color: '#888',
+    marginBottom: 4,
+    fontFamily: 'monospace',
+  },
+  calculationSteps: {
+    marginVertical: 8,
+  },
+  calculationResult: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#e91e63',
+    marginTop: 8,
+  },
+  finalScore: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#e91e63',
+  },
+  calculationNote: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  cycleLengthsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  cycleLengthBadge: {
+    backgroundColor: '#e91e63',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  cycleLengthText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  closeModalButton: {
+    backgroundColor: '#e91e63',
+    borderRadius: 8,
+    padding: 16,
+    margin: 20,
+    alignItems: 'center',
+  },
+  closeModalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',
