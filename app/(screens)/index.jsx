@@ -786,42 +786,17 @@ const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
     backgroundColor: '#fff',
-    minHeight: isWeb ? '100vh' : '100%',
-    ...(isWeb && {
-      width: '100%',
-      overflowX: 'hidden',
-      boxSizing: 'border-box',
-      // Global text rendering fix
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   container: {
-    padding: isWeb ? 16 : 24,
-    paddingTop: isWeb ? 40 : 60,
-    paddingBottom: isWeb ? 40 : 24,
+    padding: 24,
+    paddingTop: 60,
+    paddingBottom: 24,
     backgroundColor: '#fff',
-    minHeight: isWeb ? '100vh' : '100%',
     justifyContent: 'center',
-    ...(isWeb && {
-      display: 'flex',
-      maxWidth: '100%',
-      boxSizing: 'border-box',
-    }),
   },
   contentWrapper: {
-    maxWidth: isWeb ? Math.min(420, width * 0.9) : '100%',
     width: '100%',
     alignSelf: 'center',
-    ...(isWeb && {
-      display: 'flex',
-      flexDirection: 'column',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      borderRadius: 12,
-      padding: Math.min(24, width * 0.06),
-      backgroundColor: '#fff',
-      boxSizing: 'border-box',
-    }),
   },
   iconContainer: {
     alignItems: 'center',
@@ -831,39 +806,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     padding: 0,
     borderRadius: 999,
-    ...(isWeb && {
-      cursor: 'pointer',
-      transition: 'transform 0.2s ease-in-out',
-    }),
   },
   icon: {
     fontSize: 32,
     color: '#007bff',
   },
   iconImage: {
-    width: isWeb ? Math.min(120, width * 0.25) : 120,
-    height: isWeb ? Math.min(120, width * 0.25) : 120,
+    width: 120,
+    height: 120,
     maxWidth: '100%',
-    ...(isWeb && {
-      width: 'clamp(80px, 20vw, 120px)',
-      height: 'clamp(80px, 20vw, 120px)',
-    }),
   },
   title: {
-    fontSize: isWeb ? 24 : 24,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
-    ...(isWeb && {
-      display: 'block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      background: 'linear-gradient(135deg, #007bff, #0056b3)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      fontSize: 'clamp(20px, 4vw, 28px)',
-    }),
   },
   tabContainer: {
     flexDirection: 'row',
@@ -871,63 +828,29 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
-    ...(isWeb && {
-      display: 'flex',
-      boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
-    }),
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 12,
-    ...(isWeb && {
-      cursor: 'pointer',
-      transition: 'all 0.2s ease-in-out',
-      ':hover': {
-        backgroundColor: '#e9ecef',
-      },
-    }),
   },
   activeTabBackground: {
     backgroundColor: '#e6f0ff',
-    ...(isWeb && {
-      boxShadow: '0 2px 4px 0 rgba(0, 123, 255, 0.2)',
-    }),
   },
   tabText: {
     fontSize: 16,
     color: '#6c757d',
     fontWeight: '600',
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      fontSize: 'clamp(14px, 2vw, 16px)',
-    }),
   },
   activeTabText: {
     color: '#007bff',
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   label: {
     marginBottom: 6,
     fontWeight: '500',
     color: '#212529',
     fontSize: 14,
-    ...(isWeb && {
-      display: 'block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      fontSize: 'clamp(12px, 1.8vw, 14px)',
-    }),
   },
   form: {
     marginBottom: 30,
@@ -940,22 +863,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ced4da',
     fontSize: 16,
-    ...(isWeb && {
-      display: 'block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      outline: 'none',
-      transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-      fontSize: 'clamp(14px, 2vw, 16px)',
-      padding: 'clamp(10px, 2vw, 12px)',
-      boxSizing: 'border-box',
-      width: '100%',
-      ':focus': {
-        borderColor: '#007bff',
-        boxShadow: '0 0 0 3px rgba(0, 123, 255, 0.1)',
-      },
-    }),
   },
   inputDark: {
     backgroundColor: '#2d2d2d',
@@ -966,50 +873,20 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: 16,
     minHeight: 20,
-    ...(isWeb && {
-      cursor: 'pointer',
-    }),
   },
   forgotPasswordLoading: {
     flexDirection: 'row',
     alignItems: 'center',
-    ...(isWeb && {
-      display: 'flex',
-    }),
   },
   forgotPasswordText: {
     color: '#007bff',
     fontSize: 13,
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      ':hover': {
-        textDecoration: 'underline',
-      },
-    }),
   },
   button: {
     backgroundColor: '#cce0ff',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
-    ...(isWeb && {
-      cursor: 'pointer',
-      transition: 'all 0.2s ease-in-out',
-      padding: 'clamp(12px, 2vw, 14px)',
-      width: '100%',
-      boxSizing: 'border-box',
-      ':hover': {
-        backgroundColor: '#b3d9ff',
-        transform: 'translateY(-1px)',
-        boxShadow: '0 4px 8px 0 rgba(0, 123, 255, 0.2)',
-      },
-      ':active': {
-        transform: 'translateY(0)',
-      },
-    }),
   },
   buttonDark: {
     backgroundColor: '#1976d2',
@@ -1018,13 +895,6 @@ const styles = StyleSheet.create({
     color: '#007bff',
     fontWeight: 'bold',
     fontSize: 16,
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      fontSize: 'clamp(14px, 2vw, 16px)',
-    }),
   },
   privacyPolicy: {
     textAlign: 'center',
@@ -1032,16 +902,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#007bff',
     textDecorationLine: 'underline',
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      cursor: 'pointer',
-      ':hover': {
-        color: '#0056b3',
-      },
-    }),
   },
   inputError: {
     borderColor: '#dc3545',
@@ -1053,12 +913,6 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 8,
     marginLeft: 4,
-    ...(isWeb && {
-      display: 'block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   passwordHint: {
     color: '#28a745',
@@ -1066,20 +920,11 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 8,
     marginLeft: 4,
-    ...(isWeb && {
-      display: 'block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 20,
-    ...(isWeb && {
-      display: 'flex',
-    }),
   },
   dividerLine: {
     flex: 1,
@@ -1094,12 +939,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6c757d',
     fontWeight: '500',
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   googleButton: {
     flexDirection: 'row',
@@ -1110,18 +949,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#dadce0',
-    ...(isWeb && {
-      display: 'flex',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease-in-out',
-      padding: 'clamp(12px, 2vw, 14px)',
-      width: '100%',
-      boxSizing: 'border-box',
-      ':hover': {
-        backgroundColor: '#f8f9fa',
-        boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
-      },
-    }),
   },
   googleButtonDark: {
     backgroundColor: '#2d2d2d',
@@ -1134,24 +961,11 @@ const styles = StyleSheet.create({
     marginRight: 12,
     width: 20,
     textAlign: 'center',
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   googleButtonText: {
     color: '#3c4043',
     fontWeight: '500',
     fontSize: 16,
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-      fontSize: 'clamp(14px, 2vw, 16px)',
-    }),
   },
   verificationBanner: {
     backgroundColor: '#e3f2fd',
@@ -1169,9 +983,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    ...(isWeb && {
-      display: 'flex',
-    }),
   },
   verificationBannerText: {
     flex: 1,
@@ -1179,12 +990,6 @@ const styles = StyleSheet.create({
     color: '#1565c0',
     marginBottom: 8,
     minWidth: '100%',
-    ...(isWeb && {
-      display: 'block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   resendButton: {
     paddingHorizontal: 12,
@@ -1194,36 +999,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#007bff',
     marginRight: 8,
-    ...(isWeb && {
-      cursor: 'pointer',
-    }),
   },
   resendButtonText: {
     color: '#007bff',
     fontSize: 12,
     fontWeight: '600',
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
   closeVerificationButton: {
     padding: 4,
-    ...(isWeb && {
-      cursor: 'pointer',
-    }),
   },
   closeVerificationText: {
     fontSize: 20,
     color: '#666',
     fontWeight: 'bold',
-    ...(isWeb && {
-      display: 'inline-block',
-      whiteSpace: 'normal',
-      writingMode: 'horizontal-tb',
-      textOrientation: 'mixed',
-    }),
   },
 });
