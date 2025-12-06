@@ -4,14 +4,14 @@ import { createUserWithEmailAndPassword, GoogleAuthProvider, reload, sendEmailVe
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text, TextInput, TouchableOpacity,
-  View
+    ActivityIndicator,
+    Dimensions,
+    Image,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text, TextInput, TouchableOpacity,
+    View
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { auth } from '../../config/firebase';
@@ -52,6 +52,12 @@ export default function AuthPage() {
   // Track if form has been submitted to show all errors
   const [loginSubmitted, setLoginSubmitted] = useState(false);
   const [registerSubmitted, setRegisterSubmitted] = useState(false);
+  
+  // Hover states for web
+  const [loginButtonHover, setLoginButtonHover] = useState(false);
+  const [registerButtonHover, setRegisterButtonHover] = useState(false);
+  const [loginGoogleButtonHover, setLoginGoogleButtonHover] = useState(false);
+  const [registerGoogleButtonHover, setRegisterGoogleButtonHover] = useState(false);
 
   useEffect(() => {
     const checkUserVerification = async () => {
@@ -436,16 +442,38 @@ export default function AuthPage() {
   };
 
   return (
-    <View style={[styles.pageContainer, isDarkMode && { backgroundColor: '#121212' }]}>
+    <View style={[
+      styles.pageContainer, 
+      isDarkMode && { backgroundColor: '#121212' },
+      isWeb && {
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+      }
+    ]}>
       <ScrollView
         contentContainerStyle={[
           styles.container,
           isDarkMode && { backgroundColor: '#121212' },
+          isWeb && styles.containerWeb,
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.contentWrapper}>
+        <View style={[
+          styles.contentWrapper, 
+          isWeb && styles.contentWrapperWeb,
+          isWeb && {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 3,
+            borderRadius: 16,
+            padding: 32,
+            backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
+          }
+        ]}>
           <View style={styles.iconContainer}>
             <View style={styles.iconCircle}>
               <Image 
@@ -470,7 +498,11 @@ export default function AuthPage() {
                 setLoginSubmitted(false);
                 setLoginErrors({ email: '', password: '' });
               }}
-              style={[styles.tab, mode === 'login' && styles.activeTabBackground]}
+              style={[
+                styles.tab, 
+                mode === 'login' && styles.activeTabBackground,
+                isWeb && styles.tabWeb,
+              ]}
             >
               <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>{t('auth.login')}</Text>
             </TouchableOpacity>
@@ -483,7 +515,11 @@ export default function AuthPage() {
                 setRegisterSubmitted(false);
                 setRegisterErrors({ name: '', email: '', password: '' });
               }}
-              style={[styles.tab, mode === 'register' && styles.activeTabBackground]}
+              style={[
+                styles.tab, 
+                mode === 'register' && styles.activeTabBackground,
+                isWeb && styles.tabWeb,
+              ]}
             >
               <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>{t('auth.register')}</Text>
             </TouchableOpacity>
@@ -491,14 +527,15 @@ export default function AuthPage() {
 
           {/* Forms */}
           {mode === 'login' ? (
-            <View style={styles.form}>
+            <View style={[styles.form, isWeb && styles.formWeb]}>
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
               <TextInput
                 placeholder="name@example.com"
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  (loginTouched.email || loginSubmitted) && loginErrors.email && styles.inputError
+                  (loginTouched.email || loginSubmitted) && loginErrors.email && styles.inputError,
+                  isWeb && styles.inputWeb,
                 ]}
                 value={loginEmail}
                 onChangeText={(text) => {
@@ -528,7 +565,8 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  (loginTouched.password || loginSubmitted) && loginErrors.password && styles.inputError
+                  (loginTouched.password || loginSubmitted) && loginErrors.password && styles.inputError,
+                  isWeb && styles.inputWeb,
                 ]}
                 value={loginPassword}
                 onChangeText={(text) => {
@@ -592,7 +630,21 @@ export default function AuthPage() {
                 </View>
               )}
               
-              <TouchableOpacity onPress={handleLogin} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
+              <TouchableOpacity 
+                onPress={handleLogin} 
+                onMouseEnter={() => isWeb && setLoginButtonHover(true)}
+                onMouseLeave={() => isWeb && setLoginButtonHover(false)}
+                style={[
+                  styles.button, 
+                  isDarkMode && styles.buttonDark,
+                  isWeb && styles.buttonWeb,
+                  isWeb && loginButtonHover && {
+                    opacity: 0.9,
+                    transform: [{ scale: 0.98 }],
+                  },
+                ]} 
+                disabled={isLoading}
+              >
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t('auth.signIn')}</Text>}
               </TouchableOpacity>
               
@@ -606,7 +658,18 @@ export default function AuthPage() {
               {/* Google Sign In Button */}
               <TouchableOpacity 
                 onPress={handleGoogleSignIn} 
-                style={[styles.googleButton, isDarkMode && styles.googleButtonDark]} 
+                onMouseEnter={() => isWeb && setLoginGoogleButtonHover(true)}
+                onMouseLeave={() => isWeb && setLoginGoogleButtonHover(false)}
+                style={[
+                  styles.googleButton, 
+                  isDarkMode && styles.googleButtonDark,
+                  isWeb && styles.googleButtonWeb,
+                  isWeb && loginGoogleButtonHover && {
+                    opacity: 0.9,
+                    transform: [{ scale: 0.98 }],
+                    borderColor: isDarkMode ? '#666' : '#c0c0c0',
+                  },
+                ]} 
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -622,14 +685,15 @@ export default function AuthPage() {
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.form}>
+            <View style={[styles.form, isWeb && styles.formWeb]}>
               <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.fullName')}</Text>
               <TextInput
                 placeholder="John Doe"
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  (registerTouched.name || registerSubmitted) && registerErrors.name && styles.inputError
+                  (registerTouched.name || registerSubmitted) && registerErrors.name && styles.inputError,
+                  isWeb && styles.inputWeb,
                 ]}
                 value={registerName}
                 onChangeText={(text) => {
@@ -656,7 +720,8 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  (registerTouched.email || registerSubmitted) && registerErrors.email && styles.inputError
+                  (registerTouched.email || registerSubmitted) && registerErrors.email && styles.inputError,
+                  isWeb && styles.inputWeb,
                 ]}
                 value={registerEmail}
                 onChangeText={(text) => {
@@ -686,7 +751,8 @@ export default function AuthPage() {
                 style={[
                   styles.input,
                   isDarkMode && styles.inputDark,
-                  (registerTouched.password || registerSubmitted) && registerErrors.password && styles.inputError
+                  (registerTouched.password || registerSubmitted) && registerErrors.password && styles.inputError,
+                  isWeb && styles.inputWeb,
                 ]}
                 value={registerPassword}
                 onChangeText={(text) => {
@@ -741,7 +807,21 @@ export default function AuthPage() {
                 </View>
               )}
               
-              <TouchableOpacity onPress={handleRegister} style={[styles.button, isDarkMode && styles.buttonDark]} disabled={isLoading}>
+              <TouchableOpacity 
+                onPress={handleRegister} 
+                onMouseEnter={() => isWeb && setRegisterButtonHover(true)}
+                onMouseLeave={() => isWeb && setRegisterButtonHover(false)}
+                style={[
+                  styles.button, 
+                  isDarkMode && styles.buttonDark,
+                  isWeb && styles.buttonWeb,
+                  isWeb && registerButtonHover && {
+                    opacity: 0.9,
+                    transform: [{ scale: 0.98 }],
+                  },
+                ]} 
+                disabled={isLoading}
+              >
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create account</Text>}
               </TouchableOpacity>
               
@@ -755,7 +835,18 @@ export default function AuthPage() {
               {/* Google Sign In Button */}
               <TouchableOpacity 
                 onPress={handleGoogleSignIn} 
-                style={[styles.googleButton, isDarkMode && styles.googleButtonDark]} 
+                onMouseEnter={() => isWeb && setRegisterGoogleButtonHover(true)}
+                onMouseLeave={() => isWeb && setRegisterGoogleButtonHover(false)}
+                style={[
+                  styles.googleButton, 
+                  isDarkMode && styles.googleButtonDark,
+                  isWeb && styles.googleButtonWeb,
+                  isWeb && registerGoogleButtonHover && {
+                    opacity: 0.9,
+                    transform: [{ scale: 0.98 }],
+                    borderColor: isDarkMode ? '#666' : '#c0c0c0',
+                  },
+                ]} 
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -794,7 +885,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
   },
+  containerWeb: {
+    paddingTop: 40,
+    paddingBottom: 40,
+    width: '100%',
+    maxWidth: '100%',
+    alignItems: 'center',
+  },
   contentWrapper: {
+    width: '100%',
+    alignSelf: 'center',
+  },
+  contentWrapperWeb: {
+    maxWidth: 480,
     width: '100%',
     alignSelf: 'center',
   },
@@ -828,12 +931,17 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
+    padding: 4,
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 12,
+  },
+  tabWeb: {
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
   activeTabBackground: {
     backgroundColor: '#e6f0ff',
@@ -855,6 +963,9 @@ const styles = StyleSheet.create({
   form: {
     marginBottom: 30,
   },
+  formWeb: {
+    width: '100%',
+  },
   input: {
     backgroundColor: '#fff',
     padding: 12,
@@ -868,6 +979,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#2d2d2d',
     borderColor: '#555',
     color: '#fff',
+  },
+  inputWeb: {
+    outlineStyle: 'none',
+    width: '100%',
   },
   forgotPassword: {
     alignItems: 'flex-end',
@@ -890,6 +1005,10 @@ const styles = StyleSheet.create({
   },
   buttonDark: {
     backgroundColor: '#1976d2',
+  },
+  buttonWeb: {
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
   buttonText: {
     color: '#007bff',
@@ -953,6 +1072,10 @@ const styles = StyleSheet.create({
   googleButtonDark: {
     backgroundColor: '#2d2d2d',
     borderColor: '#555',
+  },
+  googleButtonWeb: {
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
   googleIcon: {
     fontSize: 18,
