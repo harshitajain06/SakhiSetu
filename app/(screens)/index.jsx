@@ -4,14 +4,14 @@ import { createUserWithEmailAndPassword, GoogleAuthProvider, reload, sendEmailVe
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text, TextInput, TouchableOpacity,
-    View
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { auth } from '../../config/firebase';
@@ -450,17 +450,46 @@ export default function AuthPage() {
         alignItems: 'center',
       }
     ]}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          isDarkMode && { backgroundColor: '#121212' },
-          isWeb && styles.containerWeb,
-          isWeb && { justifyContent: 'flex-start' },
-        ]}
-        style={isWeb && styles.scrollViewWeb}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      {isWeb && (
+        <style>{`
+          .auth-scroll-container > div {
+            scrollbar-width: thin;
+            scrollbar-color: ${isDarkMode ? '#555 #1e1e1e' : '#888 #f1f1f1'};
+          }
+          .auth-scroll-container > div::-webkit-scrollbar {
+            width: 8px;
+          }
+          .auth-scroll-container > div::-webkit-scrollbar-track {
+            background: ${isDarkMode ? '#1e1e1e' : '#f1f1f1'};
+            border-radius: 4px;
+          }
+          .auth-scroll-container > div::-webkit-scrollbar-thumb {
+            background: ${isDarkMode ? '#555' : '#888'};
+            border-radius: 4px;
+          }
+          .auth-scroll-container > div::-webkit-scrollbar-thumb:hover {
+            background: ${isDarkMode ? '#666' : '#555'};
+          }
+        `}</style>
+      )}
+      <View style={isWeb && styles.scrollViewWrapper} className={isWeb ? 'auth-scroll-container' : undefined}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.container,
+            isDarkMode && { backgroundColor: '#121212' },
+            isWeb && styles.containerWeb,
+            isWeb && { justifyContent: 'flex-start' },
+          ]}
+          style={[
+            isWeb && styles.scrollViewWeb,
+            isWeb && {
+              overflowY: 'auto',
+              overflowX: 'hidden',
+            }
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={!isWeb}
+        >
         <View style={[
           styles.contentWrapper, 
           isWeb && styles.contentWrapperWeb,
@@ -471,25 +500,22 @@ export default function AuthPage() {
             shadowRadius: 8,
             elevation: 3,
             borderRadius: 16,
-            padding: 32,
+            padding: isWeb ? 24 : 32,
             backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
           }
         ]}>
-          <View style={styles.iconContainer}>
+          <View style={[styles.iconContainer, isWeb && styles.iconContainerWeb]}>
             <View style={styles.iconCircle}>
               <Image 
                 source={require('../../assets/images/SakhiSetu_logo.png')} 
-                style={styles.iconImage}
+                style={[styles.iconImage, isWeb && styles.iconImageWeb]}
                 resizeMode="contain"
               />
             </View>
           </View>
-          <Text style={[styles.title, isDarkMode && { color: '#fff' }]}>
-            {t('auth.welcome')}
-          </Text>
 
           {/* Tabs */}
-          <View style={styles.tabContainer}>
+          <View style={[styles.tabContainer, isWeb && styles.tabContainerWeb]}>
             <TouchableOpacity
               onPress={() => {
                 setMode('login');
@@ -529,7 +555,7 @@ export default function AuthPage() {
           {/* Forms */}
           {mode === 'login' ? (
             <View style={[styles.form, isWeb && styles.formWeb]}>
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
+              <Text style={[styles.label, isWeb && styles.labelWeb, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
               <TextInput
                 placeholder="name@example.com"
                 style={[
@@ -559,7 +585,7 @@ export default function AuthPage() {
               {(loginTouched.email || loginSubmitted) && loginErrors.email ? (
                 <Text style={styles.errorText}>{loginErrors.email}</Text>
               ) : null}
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
+              <Text style={[styles.label, isWeb && styles.labelWeb, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
               <TextInput
                 placeholder="••••••••"
                 secureTextEntry
@@ -589,7 +615,7 @@ export default function AuthPage() {
                 <Text style={styles.errorText}>{loginErrors.password}</Text>
               ) : null}
               <TouchableOpacity 
-                style={styles.forgotPassword} 
+                style={[styles.forgotPassword, isWeb && styles.forgotPasswordWeb]} 
                 onPress={handleForgotPassword}
                 disabled={isResettingPassword || isLoading}
               >
@@ -650,7 +676,7 @@ export default function AuthPage() {
               </TouchableOpacity>
               
               {/* Divider */}
-              <View style={styles.dividerContainer}>
+              <View style={[styles.dividerContainer, isWeb && styles.dividerContainerWeb]}>
                 <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
                 <Text style={[styles.dividerText, isDarkMode && { color: '#999' }]}>{t('auth.or')}</Text>
                 <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
@@ -687,7 +713,7 @@ export default function AuthPage() {
             </View>
           ) : (
             <View style={[styles.form, isWeb && styles.formWeb]}>
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.fullName')}</Text>
+              <Text style={[styles.label, isWeb && styles.labelWeb, isDarkMode && { color: '#fff' }]}>{t('auth.fullName')}</Text>
               <TextInput
                 placeholder="John Doe"
                 style={[
@@ -715,7 +741,7 @@ export default function AuthPage() {
               {(registerTouched.name || registerSubmitted) && registerErrors.name ? (
                 <Text style={styles.errorText}>{registerErrors.name}</Text>
               ) : null}
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
+              <Text style={[styles.label, isWeb && styles.labelWeb, isDarkMode && { color: '#fff' }]}>{t('auth.email')}</Text>
               <TextInput
                 placeholder="name@example.com"
                 style={[
@@ -745,7 +771,7 @@ export default function AuthPage() {
               {(registerTouched.email || registerSubmitted) && registerErrors.email ? (
                 <Text style={styles.errorText}>{registerErrors.email}</Text>
               ) : null}
-              <Text style={[styles.label, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
+              <Text style={[styles.label, isWeb && styles.labelWeb, isDarkMode && { color: '#fff' }]}>{t('auth.password')}</Text>
               <TextInput
                 placeholder="••••••••"
                 secureTextEntry
@@ -827,7 +853,7 @@ export default function AuthPage() {
               </TouchableOpacity>
               
               {/* Divider */}
-              <View style={styles.dividerContainer}>
+              <View style={[styles.dividerContainer, isWeb && styles.dividerContainerWeb]}>
                 <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
                 <Text style={[styles.dividerText, isDarkMode && { color: '#999' }]}>{t('auth.or')}</Text>
                 <View style={[styles.dividerLine, isDarkMode && styles.dividerLineDark]} />
@@ -864,7 +890,8 @@ export default function AuthPage() {
             </View>
           )}
         </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
       <Toast />
     </View>
   );
@@ -887,8 +914,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   containerWeb: {
-    paddingTop: 40,
-    paddingBottom: 80,
+    paddingTop: 20,
+    paddingBottom: 40,
     width: '100%',
     maxWidth: '100%',
     alignItems: 'center',
@@ -899,18 +926,26 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
   },
+  scrollViewWrapper: {
+    width: '100%',
+    flex: 1,
+    height: '100%',
+  },
   contentWrapper: {
     width: '100%',
     alignSelf: 'center',
   },
   contentWrapperWeb: {
-    maxWidth: 480,
+    maxWidth: 420,
     width: '100%',
     alignSelf: 'center',
   },
   iconContainer: {
     alignItems: 'center',
     marginBottom: 2,
+  },
+  iconContainerWeb: {
+    marginBottom: 0,
   },
   iconCircle: {
     backgroundColor: 'transparent',
@@ -926,6 +961,10 @@ const styles = StyleSheet.create({
     height: 120,
     maxWidth: '100%',
   },
+  iconImageWeb: {
+    width: 100,
+    height: 100,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -940,6 +979,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 4,
   },
+  tabContainerWeb: {
+    marginBottom: 16,
+    padding: 3,
+  },
   tab: {
     flex: 1,
     paddingVertical: 12,
@@ -949,6 +992,7 @@ const styles = StyleSheet.create({
   tabWeb: {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
+    paddingVertical: 8,
   },
   activeTabBackground: {
     backgroundColor: '#e6f0ff',
@@ -967,11 +1011,16 @@ const styles = StyleSheet.create({
     color: '#212529',
     fontSize: 14,
   },
+  labelWeb: {
+    marginBottom: 4,
+    fontSize: 13,
+  },
   form: {
     marginBottom: 30,
   },
   formWeb: {
     width: '100%',
+    marginBottom: 20,
   },
   input: {
     backgroundColor: '#fff',
@@ -982,19 +1031,25 @@ const styles = StyleSheet.create({
     borderColor: '#ced4da',
     fontSize: 16,
   },
+  inputWeb: {
+    outlineStyle: 'none',
+    width: '100%',
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 15,
+  },
   inputDark: {
     backgroundColor: '#2d2d2d',
     borderColor: '#555',
     color: '#fff',
   },
-  inputWeb: {
-    outlineStyle: 'none',
-    width: '100%',
-  },
   forgotPassword: {
     alignItems: 'flex-end',
     marginBottom: 16,
     minHeight: 20,
+  },
+  forgotPasswordWeb: {
+    marginBottom: 12,
   },
   forgotPasswordLoading: {
     flexDirection: 'row',
@@ -1016,6 +1071,7 @@ const styles = StyleSheet.create({
   buttonWeb: {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
+    padding: 12,
   },
   buttonText: {
     color: '#007bff',
@@ -1044,6 +1100,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 20,
+  },
+  dividerContainerWeb: {
+    marginVertical: 14,
   },
   dividerLine: {
     flex: 1,
