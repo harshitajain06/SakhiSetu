@@ -445,10 +445,9 @@ export default function AuthPage() {
     <View style={[
       styles.pageContainer, 
       isDarkMode && { backgroundColor: '#121212' },
+      isWeb && styles.pageContainerWeb,
       isWeb && {
         alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
       }
     ]}>
       <ScrollView
@@ -456,7 +455,9 @@ export default function AuthPage() {
           styles.container,
           isDarkMode && { backgroundColor: '#121212' },
           isWeb && styles.containerWeb,
+          isWeb && { justifyContent: 'flex-start' },
         ]}
+        style={isWeb && styles.scrollViewWeb}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -862,10 +863,6 @@ export default function AuthPage() {
               </TouchableOpacity>
             </View>
           )}
-
-          <TouchableOpacity>
-            <Text style={[styles.privacyPolicy, isDarkMode && { color: '#64b5f6' }]}>Privacy Policy.</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
       <Toast />
@@ -878,6 +875,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  pageContainerWeb: {
+    width: '100%',
+    minHeight: '100vh',
+  },
   container: {
     padding: 24,
     paddingTop: 60,
@@ -887,10 +888,16 @@ const styles = StyleSheet.create({
   },
   containerWeb: {
     paddingTop: 40,
-    paddingBottom: 40,
+    paddingBottom: 80,
     width: '100%',
     maxWidth: '100%',
     alignItems: 'center',
+    flexGrow: 1,
+  },
+  scrollViewWeb: {
+    width: '100%',
+    flex: 1,
+    height: '100%',
   },
   contentWrapper: {
     width: '100%',
@@ -1014,13 +1021,6 @@ const styles = StyleSheet.create({
     color: '#007bff',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  privacyPolicy: {
-    textAlign: 'center',
-    marginTop: 4,
-    fontSize: 12,
-    color: '#007bff',
-    textDecorationLine: 'underline',
   },
   inputError: {
     borderColor: '#dc3545',
