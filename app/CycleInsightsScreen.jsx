@@ -358,16 +358,50 @@ export default function CycleInsightsScreen() {
   
   // Convert grouped data to array and format for display
   const cycleData = Object.values(groupedCycleData).map(group => {
-    // Determine status based on periods in this month (use first period's cycle length or calculate average)
+    // Calculate total period days in this month (sum of all periodLength values)
+    const totalPeriodDays = group.periods.reduce((sum, p) => sum + (p.periodLength || 0), 0);
+    
+    // Calculate average period length for this month
+    const avgPeriodLength = group.periods.length > 0
+      ? totalPeriodDays / group.periods.length
+      : 0;
+    
+    // Determine status based on cycle regularity and period characteristics
     const avgCycleLength = group.periods.reduce((sum, p) => sum + (p.cycleLength || 0), 0) / group.periods.length;
     const isRegular = avgCycleLength >= 21 && avgCycleLength <= 35;
+    const periodCount = group.periods.length;
     
-      return {
+    // Create more descriptive status
+    let status = '';
+    let color = '#999';
+    
+    if (periodCount === 0) {
+      status = 'No data';
+      color = '#999';
+    } else if (periodCount === 1) {
+      // Single period in month
+      if (avgPeriodLength >= 3 && avgPeriodLength <= 7) {
+        status = `${avgPeriodLength.toFixed(0)} days`;
+        color = isRegular ? '#4CAF50' : '#FF7043';
+      } else if (avgPeriodLength < 3) {
+        status = `${avgPeriodLength.toFixed(0)} days (short)`;
+        color = '#FF9800';
+      } else {
+        status = `${avgPeriodLength.toFixed(0)} days (long)`;
+        color = '#FF7043';
+      }
+    } else {
+      // Multiple periods in month
+      status = `${periodCount} periods, ${avgPeriodLength.toFixed(0)} days avg`;
+      color = isRegular ? '#4CAF50' : '#FF7043';
+    }
+    
+    return {
       month: group.month,
       days: group.dates.join(', '), // Join all dates with comma
-      length: avgCycleLength > 0 ? avgCycleLength.toFixed(0) : 'Unknown',
-      status: isRegular ? t('periodTracker.regular') : t('periodTracker.irregular'),
-      color: isRegular ? '#4CAF50' : '#FF7043'
+      length: totalPeriodDays > 0 ? totalPeriodDays.toFixed(0) : '0', // Total period days in month
+      status: status,
+      color: color
     };
   }).sort((a, b) => {
     // Sort by month/year (most recent first)
