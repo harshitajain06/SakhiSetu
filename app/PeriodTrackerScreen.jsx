@@ -62,6 +62,10 @@ export default function PeriodTrackerScreen() {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageModalContent, setMessageModalContent] = useState({ title: '', message: '', type: 'success' });
   const [isSymptomsHistoryExpanded, setIsSymptomsHistoryExpanded] = useState(true);
+  const [showGapWarningModal, setShowGapWarningModal] = useState(false);
+  const [gapWarningData, setGapWarningData] = useState({ missingMonth: null, proceedCallback: null });
+  const [showLongPeriodWarningModal, setShowLongPeriodWarningModal] = useState(false);
+  const [longPeriodWarningData, setLongPeriodWarningData] = useState({ periodLength: null, proceedCallback: null });
 
   // Symptom options
   const symptomOptions = [
@@ -257,15 +261,109 @@ export default function PeriodTrackerScreen() {
     setDateToPeriodMap(dateMap);
   };
 
-  // Calculate next period date
+  // Calculate next period date based on the most recent period
   const calculateNextPeriod = () => {
-    if (!menstrualData.lastPeriod) return null;
+    // Use the most recent period from history if available, otherwise use lastPeriod
+    let mostRecentPeriodDate = null;
     
-    const lastPeriodDate = new Date(menstrualData.lastPeriod);
-    const nextPeriodDate = new Date(lastPeriodDate);
+    if (periodHistory.length > 0) {
+      // Period history is already sorted by startDate desc, so first item is most recent
+      const mostRecentPeriod = periodHistory[0];
+      if (mostRecentPeriod && mostRecentPeriod.startDate) {
+        mostRecentPeriodDate = new Date(mostRecentPeriod.startDate);
+      }
+    }
+    
+    // Fallback to menstrualData.lastPeriod if no history
+    if (!mostRecentPeriodDate && menstrualData.lastPeriod) {
+      mostRecentPeriodDate = new Date(menstrualData.lastPeriod);
+    }
+    
+    if (!mostRecentPeriodDate || isNaN(mostRecentPeriodDate.getTime())) {
+      return null;
+    }
+    
+    const nextPeriodDate = new Date(mostRecentPeriodDate);
     nextPeriodDate.setDate(nextPeriodDate.getDate() + menstrualData.cycleLength);
     
     return nextPeriodDate;
+  };
+
+  // Helper function to find the most recent period start date from history
+  const getMostRecentPeriodDate = (history) => {
+    if (!history || history.length === 0) return null;
+    
+    // History is sorted by startDate desc, so first item is most recent
+    const mostRecent = history[0];
+    return mostRecent?.startDate || null;
+  };
+
+  // Update lastPeriod to the most recent period from history
+  const updateLastPeriodFromHistory = async (history) => {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    
+    const mostRecentDate = getMostRecentPeriodDate(history);
+    if (!mostRecentDate) return;
+    
+    const userDocRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const currentLastPeriod = userData.menstrualData?.lastPeriod;
+      
+      // Only update if the most recent period is different from current lastPeriod
+      if (currentLastPeriod !== mostRecentDate) {
+        // Compare dates to ensure we're updating to a more recent date
+        const currentDate = currentLastPeriod ? new Date(currentLastPeriod) : null;
+        const newDate = new Date(mostRecentDate);
+        
+        if (!currentDate || isNaN(currentDate.getTime()) || newDate > currentDate) {
+          await updateDoc(userDocRef, {
+            'menstrualData.lastPeriod': mostRecentDate
+          });
+        }
+      }
+    }
+  };
+
+  // Check for gaps in period logging (soft prompt)
+  const checkForGap = (newStartDate) => {
+    if (periodHistory.length === 0) return null;
+    
+    // Find the most recent period by start date
+    const mostRecentPeriod = periodHistory[0]; // Already sorted by startDate desc
+    if (!mostRecentPeriod || !mostRecentPeriod.startDate) return null;
+    
+    const mostRecentStart = new Date(mostRecentPeriod.startDate);
+    const newStart = new Date(newStartDate);
+    const mostRecentStartOnly = new Date(mostRecentStart.getFullYear(), mostRecentStart.getMonth(), mostRecentStart.getDate());
+    const newStartOnly = new Date(newStart.getFullYear(), newStart.getMonth(), newStart.getDate());
+    
+    // Check if new period starts after the most recent period
+    if (newStartOnly > mostRecentStartOnly) {
+      // Calculate the gap in days
+      const gapDays = Math.floor((newStartOnly - mostRecentStartOnly) / (1000 * 60 * 60 * 24));
+      const expectedCycleLength = menstrualData.cycleLength || 28;
+      
+      // If gap is more than 1.5x the cycle length, there's likely a missing period
+      if (gapDays > expectedCycleLength * 1.5) {
+        // Find the missing month
+        const missingDate = new Date(mostRecentStartOnly);
+        missingDate.setDate(missingDate.getDate() + expectedCycleLength);
+        
+        return {
+          missingMonth: missingDate.toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          }),
+          gapDays: gapDays
+        };
+      }
+    }
+    
+    return null;
   };
 
   // Save period data
@@ -287,6 +385,80 @@ export default function PeriodTrackerScreen() {
         return;
       }
 
+      // Check for long period duration (> 10 days) - requires doctor check-in
+      const diffTime = new Date(periodEndDate) - new Date(periodStartDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      
+      if (diffDays > 10) {
+        // Show long period warning modal
+        setLongPeriodWarningData({
+          periodLength: diffDays,
+          proceedCallback: async () => {
+            setShowLongPeriodWarningModal(false);
+            // After acknowledging long period warning, check for gaps
+            if (!selectedPeriod) {
+              const gapInfo = checkForGap(periodStartDate);
+              if (gapInfo) {
+                setGapWarningData({
+                  missingMonth: gapInfo.missingMonth,
+                  proceedCallback: async () => {
+                    setShowGapWarningModal(false);
+                    await proceedWithSavePeriod();
+                  }
+                });
+                setShowGapWarningModal(true);
+                setSaving(false);
+                return;
+              }
+            }
+            await proceedWithSavePeriod();
+          }
+        });
+        setShowLongPeriodWarningModal(true);
+        setSaving(false);
+        return;
+      }
+
+      // Check for gaps (soft prompt - only for new periods, not updates)
+      if (!selectedPeriod) {
+        const gapInfo = checkForGap(periodStartDate);
+        if (gapInfo) {
+          // Show gap warning modal
+          setGapWarningData({
+            missingMonth: gapInfo.missingMonth,
+            proceedCallback: async () => {
+              setShowGapWarningModal(false);
+              await proceedWithSavePeriod();
+            }
+          });
+          setShowGapWarningModal(true);
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Proceed with save if no warnings
+      await proceedWithSavePeriod();
+    } catch (error) {
+      console.error('Error saving period data:', error);
+      setMessageModalContent({
+        title: t('common.error') || 'Error',
+        message: t('periodTracker.errorSavePeriod') || 'Error saving period',
+        type: 'error'
+      });
+      setShowMessageModal(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Proceed with saving period data
+  const proceedWithSavePeriod = async () => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
       const periodData = {
         startDate: periodStartDate,
         endDate: periodEndDate,
@@ -297,31 +469,63 @@ export default function PeriodTrackerScreen() {
 
       await addDoc(collection(db, 'users', userId, 'periodHistory'), periodData);
 
+      // Get updated period history to determine most recent period
+      const periodCollectionRef = collection(db, 'users', userId, 'periodHistory');
+      const q = query(periodCollectionRef, orderBy('startDate', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const updatedPeriodData = [];
+      querySnapshot.forEach((doc) => {
+        updatedPeriodData.push({ id: doc.id, ...doc.data() });
+      });
+
       // Update or create user's menstrual data
       const userDocRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userDocRef);
       
+      const mostRecentPeriodDate = getMostRecentPeriodDate(updatedPeriodData);
+      
       if (userDoc.exists()) {
-        // Update existing document
-        await updateDoc(userDocRef, {
-          'menstrualData.lastPeriod': periodStartDate,
-          'menstrualData.isSetup': true
-        });
+        const userData = userDoc.data();
+        const currentLastPeriod = userData.menstrualData?.lastPeriod;
+        
+        // Only update lastPeriod if the new most recent period is more recent than current
+        if (mostRecentPeriodDate) {
+          const currentDate = currentLastPeriod ? new Date(currentLastPeriod) : null;
+          const newDate = new Date(mostRecentPeriodDate);
+          
+          if (!currentDate || isNaN(currentDate.getTime()) || newDate > currentDate) {
+            await updateDoc(userDocRef, {
+              'menstrualData.lastPeriod': mostRecentPeriodDate,
+              'menstrualData.isSetup': true
+            });
+          } else {
+            // Just ensure isSetup is true
+            await updateDoc(userDocRef, {
+              'menstrualData.isSetup': true
+            });
+          }
+        } else {
+          await updateDoc(userDocRef, {
+            'menstrualData.isSetup': true
+          });
+        }
       } else {
         // Create new document with menstrual data
         await setDoc(userDocRef, {
           menstrualData: {
             cycleLength: menstrualData.cycleLength,
             periodLength: menstrualData.periodLength,
-            lastPeriod: periodStartDate,
+            lastPeriod: mostRecentPeriodDate || periodStartDate,
             isSetup: true
           }
         });
       }
 
-      // Refresh data
+      // Refresh data - this will update periodHistory state and marked dates
       await fetchMenstrualData();
-      await fetchPeriodHistory();
+      setPeriodHistory(updatedPeriodData);
+      updateMarkedDates(updatedPeriodData);
       
       setShowPeriodModal(false);
       // Reset form
@@ -383,19 +587,72 @@ export default function PeriodTrackerScreen() {
       errors.endDate = t('periodTracker.endDateFuture');
     }
 
-    // Check if end date is after start date
-    if (periodStartDate && periodEndDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-      if (endDate < startDate) {
-        errors.endDate = t('periodTracker.endBeforeStart');
+      // Check if end date is after start date
+      if (periodStartDate && periodEndDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        if (endDate < startDate) {
+          errors.endDate = t('periodTracker.endBeforeStart');
+        }
+        // Note: Period length > 10 days check is handled as a warning modal, not a hard error
       }
+
+    // Check for overlapping periods - new period cannot start before or on the end date of any existing period
+    if (periodStartDate && periodEndDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && periodHistory.length > 0) {
+      // Get periods to check (excluding the one being edited if in edit mode)
+      const periodsToCheck = selectedPeriod 
+        ? periodHistory.filter(p => p.id !== selectedPeriod.id)
+        : periodHistory;
       
-      // Check if period is too long (more than 10 days)
-      const diffTime = endDate - startDate;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      if (diffDays > 10) {
-        errors.endDate = t('periodTracker.periodTooLong');
+      if (periodsToCheck.length > 0) {
+        // Normalize dates to midnight for comparison
+        const newStartDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const newEndDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        
+        // Check for overlap with any existing period
+        for (const existingPeriod of periodsToCheck) {
+          if (existingPeriod.startDate && existingPeriod.endDate) {
+            const existingStart = new Date(existingPeriod.startDate);
+            const existingEnd = new Date(existingPeriod.endDate);
+            const existingStartOnly = new Date(existingStart.getFullYear(), existingStart.getMonth(), existingStart.getDate());
+            const existingEndOnly = new Date(existingEnd.getFullYear(), existingEnd.getMonth(), existingEnd.getDate());
+            
+            // Check if periods overlap: new period starts before or on existing period ends
+            // AND new period ends after or on existing period starts
+            if (newStartDateOnly <= existingEndOnly && newEndDateOnly >= existingStartOnly) {
+              const formattedExistingStart = existingStart.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+              });
+              const formattedExistingEnd = existingEnd.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+              });
+              
+              // Determine which date constraint to show
+              if (newStartDateOnly <= existingEndOnly) {
+                // New period starts too early
+                const minStartDate = new Date(existingEndOnly);
+                minStartDate.setDate(minStartDate.getDate() + 1);
+                const formattedMinDate = minStartDate.toLocaleDateString('en-US', { 
+                  month: 'long', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                });
+                errors.startDate = getTranslation(
+                  'periodTracker.periodOverlap', 
+                  `Period cannot overlap with existing period (${formattedExistingStart} - ${formattedExistingEnd}). Must start on ${formattedMinDate} or later.`
+                );
+              }
+              break; // Only show error for first overlapping period
+            }
+          }
+        }
       }
     }
+
+    // Note: Chronological order validation removed to allow users to log periods for any month,
+    // including missed months. Only overlap validation remains to prevent duplicate/overlapping periods.
 
     setDateErrors(errors);
     return Object.keys(errors).length === 0;
@@ -486,10 +743,40 @@ export default function PeriodTrackerScreen() {
       const periodDocRef = doc(db, 'users', userId, 'periodHistory', periodToDelete.id);
       await deleteDoc(periodDocRef);
 
+      // Get updated period history after deletion
+      const periodCollectionRef = collection(db, 'users', userId, 'periodHistory');
+      const q = query(periodCollectionRef, orderBy('startDate', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const updatedPeriodData = [];
+      querySnapshot.forEach((doc) => {
+        updatedPeriodData.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Update lastPeriod to the most recent period from remaining history
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+      
+      const mostRecentPeriodDate = getMostRecentPeriodDate(updatedPeriodData);
+      
+      if (userDoc.exists()) {
+        if (mostRecentPeriodDate) {
+          // Update to the new most recent period
+          await updateDoc(userDocRef, {
+            'menstrualData.lastPeriod': mostRecentPeriodDate
+          });
+        } else {
+          // No periods left, clear lastPeriod
+          await updateDoc(userDocRef, {
+            'menstrualData.lastPeriod': null,
+            'menstrualData.isSetup': false
+          });
+        }
+      }
+
       // Immediately update local state to remove the period from UI
-      const updatedHistory = periodHistory.filter(p => p.id !== periodToDelete.id);
-      setPeriodHistory(updatedHistory);
-      updateMarkedDates(updatedHistory);
+      setPeriodHistory(updatedPeriodData);
+      updateMarkedDates(updatedPeriodData);
 
       // Close edit modal
       setShowEditPeriodModal(false);
@@ -497,7 +784,6 @@ export default function PeriodTrackerScreen() {
 
       // Refresh data from server to ensure consistency
       await fetchMenstrualData();
-      await fetchPeriodHistory();
       
       // Show success message
       setMessageModalContent({
@@ -553,22 +839,43 @@ export default function PeriodTrackerScreen() {
       const periodDocRef = doc(db, 'users', userId, 'periodHistory', selectedPeriod.id);
       await updateDoc(periodDocRef, periodData);
 
-      // Update lastPeriod if this was the most recent period
+      // Get updated period history to determine most recent period
+      const periodCollectionRef = collection(db, 'users', userId, 'periodHistory');
+      const q = query(periodCollectionRef, orderBy('startDate', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const updatedPeriodData = [];
+      querySnapshot.forEach((doc) => {
+        updatedPeriodData.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Update lastPeriod to the most recent period from history
       const userDocRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userDocRef);
       
-      if (userDoc.exists()) {
+      const mostRecentPeriodDate = getMostRecentPeriodDate(updatedPeriodData);
+      
+      if (userDoc.exists() && mostRecentPeriodDate) {
         const userData = userDoc.data();
-        if (userData.menstrualData?.lastPeriod === selectedPeriod.startDate) {
-          await updateDoc(userDocRef, {
-            'menstrualData.lastPeriod': periodStartDate
-          });
+        const currentLastPeriod = userData.menstrualData?.lastPeriod;
+        
+        // Only update if the most recent period is different and more recent
+        if (currentLastPeriod !== mostRecentPeriodDate) {
+          const currentDate = currentLastPeriod ? new Date(currentLastPeriod) : null;
+          const newDate = new Date(mostRecentPeriodDate);
+          
+          if (!currentDate || isNaN(currentDate.getTime()) || newDate > currentDate) {
+            await updateDoc(userDocRef, {
+              'menstrualData.lastPeriod': mostRecentPeriodDate
+            });
+          }
         }
       }
 
-      // Refresh data
+      // Refresh data - this will update periodHistory state and marked dates
       await fetchMenstrualData();
-      await fetchPeriodHistory();
+      setPeriodHistory(updatedPeriodData);
+      updateMarkedDates(updatedPeriodData);
       
       setShowEditPeriodModal(false);
       setSelectedPeriod(null);
@@ -1338,6 +1645,118 @@ export default function PeriodTrackerScreen() {
                 {getTranslation('common.ok', 'OK')}
               </Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Long Period Warning Modal */}
+      <Modal
+        visible={showLongPeriodWarningModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLongPeriodWarningModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.confirmModalHeader}>
+              <Ionicons name="medical" size={32} color="#F44336" />
+              <Text style={styles.confirmModalTitle}>
+                {getTranslation('periodTracker.longPeriodWarning', 'Period Duration Alert')}
+              </Text>
+            </View>
+            <Text style={styles.confirmModalMessage}>
+              {getTranslation(
+                'periodTracker.longPeriodMessage',
+                `You've entered a period duration of ${longPeriodWarningData.periodLength} days. Periods longer than 10 days are highly irregular and may indicate a health concern.\n\nWe strongly recommend consulting with a healthcare provider to discuss this. Would you like to proceed with logging this period, or would you prefer to review your dates?`
+              )}
+            </Text>
+            <View style={styles.confirmModalButtons}>
+              <TouchableOpacity 
+                style={[styles.confirmCancelButton, saving && styles.disabledButton]}
+                onPress={() => {
+                  setShowLongPeriodWarningModal(false);
+                  setLongPeriodWarningData({ periodLength: null, proceedCallback: null });
+                }}
+                disabled={saving}
+              >
+                <Text style={styles.confirmCancelButtonText}>
+                  {getTranslation('periodTracker.reviewDates', 'Review Dates')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.confirmProceedButton, saving && styles.disabledButton]}
+                onPress={() => {
+                  if (longPeriodWarningData.proceedCallback) {
+                    longPeriodWarningData.proceedCallback();
+                  }
+                }}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.confirmProceedButtonText}>
+                    {getTranslation('periodTracker.proceedAnyway', 'Proceed Anyway')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Gap Warning Modal */}
+      <Modal
+        visible={showGapWarningModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGapWarningModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.confirmModalHeader}>
+              <Ionicons name="information-circle" size={32} color="#FF9800" />
+              <Text style={styles.confirmModalTitle}>
+                {getTranslation('periodTracker.missingPeriodWarning', 'Missing Period Detected')}
+              </Text>
+            </View>
+            <Text style={styles.confirmModalMessage}>
+              {getTranslation(
+                'periodTracker.gapWarningMessage',
+                `It looks like there may be a gap - you're logging a period that's more than expected after your last logged period. If you missed logging your period for ${gapWarningData.missingMonth}, you can log it later from any date.\n\nWould you like to proceed with logging this period now?`
+              )}
+            </Text>
+            <View style={styles.confirmModalButtons}>
+              <TouchableOpacity 
+                style={[styles.confirmCancelButton, saving && styles.disabledButton]}
+                onPress={() => {
+                  setShowGapWarningModal(false);
+                  setGapWarningData({ missingMonth: null, proceedCallback: null });
+                }}
+                disabled={saving}
+              >
+                <Text style={styles.confirmCancelButtonText}>
+                  {getTranslation('periodTracker.cancel', 'Cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.confirmProceedButton, saving && styles.disabledButton]}
+                onPress={() => {
+                  if (gapWarningData.proceedCallback) {
+                    gapWarningData.proceedCallback();
+                  }
+                }}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.confirmProceedButtonText}>
+                    {getTranslation('periodTracker.proceedAnyway', 'Proceed Anyway')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -2307,6 +2726,21 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   confirmDeleteButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  confirmProceedButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#FF9800',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  confirmProceedButtonText: {
     fontSize: 16,
     color: '#fff',
     fontWeight: '500',
