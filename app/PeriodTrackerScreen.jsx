@@ -43,6 +43,7 @@ export default function PeriodTrackerScreen() {
   const [showSymptomModal, setShowSymptomModal] = useState(false);
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const [showEndCalendar, setShowEndCalendar] = useState(false);
+  const [showSymptomDateCalendar, setShowSymptomDateCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [periodStartDate, setPeriodStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [periodEndDate, setPeriodEndDate] = useState(new Date().toISOString().split('T')[0]);
@@ -60,6 +61,7 @@ export default function PeriodTrackerScreen() {
   const [selectedSymptomToDelete, setSelectedSymptomToDelete] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageModalContent, setMessageModalContent] = useState({ title: '', message: '', type: 'success' });
+  const [isSymptomsHistoryExpanded, setIsSymptomsHistoryExpanded] = useState(true);
 
   // Symptom options
   const symptomOptions = [
@@ -609,6 +611,17 @@ export default function PeriodTrackerScreen() {
         return;
       }
 
+      if (!selectedDate) {
+        setMessageModalContent({
+          title: t('common.error') || 'Error',
+          message: getTranslation('periodTracker.errorSelectDate', 'Please select a date'),
+          type: 'error'
+        });
+        setShowMessageModal(true);
+        setSaving(false);
+        return;
+      }
+
       // Check if a symptom with the same type and date already exists
       const symptomsCollectionRef = collection(db, 'users', userId, 'symptoms');
       const querySnapshot = await getDocs(symptomsCollectionRef);
@@ -646,6 +659,7 @@ export default function PeriodTrackerScreen() {
       setShowSymptomModal(false);
       setNewSymptom('');
       setSymptomSeverity('Light');
+      setSelectedDate(new Date().toISOString().split('T')[0]);
       
       // Show success message
       setMessageModalContent({
@@ -890,12 +904,73 @@ export default function PeriodTrackerScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.logButton}
-            onPress={() => setShowSymptomModal(true)}
+            onPress={() => {
+              // Reset to current date when opening symptom modal
+              setSelectedDate(new Date().toISOString().split('T')[0]);
+              setNewSymptom('');
+              setSymptomSeverity('Light');
+              setShowSymptomModal(true);
+            }}
           >
             <Ionicons name="medical" size={24} color="#e91e63" />
             <Text style={styles.logButtonText}>{getTranslation('periodTracker.recordMySymptoms', 'Record My Symptoms')}</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Symptoms History */}
+      <View style={styles.section}>
+        <TouchableOpacity 
+          style={styles.sectionHeader}
+          onPress={() => setIsSymptomsHistoryExpanded(!isSymptomsHistoryExpanded)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.sectionTitle}>{getTranslation('periodTracker.symptomsHistory', 'Symptoms History')}</Text>
+          <Ionicons 
+            name={isSymptomsHistoryExpanded ? "chevron-up" : "chevron-down"} 
+            size={24} 
+            color="#666" 
+          />
+        </TouchableOpacity>
+        {isSymptomsHistoryExpanded && (
+          <>
+            {symptoms.length > 0 ? (
+              <View style={styles.historyCard}>
+                {symptoms.map((symptom) => {
+                  const symptomDate = symptom.date ? new Date(symptom.date) : null;
+                  const isValidDate = symptomDate && !isNaN(symptomDate.getTime());
+                  const formattedDate = isValidDate 
+                    ? symptomDate.toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })
+                    : symptom.date || 'Unknown date';
+                  
+                  return (
+                    <View key={symptom.id} style={styles.historyItem}>
+                      <View style={styles.historyItemLeft}>
+                        <Text style={styles.historySymptomName}>{symptom.symptom}</Text>
+                        <Text style={styles.historyDate}>{formattedDate}</Text>
+                      </View>
+                      <View style={styles.historyItemRight}>
+                        <View style={[styles.severityBadgeSmall, { backgroundColor: getSymptomCardColor(symptom.severity) }]}>
+                          <Text style={styles.severityBadgeSmallText}>{getSeverityText(symptom.severity)}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="medical-outline" size={48} color="#ccc" />
+                <Text style={styles.emptyStateText}>{getTranslation('periodTracker.noSymptomsHistory', 'No symptoms history')}</Text>
+                <Text style={styles.emptyStateSubtext}>{getTranslation('periodTracker.startTrackingSymptoms', 'Start tracking your symptoms')}</Text>
+              </View>
+            )}
+          </>
+        )}
       </View>
 
       {/* Cycle History */}
@@ -1279,6 +1354,25 @@ export default function PeriodTrackerScreen() {
             <Text style={styles.modalTitle}>{t('periodTracker.logSymptomModal')}</Text>
             
             <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>{getTranslation('periodTracker.date', 'Date')}</Text>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity 
+                  style={styles.dateInput}
+                  onPress={() => setShowSymptomDateCalendar(true)}
+                >
+                  <Text style={styles.dateInputText}>
+                    {selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    }) : getTranslation('periodTracker.selectDate', 'Select Date')}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('periodTracker.symptom')}</Text>
               <TouchableOpacity 
                 style={styles.dropdownButton}
@@ -1317,7 +1411,11 @@ export default function PeriodTrackerScreen() {
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 style={styles.cancelButton}
-                onPress={() => setShowSymptomModal(false)}
+                onPress={() => {
+                  setShowSymptomModal(false);
+                  setNewSymptom('');
+                  setSymptomSeverity('Light');
+                }}
               >
                 <Text style={styles.cancelButtonText}>{getTranslation('periodTracker.cancel', 'Cancel')}</Text>
               </TouchableOpacity>
@@ -1409,6 +1507,47 @@ export default function PeriodTrackerScreen() {
               }}
               maxDate={new Date().toISOString().split('T')[0]}
               minDate={periodStartDate || undefined}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Symptom Date Calendar Modal */}
+      <Modal
+        visible={showSymptomDateCalendar}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSymptomDateCalendar(false)}
+      >
+        <View style={styles.calendarModalOverlay}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarTitle}>{getTranslation('periodTracker.selectSymptomDate', 'Select Date for Symptom')}</Text>
+              <TouchableOpacity 
+                style={styles.calendarCloseButton}
+                onPress={() => setShowSymptomDateCalendar(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={(day) => {
+                setSelectedDate(day.dateString);
+                setShowSymptomDateCalendar(false);
+              }}
+              markedDates={selectedDate ? {
+                [selectedDate]: { selected: true, selectedColor: '#e91e63' }
+              } : {}}
+              theme={{
+                selectedDayBackgroundColor: '#e91e63',
+                todayTextColor: '#e91e63',
+                arrowColor: '#e91e63',
+                monthTextColor: '#333',
+                textDayFontWeight: '500',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: '600',
+              }}
+              maxDate={new Date().toISOString().split('T')[0]}
             />
           </View>
         </View>
@@ -1641,11 +1780,16 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12,
   },
   symptomsGrid: {
     flexDirection: 'row',
@@ -1738,6 +1882,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
+  historyItemLeft: {
+    flex: 1,
+  },
+  historyItemRight: {
+    marginLeft: 12,
+  },
+  historySymptomName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 4,
+  },
+  historyDate: {
+    fontSize: 12,
+    color: '#666',
+  },
   historyMonth: {
     fontSize: 14,
     fontWeight: '500',
@@ -1751,6 +1911,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#4CAF50',
     fontWeight: '500',
+  },
+  severityBadgeSmall: {
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  severityBadgeSmallText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#333',
   },
   modalOverlay: {
     flex: 1,
