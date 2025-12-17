@@ -1,21 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
-    addDoc,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    orderBy,
-    query,
-    setDoc,
-    updateDoc
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  setDoc
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useTranslation } from '../contexts/TranslationContext';
 import InformationIcon from '../components/InformationIcon';
 import { auth, db } from '../config/firebase';
+import { useTranslation } from '../contexts/TranslationContext';
 
 export default function PregnancyTrackerScreen() {
   const { t } = useTranslation();
@@ -32,8 +31,12 @@ export default function PregnancyTrackerScreen() {
   const [tempDueDate, setTempDueDate] = useState('');
   const [dateErrors, setDateErrors] = useState({});
   const [tempWeight, setTempWeight] = useState('');
+  const [tempWeightDate, setTempWeightDate] = useState('');
+  const [showWeightDateCalendar, setShowWeightDateCalendar] = useState(false);
   const [tempSystolic, setTempSystolic] = useState('');
   const [tempDiastolic, setTempDiastolic] = useState('');
+  const [tempBPDate, setTempBPDate] = useState('');
+  const [showBPDateCalendar, setShowBPDateCalendar] = useState(false);
   const [tempAppointment, setTempAppointment] = useState({
     type: '',
     date: '',
@@ -399,6 +402,17 @@ export default function PregnancyTrackerScreen() {
     return diffDays;
   };
 
+  // Calculate weight gain as difference from the last weight entered
+  const calculateWeightGain = () => {
+    if (weightHistory.length < 2) {
+      return 0; // No previous entry to compare with
+    }
+    // weightHistory is sorted by timestamp desc, so [0] is most recent, [1] is previous
+    const currentWeight = weightHistory[0].weight;
+    const previousWeight = weightHistory[1].weight;
+    return Math.round((currentWeight - previousWeight) * 10) / 10; // Round to 1 decimal place
+  };
+
   // Validate due date
   const validateDueDate = (date) => {
     const errors = {};
@@ -621,7 +635,15 @@ export default function PregnancyTrackerScreen() {
 
   const handleLogWeight = () => {
     setTempWeight('');
+    setTempWeightDate(new Date().toISOString().split('T')[0]); // Default to today
     setShowWeightModal(true);
+  };
+
+  const handleWeightDateSelect = (day) => {
+    if (day && day.dateString) {
+      setTempWeightDate(day.dateString);
+      setShowWeightDateCalendar(false);
+    }
   };
 
   const handleSaveWeight = async () => {
@@ -636,25 +658,28 @@ export default function PregnancyTrackerScreen() {
       return;
     }
 
+    const selectedDate = tempWeightDate || new Date().toISOString().split('T')[0];
     const newWeightEntry = {
       weight: weight,
-      date: new Date().toISOString().split('T')[0],
+      date: selectedDate,
       timestamp: new Date().toISOString()
     };
 
     // Save to Firestore
     await saveWeightEntry(newWeightEntry);
     
+    // Calculate weight gain as difference from the last weight entered
+    // weightHistory[0] is the most recent entry before this new one
+    const previousWeight = weightHistory.length > 0 ? weightHistory[0].weight : null;
+    const weightGain = previousWeight !== null ? weight - previousWeight : 0;
+    
     // Update local state
     setWeightHistory(prev => [newWeightEntry, ...prev]);
     
-    // Update pregnancy data with latest weight
-    const latestWeight = weightHistory.length > 0 ? weightHistory[0].weight : weight;
-    const weightGain = latestWeight - 60; // Assuming starting weight of 60kg
-    
+    // Update pregnancy data with weight gain (difference from last entry)
     const updatedPregnancyData = {
       ...pregnancyData,
-      weightGain: Math.max(0, weightGain)
+      weightGain: Math.round(weightGain * 10) / 10 // Round to 1 decimal place
     };
     
     setPregnancyData(updatedPregnancyData);
@@ -662,13 +687,22 @@ export default function PregnancyTrackerScreen() {
 
     setShowWeightModal(false);
     setTempWeight('');
+    setTempWeightDate('');
     Alert.alert(t('common.success'), t('pregnancyTracker.weightLogged'));
   };
 
   const handleLogBloodPressure = () => {
     setTempSystolic('');
     setTempDiastolic('');
+    setTempBPDate(new Date().toISOString().split('T')[0]); // Default to today
     setShowBPModal(true);
+  };
+
+  const handleBPDateSelect = (day) => {
+    if (day && day.dateString) {
+      setTempBPDate(day.dateString);
+      setShowBPDateCalendar(false);
+    }
   };
 
   const handleSaveBloodPressure = async () => {
@@ -685,10 +719,11 @@ export default function PregnancyTrackerScreen() {
       return;
     }
 
+    const selectedDate = tempBPDate || new Date().toISOString().split('T')[0];
     const newBPEntry = {
       systolic: systolic,
       diastolic: diastolic,
-      date: new Date().toISOString().split('T')[0],
+      date: selectedDate,
       timestamp: new Date().toISOString()
     };
 
@@ -710,20 +745,118 @@ export default function PregnancyTrackerScreen() {
     setShowBPModal(false);
     setTempSystolic('');
     setTempDiastolic('');
+    setTempBPDate('');
     Alert.alert(t('common.success'), t('pregnancyTracker.bpLogged'));
   };
 
   const getMarkedDates = () => {
     const marked = {};
+    const dateTypes = {}; // Track which types of entries exist for each date
     
-    // Due date
+    // Track due date
     if (pregnancyData.dueDate) {
-      marked[pregnancyData.dueDate] = { 
-        selected: true, 
-        selectedColor: '#e91e63', 
-        marked: true, 
-        dotColor: '#e91e63',
-        customStyles: {
+      const date = pregnancyData.dueDate;
+      if (!dateTypes[date]) dateTypes[date] = [];
+      dateTypes[date].push('dueDate');
+    }
+    
+    // Track appointments
+    appointments.forEach(appointment => {
+      if (appointment.date) {
+        if (!dateTypes[appointment.date]) dateTypes[appointment.date] = [];
+        if (!dateTypes[appointment.date].includes('appointment')) {
+          dateTypes[appointment.date].push('appointment');
+        }
+      }
+    });
+    
+    // Track weight logs
+    weightHistory.forEach(entry => {
+      if (entry.date) {
+        if (!dateTypes[entry.date]) dateTypes[entry.date] = [];
+        if (!dateTypes[entry.date].includes('weight')) {
+          dateTypes[entry.date].push('weight');
+        }
+      }
+    });
+    
+    // Track blood pressure logs
+    bpHistory.forEach(entry => {
+      if (entry.date) {
+        if (!dateTypes[entry.date]) dateTypes[entry.date] = [];
+        if (!dateTypes[entry.date].includes('bp')) {
+          dateTypes[entry.date].push('bp');
+        }
+      }
+    });
+    
+    // Track pregnancy milestones
+    milestones.forEach(milestone => {
+      if (milestone.completed && pregnancyData.dueDate) {
+        const milestoneDate = new Date(pregnancyData.dueDate);
+        if (isNaN(milestoneDate.getTime())) return;
+        
+        milestoneDate.setDate(milestoneDate.getDate() - ((40 - milestone.week) * 7));
+        const dateString = milestoneDate.toISOString().split('T')[0];
+        
+        if (!dateTypes[dateString]) dateTypes[dateString] = [];
+        if (!dateTypes[dateString].includes('milestone')) {
+          dateTypes[dateString].push('milestone');
+        }
+      }
+    });
+    
+    // Build marked dates with dots arrays
+    Object.keys(dateTypes).forEach(date => {
+      const types = dateTypes[date];
+      const dots = [];
+      let isDueDate = false;
+      
+      // Define colors for each type
+      const typeColors = {
+        dueDate: '#e91e63',
+        appointment: '#2196F3',
+        weight: '#4CAF50',
+        bp: '#ff9800',
+        milestone: '#9c27b0'
+      };
+      
+      // Build dots array (format: { color, selectedDotColor })
+      if (types.includes('dueDate')) {
+        isDueDate = true;
+        dots.push({ color: typeColors.dueDate, selectedDotColor: '#ffffff' });
+      }
+      if (types.includes('appointment')) {
+        dots.push({ color: typeColors.appointment, selectedDotColor: '#ffffff' });
+      }
+      if (types.includes('weight')) {
+        dots.push({ color: typeColors.weight, selectedDotColor: '#ffffff' });
+      }
+      if (types.includes('bp')) {
+        dots.push({ color: typeColors.bp, selectedDotColor: '#ffffff' });
+      }
+      if (types.includes('milestone')) {
+        dots.push({ color: typeColors.milestone, selectedDotColor: '#ffffff' });
+      }
+      
+      // Build the marked date entry
+      const entry = {};
+      
+      // Always use dots array format for consistency with markingType='multi-dot'
+      // This works for both single and multiple dots
+      if (dots.length > 0) {
+        entry.dots = dots;
+        // Debug: uncomment to verify dots are created
+        // console.log(`Date ${date} has ${dots.length} dots:`, dots.map(d => d.color));
+      }
+      
+      // Special styling for due date (highest priority)
+      // Note: customStyles can interfere with dots display, so we only use it for due date only
+      if (isDueDate && dots.length === 1) {
+        // Due date only - use special styling
+        entry.selected = true;
+        entry.selectedColor = '#e91e63';
+        entry.customStyles = {
           container: {
             backgroundColor: '#e91e63',
             borderRadius: 16,
@@ -732,99 +865,15 @@ export default function PregnancyTrackerScreen() {
             color: 'white',
             fontWeight: 'bold',
           }
-        }
-      };
-    }
-    
-    // Appointments
-    appointments.forEach(appointment => {
-      if (appointment.date) {
-        marked[appointment.date] = {
-          ...marked[appointment.date],
-          marked: true,
-          dotColor: '#2196F3',
-          customStyles: {
-            container: {
-              backgroundColor: '#e3f2fd',
-              borderRadius: 8,
-            },
-            text: {
-              color: '#1976d2',
-              fontWeight: '600',
-            }
-          }
         };
+      } else if (isDueDate && dots.length > 1) {
+        // Due date with other entries - show multi-dot, selected background but let dots show
+        entry.selected = true;
+        entry.selectedColor = '#e91e63';
       }
-    });
-    
-    // Weight logs
-    weightHistory.forEach(entry => {
-      if (entry.date) {
-        marked[entry.date] = {
-          ...marked[entry.date],
-          marked: true,
-          dotColor: '#4CAF50',
-          customStyles: {
-            container: {
-              backgroundColor: '#e8f5e8',
-              borderRadius: 8,
-            },
-            text: {
-              color: '#2e7d32',
-              fontWeight: '500',
-            }
-          }
-        };
-      }
-    });
-    
-    // Blood pressure logs
-    bpHistory.forEach(entry => {
-      if (entry.date) {
-        marked[entry.date] = {
-          ...marked[entry.date],
-          marked: true,
-          dotColor: '#ff9800',
-          customStyles: {
-            container: {
-              backgroundColor: '#fff3e0',
-              borderRadius: 8,
-            },
-            text: {
-              color: '#f57c00',
-              fontWeight: '500',
-            }
-          }
-        };
-      }
-    });
-    
-    // Pregnancy milestones
-    milestones.forEach(milestone => {
-      if (milestone.completed && pregnancyData.dueDate) {
-        const milestoneDate = new Date(pregnancyData.dueDate);
-        // Validate the date before using it
-        if (isNaN(milestoneDate.getTime())) return;
-        
-        milestoneDate.setDate(milestoneDate.getDate() - ((40 - milestone.week) * 7));
-        const dateString = milestoneDate.toISOString().split('T')[0];
-        
-        marked[dateString] = {
-          ...marked[dateString],
-          marked: true,
-          dotColor: '#9c27b0',
-          customStyles: {
-            container: {
-              backgroundColor: '#f3e5f5',
-              borderRadius: 8,
-            },
-            text: {
-              color: '#7b1fa2',
-              fontWeight: '600',
-            }
-          }
-        };
-      }
+      // For other entries, dots array handles the visual indication
+      
+      marked[date] = entry;
     });
     
     return marked;
@@ -933,7 +982,12 @@ export default function PregnancyTrackerScreen() {
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <Ionicons name="scale-outline" size={24} color="#4CAF50" />
-          <Text style={styles.statValue}>+{pregnancyData.weightGain} kg</Text>
+          <Text style={styles.statValue}>
+            {(() => {
+              const weightGain = calculateWeightGain();
+              return weightGain > 0 ? `+${weightGain}` : weightGain < 0 ? `${weightGain}` : '0';
+            })()} kg
+          </Text>
           <Text style={styles.statLabel}>Weight Gain</Text>
         </View>
         <View style={styles.statCard}>
@@ -952,6 +1006,7 @@ export default function PregnancyTrackerScreen() {
       <View style={styles.calendarContainer}>
         <Calendar
           monthFormat={'MMMM yyyy'}
+          markingType={'multi-dot'}
           markedDates={getMarkedDates()}
           onDayPress={handleDatePress}
           theme={{
@@ -1256,6 +1311,25 @@ export default function PregnancyTrackerScreen() {
             </Text>
             
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Date</Text>
+              <TouchableOpacity 
+                style={styles.datePickerButton}
+                onPress={() => setShowWeightDateCalendar(true)}
+              >
+                <Text style={[styles.datePickerText, !tempWeightDate && styles.datePickerPlaceholder]}>
+                  {tempWeightDate ? (() => {
+                    const date = new Date(tempWeightDate);
+                    return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    }) : 'Invalid date';
+                  })() : 'Select date (defaults to today)'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#666" />
+              </TouchableOpacity>
+
               <Text style={styles.inputLabel}>Weight (kg)</Text>
               <TextInput
                 style={styles.textInput}
@@ -1306,6 +1380,25 @@ export default function PregnancyTrackerScreen() {
             </Text>
             
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Date</Text>
+              <TouchableOpacity 
+                style={styles.datePickerButton}
+                onPress={() => setShowBPDateCalendar(true)}
+              >
+                <Text style={[styles.datePickerText, !tempBPDate && styles.datePickerPlaceholder]}>
+                  {tempBPDate ? (() => {
+                    const date = new Date(tempBPDate);
+                    return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    }) : 'Invalid date';
+                  })() : 'Select date (defaults to today)'}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#666" />
+              </TouchableOpacity>
+
               <View style={styles.bpInputRow}>
                 <View style={styles.bpInputContainer}>
                   <Text style={styles.inputLabel}>Systolic</Text>
@@ -1353,6 +1446,114 @@ export default function PregnancyTrackerScreen() {
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Weight Date Calendar Modal */}
+      <Modal
+        visible={showWeightDateCalendar}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowWeightDateCalendar(false)}
+      >
+        <View style={styles.calendarModalOverlay}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarTitle}>Select Weight Log Date</Text>
+              <TouchableOpacity 
+                style={styles.calendarCloseButton}
+                onPress={() => setShowWeightDateCalendar(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={handleWeightDateSelect}
+              markedDates={{
+                [tempWeightDate]: { selected: true, selectedColor: '#e91e63' }
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#e91e63',
+                todayTextColor: '#e91e63',
+                arrowColor: '#e91e63',
+                monthTextColor: '#333',
+                textDayFontWeight: '500',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: '600',
+              }}
+              maxDate={new Date().toISOString().split('T')[0]}
+            />
+            {tempWeightDate && (
+              <View style={styles.selectedDateContainer}>
+                <Ionicons name="calendar" size={16} color="#e91e63" />
+                <Text style={styles.selectedDateText}>
+                  Selected: {(() => {
+                    const date = new Date(tempWeightDate);
+                    return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }) : 'Invalid date';
+                  })()}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* BP Date Calendar Modal */}
+      <Modal
+        visible={showBPDateCalendar}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowBPDateCalendar(false)}
+      >
+        <View style={styles.calendarModalOverlay}>
+          <View style={styles.calendarModalContent}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarTitle}>Select BP Log Date</Text>
+              <TouchableOpacity 
+                style={styles.calendarCloseButton}
+                onPress={() => setShowBPDateCalendar(false)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={handleBPDateSelect}
+              markedDates={{
+                [tempBPDate]: { selected: true, selectedColor: '#e91e63' }
+              }}
+              theme={{
+                selectedDayBackgroundColor: '#e91e63',
+                todayTextColor: '#e91e63',
+                arrowColor: '#e91e63',
+                monthTextColor: '#333',
+                textDayFontWeight: '500',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: '600',
+              }}
+              maxDate={new Date().toISOString().split('T')[0]}
+            />
+            {tempBPDate && (
+              <View style={styles.selectedDateContainer}>
+                <Ionicons name="calendar" size={16} color="#e91e63" />
+                <Text style={styles.selectedDateText}>
+                  Selected: {(() => {
+                    const date = new Date(tempBPDate);
+                    return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }) : 'Invalid date';
+                  })()}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
