@@ -2,12 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   orderBy,
   query,
-  setDoc
+  setDoc,
+  updateDoc
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -63,6 +65,13 @@ export default function PregnancyTrackerScreen() {
   const [selectedSymptomDetail, setSelectedSymptomDetail] = useState(null);
   const [newSymptom, setNewSymptom] = useState('');
   const [symptomSeverity, setSymptomSeverity] = useState('Light');
+  const [editingWeight, setEditingWeight] = useState(null);
+  const [editingBP, setEditingBP] = useState(null);
+  const [editingSymptom, setEditingSymptom] = useState(null);
+  const [editingAppointment, setEditingAppointment] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteItemType, setDeleteItemType] = useState(null); // 'weight', 'bp', 'symptom', 'appointment'
+  const [deleteItemId, setDeleteItemId] = useState(null);
 
   const [appointments, setAppointments] = useState([]);
 
@@ -313,22 +322,34 @@ export default function PregnancyTrackerScreen() {
         return;
       }
 
-      const symptomData = {
-        symptom: newSymptom,
-        severity: symptomSeverity,
-        date: selectedDate,
-        createdAt: new Date()
-      };
+      if (editingSymptom) {
+        // Update existing symptom
+        await updateSymptom(editingSymptom.id, {
+          symptom: newSymptom,
+          severity: symptomSeverity,
+          date: selectedDate
+        });
+        setEditingSymptom(null);
+      } else {
+        // Create new symptom
+        const symptomData = {
+          symptom: newSymptom,
+          severity: symptomSeverity,
+          date: selectedDate,
+          createdAt: new Date()
+        };
 
-      await addDoc(collection(db, 'users', userId, 'pregnancySymptoms'), symptomData);
+        await addDoc(collection(db, 'users', userId, 'pregnancySymptoms'), symptomData);
+      }
 
       // Refresh data
       await fetchPregnancySymptoms();
       
-      Alert.alert(t('common.success'), t('pregnancyTracker.symptomLogged'));
+      Alert.alert(t('common.success'), editingSymptom ? 'Symptom updated' : t('pregnancyTracker.symptomLogged'));
       setShowSymptomModal(false);
       setNewSymptom('');
       setSymptomSeverity('Light');
+      setEditingSymptom(null);
     } catch (error) {
       console.error('Error saving pregnancy symptom data:', error);
       Alert.alert(t('common.error'), t('pregnancyTracker.failedToSaveSymptomData'));
@@ -375,6 +396,253 @@ export default function PregnancyTrackerScreen() {
       setAppointments(appointmentData);
     } catch (error) {
       console.error('Error fetching appointments:', error);
+    }
+  };
+
+  // Show delete confirmation modal
+  const showDeleteConfirmation = (type, id) => {
+    setDeleteItemType(type);
+    setDeleteItemId(id);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete after modal confirmation
+  const confirmDelete = async () => {
+    if (!deleteItemType || !deleteItemId) return;
+
+    setShowDeleteModal(false);
+    
+    switch (deleteItemType) {
+      case 'weight':
+        await deleteWeightEntry(deleteItemId);
+        break;
+      case 'bp':
+        await deleteBPEntry(deleteItemId);
+        break;
+      case 'symptom':
+        await deleteSymptom(deleteItemId);
+        break;
+      case 'appointment':
+        await deleteAppointment(deleteItemId);
+        break;
+    }
+
+    // Reset state
+    setDeleteItemType(null);
+    setDeleteItemId(null);
+  };
+
+  // Delete functions
+  const deleteWeightEntry = async (entryId) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const weightDocRef = doc(db, 'users', userId, 'weightHistory', entryId);
+      await deleteDoc(weightDocRef);
+      
+      // Update local state
+      const updatedHistory = weightHistory.filter(entry => entry.id !== entryId);
+      setWeightHistory(updatedHistory);
+      
+      // Recalculate weight gain
+      if (updatedHistory.length >= 2) {
+        const currentWeight = updatedHistory[0].weight;
+        const previousWeight = updatedHistory[1].weight;
+        const weightGain = currentWeight - previousWeight;
+        
+        const updatedPregnancyData = {
+          ...pregnancyData,
+          weightGain: Math.round(weightGain * 10) / 10
+        };
+        setPregnancyData(updatedPregnancyData);
+        await savePregnancyData(updatedPregnancyData);
+      } else {
+        const updatedPregnancyData = {
+          ...pregnancyData,
+          weightGain: 0
+        };
+        setPregnancyData(updatedPregnancyData);
+        await savePregnancyData(updatedPregnancyData);
+      }
+      
+      Alert.alert(t('common.success'), 'Weight entry deleted');
+    } catch (error) {
+      console.error('Error deleting weight entry:', error);
+      Alert.alert(t('common.error'), 'Failed to delete weight entry');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
+  const deleteBPEntry = async (entryId) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const bpDocRef = doc(db, 'users', userId, 'bpHistory', entryId);
+      await deleteDoc(bpDocRef);
+      
+      setBPHistory(prev => prev.filter(entry => entry.id !== entryId));
+      
+      Alert.alert(t('common.success'), 'Blood pressure entry deleted');
+    } catch (error) {
+      console.error('Error deleting BP entry:', error);
+      Alert.alert(t('common.error'), 'Failed to delete blood pressure entry');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteSymptom = async (symptomId) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const symptomDocRef = doc(db, 'users', userId, 'pregnancySymptoms', symptomId);
+      await deleteDoc(symptomDocRef);
+      
+      setPregnancySymptoms(prev => prev.filter(symptom => symptom.id !== symptomId));
+      
+      Alert.alert(t('common.success'), 'Symptom deleted');
+    } catch (error) {
+      console.error('Error deleting symptom:', error);
+      Alert.alert(t('common.error'), 'Failed to delete symptom');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteAppointment = async (appointmentId) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const appointmentDocRef = doc(db, 'users', userId, 'appointments', appointmentId);
+      await deleteDoc(appointmentDocRef);
+      
+      setAppointments(prev => prev.filter(apt => apt.id !== appointmentId));
+      
+      Alert.alert(t('common.success'), 'Appointment deleted');
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      Alert.alert(t('common.error'), 'Failed to delete appointment');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Update functions
+  const updateWeightEntry = async (entryId, updatedData) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const weightDocRef = doc(db, 'users', userId, 'weightHistory', entryId);
+      await updateDoc(weightDocRef, updatedData);
+      
+      // Refresh weight history
+      await fetchWeightHistory();
+      
+      Alert.alert(t('common.success'), 'Weight entry updated');
+    } catch (error) {
+      console.error('Error updating weight entry:', error);
+      Alert.alert(t('common.error'), 'Failed to update weight entry');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateBPEntry = async (entryId, updatedData) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const bpDocRef = doc(db, 'users', userId, 'bpHistory', entryId);
+      await updateDoc(bpDocRef, updatedData);
+      
+      // Refresh BP history
+      await fetchBPHistory();
+      
+      Alert.alert(t('common.success'), 'Blood pressure entry updated');
+    } catch (error) {
+      console.error('Error updating BP entry:', error);
+      Alert.alert(t('common.error'), 'Failed to update blood pressure entry');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateSymptom = async (symptomId, updatedData) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const symptomDocRef = doc(db, 'users', userId, 'pregnancySymptoms', symptomId);
+      await updateDoc(symptomDocRef, updatedData);
+      
+      // Refresh symptoms
+      await fetchPregnancySymptoms();
+      
+      Alert.alert(t('common.success'), 'Symptom updated');
+    } catch (error) {
+      console.error('Error updating symptom:', error);
+      Alert.alert(t('common.error'), 'Failed to update symptom');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateAppointment = async (appointmentId, updatedData) => {
+    try {
+      setSaving(true);
+      const userId = getCurrentUserId();
+      if (!userId) {
+        Alert.alert(t('common.error'), t('pregnancyTracker.userNotAuthenticated'));
+        return;
+      }
+
+      const appointmentDocRef = doc(db, 'users', userId, 'appointments', appointmentId);
+      await updateDoc(appointmentDocRef, updatedData);
+      
+      // Refresh appointments
+      await fetchAppointments();
+      
+      Alert.alert(t('common.success'), 'Appointment updated');
+    } catch (error) {
+      console.error('Error updating appointment:', error);
+      Alert.alert(t('common.error'), 'Failed to update appointment');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -581,17 +849,40 @@ export default function PregnancyTrackerScreen() {
   };
 
   const handleLogSymptom = () => {
+    setEditingSymptom(null);
     setNewSymptom('');
     setSymptomSeverity('Light');
+    setSelectedDate(new Date().toISOString().split('T')[0]);
+    setShowSymptomModal(true);
+  };
+
+  const handleEditSymptom = (symptom) => {
+    setEditingSymptom(symptom);
+    setNewSymptom(symptom.symptom);
+    setSymptomSeverity(symptom.severity);
+    setSelectedDate(symptom.date);
+    setShowSymptomDetailModal(false);
     setShowSymptomModal(true);
   };
 
   const handleAddAppointment = () => {
+    setEditingAppointment(null);
     setTempAppointment({
       type: '',
       date: '',
       time: '',
       doctor: ''
+    });
+    setShowAppointmentModal(true);
+  };
+
+  const handleEditAppointment = (appointment) => {
+    setEditingAppointment(appointment);
+    setTempAppointment({
+      type: appointment.type,
+      date: appointment.date,
+      time: appointment.time,
+      doctor: appointment.doctor
     });
     setShowAppointmentModal(true);
   };
@@ -609,19 +900,33 @@ export default function PregnancyTrackerScreen() {
       return;
     }
 
-    const newAppointment = {
-      type: tempAppointment.type,
-      date: tempAppointment.date,
-      time: tempAppointment.time,
-      doctor: tempAppointment.doctor,
-      timestamp: new Date().toISOString()
-    };
+    if (editingAppointment) {
+      // Update existing appointment
+      await updateAppointment(editingAppointment.id, {
+        type: tempAppointment.type,
+        date: tempAppointment.date,
+        time: tempAppointment.time,
+        doctor: tempAppointment.doctor
+      });
+      setEditingAppointment(null);
+      // Refresh appointments
+      await fetchAppointments();
+    } else {
+      // Create new appointment
+      const newAppointment = {
+        type: tempAppointment.type,
+        date: tempAppointment.date,
+        time: tempAppointment.time,
+        doctor: tempAppointment.doctor,
+        timestamp: new Date().toISOString()
+      };
 
-    // Save to Firestore
-    await saveAppointment(newAppointment);
-    
-    // Update local state
-    setAppointments(prev => [newAppointment, ...prev].sort((a, b) => new Date(a.date) - new Date(b.date)));
+      // Save to Firestore
+      await saveAppointment(newAppointment);
+      
+      // Update local state
+      setAppointments(prev => [newAppointment, ...prev].sort((a, b) => new Date(a.date) - new Date(b.date)));
+    }
 
     setShowAppointmentModal(false);
     setTempAppointment({
@@ -630,12 +935,20 @@ export default function PregnancyTrackerScreen() {
       time: '',
       doctor: ''
     });
-    Alert.alert(t('common.success'), t('pregnancyTracker.appointmentAdded'));
+    Alert.alert(t('common.success'), editingAppointment ? 'Appointment updated' : t('pregnancyTracker.appointmentAdded'));
   };
 
   const handleLogWeight = () => {
+    setEditingWeight(null);
     setTempWeight('');
     setTempWeightDate(new Date().toISOString().split('T')[0]); // Default to today
+    setShowWeightModal(true);
+  };
+
+  const handleEditWeight = (entry) => {
+    setEditingWeight(entry);
+    setTempWeight(entry.weight.toString());
+    setTempWeightDate(entry.date);
     setShowWeightModal(true);
   };
 
@@ -659,42 +972,61 @@ export default function PregnancyTrackerScreen() {
     }
 
     const selectedDate = tempWeightDate || new Date().toISOString().split('T')[0];
-    const newWeightEntry = {
-      weight: weight,
-      date: selectedDate,
-      timestamp: new Date().toISOString()
-    };
 
-    // Save to Firestore
-    await saveWeightEntry(newWeightEntry);
-    
-    // Calculate weight gain as difference from the last weight entered
-    // weightHistory[0] is the most recent entry before this new one
-    const previousWeight = weightHistory.length > 0 ? weightHistory[0].weight : null;
-    const weightGain = previousWeight !== null ? weight - previousWeight : 0;
-    
-    // Update local state
-    setWeightHistory(prev => [newWeightEntry, ...prev]);
-    
-    // Update pregnancy data with weight gain (difference from last entry)
-    const updatedPregnancyData = {
-      ...pregnancyData,
-      weightGain: Math.round(weightGain * 10) / 10 // Round to 1 decimal place
-    };
-    
-    setPregnancyData(updatedPregnancyData);
-    await savePregnancyData(updatedPregnancyData);
+    if (editingWeight) {
+      // Update existing entry
+      await updateWeightEntry(editingWeight.id, { weight, date: selectedDate });
+      setEditingWeight(null);
+      // Refresh to recalculate weight gain
+      await fetchWeightHistory();
+    } else {
+      // Create new entry
+      const newWeightEntry = {
+        weight: weight,
+        date: selectedDate,
+        timestamp: new Date().toISOString()
+      };
+
+      // Save to Firestore
+      await saveWeightEntry(newWeightEntry);
+      
+      // Calculate weight gain as difference from the last weight entered
+      // weightHistory[0] is the most recent entry before this new one
+      const previousWeight = weightHistory.length > 0 ? weightHistory[0].weight : null;
+      const weightGain = previousWeight !== null ? weight - previousWeight : 0;
+      
+      // Update local state
+      setWeightHistory(prev => [newWeightEntry, ...prev]);
+      
+      // Update pregnancy data with weight gain (difference from last entry)
+      const updatedPregnancyData = {
+        ...pregnancyData,
+        weightGain: Math.round(weightGain * 10) / 10 // Round to 1 decimal place
+      };
+      
+      setPregnancyData(updatedPregnancyData);
+      await savePregnancyData(updatedPregnancyData);
+    }
 
     setShowWeightModal(false);
     setTempWeight('');
     setTempWeightDate('');
-    Alert.alert(t('common.success'), t('pregnancyTracker.weightLogged'));
+    Alert.alert(t('common.success'), editingWeight ? 'Weight entry updated' : t('pregnancyTracker.weightLogged'));
   };
 
   const handleLogBloodPressure = () => {
+    setEditingBP(null);
     setTempSystolic('');
     setTempDiastolic('');
     setTempBPDate(new Date().toISOString().split('T')[0]); // Default to today
+    setShowBPModal(true);
+  };
+
+  const handleEditBP = (entry) => {
+    setEditingBP(entry);
+    setTempSystolic(entry.systolic.toString());
+    setTempDiastolic(entry.diastolic.toString());
+    setTempBPDate(entry.date);
     setShowBPModal(true);
   };
 
@@ -720,33 +1052,50 @@ export default function PregnancyTrackerScreen() {
     }
 
     const selectedDate = tempBPDate || new Date().toISOString().split('T')[0];
-    const newBPEntry = {
-      systolic: systolic,
-      diastolic: diastolic,
-      date: selectedDate,
-      timestamp: new Date().toISOString()
-    };
 
-    // Save to Firestore
-    await saveBPEntry(newBPEntry);
-    
-    // Update local state
-    setBPHistory(prev => [newBPEntry, ...prev]);
-    
-    // Update pregnancy data with latest BP
-    const updatedPregnancyData = {
-      ...pregnancyData,
-      bloodPressure: `${systolic}/${diastolic}`
-    };
-    
-    setPregnancyData(updatedPregnancyData);
-    await savePregnancyData(updatedPregnancyData);
+    if (editingBP) {
+      // Update existing entry
+      await updateBPEntry(editingBP.id, { systolic, diastolic, date: selectedDate });
+      setEditingBP(null);
+      // Refresh to update latest BP
+      await fetchBPHistory();
+      // Update pregnancy data with latest BP
+      const updatedPregnancyData = {
+        ...pregnancyData,
+        bloodPressure: `${systolic}/${diastolic}`
+      };
+      setPregnancyData(updatedPregnancyData);
+      await savePregnancyData(updatedPregnancyData);
+    } else {
+      // Create new entry
+      const newBPEntry = {
+        systolic: systolic,
+        diastolic: diastolic,
+        date: selectedDate,
+        timestamp: new Date().toISOString()
+      };
+
+      // Save to Firestore
+      await saveBPEntry(newBPEntry);
+      
+      // Update local state
+      setBPHistory(prev => [newBPEntry, ...prev]);
+      
+      // Update pregnancy data with latest BP
+      const updatedPregnancyData = {
+        ...pregnancyData,
+        bloodPressure: `${systolic}/${diastolic}`
+      };
+      
+      setPregnancyData(updatedPregnancyData);
+      await savePregnancyData(updatedPregnancyData);
+    }
 
     setShowBPModal(false);
     setTempSystolic('');
     setTempDiastolic('');
     setTempBPDate('');
-    Alert.alert(t('common.success'), t('pregnancyTracker.bpLogged'));
+    Alert.alert(t('common.success'), editingBP ? 'Blood pressure entry updated' : t('pregnancyTracker.bpLogged'));
   };
 
   const getMarkedDates = () => {
@@ -1063,18 +1412,33 @@ export default function PregnancyTrackerScreen() {
         {pregnancySymptoms.length > 0 ? (
           <View style={styles.symptomsGrid}>
             {pregnancySymptoms.slice(0, 6).map((symptom) => (
-              <TouchableOpacity 
-                key={symptom.id} 
-                style={[styles.symptomCard, { backgroundColor: getSymptomCardColor(symptom.severity) }]}
-                onPress={() => {
-                  setSelectedSymptomDetail(symptom);
-                  setShowSymptomDetailModal(true);
-                }}
-              >
-                <Ionicons name="medical-outline" size={24} color="#e91e63" />
-                <Text style={styles.symptomName}>{symptom.symptom}</Text>
-                <Text style={styles.symptomSeverity}>{symptom.severity}</Text>
-              </TouchableOpacity>
+              <View key={symptom.id} style={[styles.symptomCard, { backgroundColor: getSymptomCardColor(symptom.severity) }]}>
+                <TouchableOpacity 
+                  style={styles.symptomCardContent}
+                  onPress={() => {
+                    setSelectedSymptomDetail(symptom);
+                    setShowSymptomDetailModal(true);
+                  }}
+                >
+                  <Ionicons name="medical-outline" size={24} color="#e91e63" />
+                  <Text style={styles.symptomName}>{symptom.symptom}</Text>
+                  <Text style={styles.symptomSeverity}>{symptom.severity}</Text>
+                </TouchableOpacity>
+                <View style={styles.symptomActions}>
+                  <TouchableOpacity 
+                    onPress={() => handleEditSymptom(symptom)}
+                    style={styles.symptomActionButton}
+                  >
+                    <Ionicons name="pencil" size={16} color="#2196F3" />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => showDeleteConfirmation('symptom', symptom.id)}
+                    style={styles.symptomActionButton}
+                  >
+                    <Ionicons name="trash" size={16} color="#f44336" />
+                  </TouchableOpacity>
+                </View>
+              </View>
             ))}
           </View>
         ) : (
@@ -1134,13 +1498,26 @@ export default function PregnancyTrackerScreen() {
         <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
         <View style={styles.appointmentsCard}>
           {appointments.slice(0, 3).map((appointment, index) => (
-            <View key={index} style={styles.appointmentItem}>
+            <View key={appointment.id || index} style={styles.appointmentItem}>
               <View style={styles.appointmentInfo}>
                 <Text style={styles.appointmentType}>{appointment.type}</Text>
                 <Text style={styles.appointmentDate}>{appointment.date} at {appointment.time}</Text>
                 <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
+              <View style={styles.appointmentActions}>
+                <TouchableOpacity 
+                  onPress={() => handleEditAppointment(appointment)}
+                  style={styles.editButton}
+                >
+                  <Ionicons name="pencil" size={18} color="#2196F3" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => showDeleteConfirmation('appointment', appointment.id)}
+                  style={styles.deleteButton}
+                >
+                  <Ionicons name="trash" size={18} color="#f44336" />
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
         </View>
@@ -1185,7 +1562,20 @@ export default function PregnancyTrackerScreen() {
                     <Text style={styles.historyValue}>{entry.weight} kg</Text>
                     <Text style={styles.historyDate}>{entry.date}</Text>
                   </View>
-                  <Ionicons name="scale" size={20} color="#4CAF50" />
+                  <View style={styles.historyActions}>
+                    <TouchableOpacity 
+                      onPress={() => handleEditWeight(entry)}
+                      style={styles.editButton}
+                    >
+                      <Ionicons name="pencil" size={18} color="#2196F3" />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      onPress={() => showDeleteConfirmation('weight', entry.id)}
+                      style={styles.deleteButton}
+                    >
+                      <Ionicons name="trash" size={18} color="#f44336" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
             </View>
@@ -1200,7 +1590,20 @@ export default function PregnancyTrackerScreen() {
                     <Text style={styles.historyValue}>{entry.systolic}/{entry.diastolic}</Text>
                     <Text style={styles.historyDate}>{entry.date}</Text>
                   </View>
-                  <Ionicons name="heart" size={20} color="#e91e63" />
+                  <View style={styles.historyActions}>
+                    <TouchableOpacity 
+                      onPress={() => handleEditBP(entry)}
+                      style={styles.editButton}
+                    >
+                      <Ionicons name="pencil" size={18} color="#2196F3" />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      onPress={() => showDeleteConfirmation('bp', entry.id)}
+                      style={styles.deleteButton}
+                    >
+                      <Ionicons name="trash" size={18} color="#f44336" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
             </View>
@@ -1305,7 +1708,7 @@ export default function PregnancyTrackerScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Log Weight</Text>
+            <Text style={styles.modalTitle}>{editingWeight ? 'Edit Weight' : 'Log Weight'}</Text>
             <Text style={styles.modalSubtitle}>
               Enter your current weight to track your pregnancy progress
             </Text>
@@ -1357,7 +1760,7 @@ export default function PregnancyTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                <Text style={styles.confirmButtonText}>Save Weight</Text>
+                <Text style={styles.confirmButtonText}>{editingWeight ? 'Update Weight' : 'Save Weight'}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1374,7 +1777,7 @@ export default function PregnancyTrackerScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Log Blood Pressure</Text>
+            <Text style={styles.modalTitle}>{editingBP ? 'Edit Blood Pressure' : 'Log Blood Pressure'}</Text>
             <Text style={styles.modalSubtitle}>
               Enter your current blood pressure readings
             </Text>
@@ -1442,7 +1845,7 @@ export default function PregnancyTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                <Text style={styles.confirmButtonText}>Save BP</Text>
+                <Text style={styles.confirmButtonText}>{editingBP ? 'Update BP' : 'Save BP'}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1567,7 +1970,7 @@ export default function PregnancyTrackerScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Appointment</Text>
+            <Text style={styles.modalTitle}>{editingAppointment ? 'Edit Appointment' : 'Add Appointment'}</Text>
             <Text style={styles.modalSubtitle}>
               Schedule your next medical appointment
             </Text>
@@ -1640,7 +2043,7 @@ export default function PregnancyTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                <Text style={styles.confirmButtonText}>Add Appointment</Text>
+                <Text style={styles.confirmButtonText}>{editingAppointment ? 'Update Appointment' : 'Add Appointment'}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1884,7 +2287,7 @@ export default function PregnancyTrackerScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Log Symptom</Text>
+            <Text style={styles.modalTitle}>{editingSymptom ? 'Edit Symptom' : 'Log Symptom'}</Text>
             
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Symptom</Text>
@@ -1937,7 +2340,7 @@ export default function PregnancyTrackerScreen() {
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={styles.confirmButtonText}>Save</Text>
+                  <Text style={styles.confirmButtonText}>{editingSymptom ? 'Update' : 'Save'}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -2040,12 +2443,85 @@ export default function PregnancyTrackerScreen() {
               </View>
             )}
 
-            <TouchableOpacity 
-              style={styles.closeDetailButton}
-              onPress={() => setShowSymptomDetailModal(false)}
-            >
-              <Text style={styles.closeDetailButtonText}>Close</Text>
-            </TouchableOpacity>
+            <View style={styles.detailModalButtons}>
+              <TouchableOpacity 
+                style={[styles.detailModalButton, styles.editDetailButton]}
+                onPress={() => {
+                  handleEditSymptom(selectedSymptomDetail);
+                }}
+              >
+                <Ionicons name="pencil" size={18} color="#fff" />
+                <Text style={styles.detailModalButtonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.detailModalButton, styles.deleteDetailButton]}
+                onPress={() => {
+                  setShowSymptomDetailModal(false);
+                  showDeleteConfirmation('symptom', selectedSymptomDetail.id);
+                }}
+              >
+                <Ionicons name="trash" size={18} color="#fff" />
+                <Text style={styles.detailModalButtonText}>Delete</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.detailModalButton, styles.closeDetailButton]}
+                onPress={() => setShowSymptomDetailModal(false)}
+              >
+                <Text style={styles.closeDetailButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.confirmModalHeader}>
+              <Ionicons name="warning" size={32} color="#F44336" />
+              <Text style={styles.confirmModalTitle}>
+                {deleteItemType === 'weight' && 'Delete Weight Entry'}
+                {deleteItemType === 'bp' && 'Delete Blood Pressure Entry'}
+                {deleteItemType === 'symptom' && 'Delete Symptom'}
+                {deleteItemType === 'appointment' && 'Delete Appointment'}
+              </Text>
+            </View>
+            <Text style={styles.confirmModalMessage}>
+              Are you sure you want to delete this {deleteItemType === 'weight' ? 'weight entry' : deleteItemType === 'bp' ? 'blood pressure entry' : deleteItemType === 'symptom' ? 'symptom' : 'appointment'}? This action cannot be undone.
+            </Text>
+            <View style={styles.confirmModalButtons}>
+              <TouchableOpacity 
+                style={[styles.confirmCancelButton, saving && styles.disabledButton]}
+                onPress={() => {
+                  setShowDeleteModal(false);
+                  setDeleteItemType(null);
+                  setDeleteItemId(null);
+                }}
+                disabled={saving}
+              >
+                <Text style={styles.confirmCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.confirmDeleteButton, saving && styles.disabledButton]}
+                onPress={confirmDelete}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="trash-outline" size={18} color="#fff" />
+                    <Text style={styles.confirmDeleteButtonText}>Delete</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -2165,6 +2641,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 2,
     borderColor: 'transparent',
+    position: 'relative',
+  },
+  symptomCardContent: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  symptomActions: {
+    flexDirection: 'row',
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    gap: 4,
+  },
+  symptomActionButton: {
+    padding: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 4,
   },
   symptomCardLogged: {
     backgroundColor: '#e8f5e8',
@@ -2222,6 +2715,11 @@ const styles = StyleSheet.create({
   },
   appointmentInfo: {
     flex: 1,
+  },
+  appointmentActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   appointmentType: {
     fontSize: 16,
@@ -2289,7 +2787,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   editButton: {
-    marginLeft: 'auto',
+    padding: 4,
+  },
+  deleteButton: {
     padding: 4,
   },
   modalOverlay: {
@@ -2420,8 +2920,27 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 12,
   },
+  historyCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
   historyInfo: {
     flex: 1,
+  },
+  historyActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   historyValue: {
     fontSize: 16,
@@ -2787,5 +3306,90 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#fff',
+  },
+  detailModalButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  detailModalButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  editDetailButton: {
+    backgroundColor: '#2196F3',
+  },
+  deleteDetailButton: {
+    backgroundColor: '#f44336',
+  },
+  detailModalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  confirmModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    margin: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  confirmModalHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  confirmModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  confirmModalMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  confirmModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  confirmCancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+  },
+  confirmCancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#F44336',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  confirmDeleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

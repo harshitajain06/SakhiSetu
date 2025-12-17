@@ -451,7 +451,7 @@ export default {
 
   // Community Screen
   community: {
-    title: 'Community Support Resources',
+    title: 'SakhiSetu Community',
     subtitle: 'Find health centers, counselors, and emergency resources nearby.',
     filterAll: 'All',
     filterHealthCenter: 'Health Center',

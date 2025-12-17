@@ -599,6 +599,82 @@ export default function MaternalHealthHomeScreen() {
         </View>
       </View>
 
+      {/* Community Support */}
+      <View style={styles.communityCard}>
+        <View style={styles.communityHeader}>
+          <Ionicons name="people" size={24} color="#E91E63" />
+          <Text style={styles.communityTitle}>{t('home.communitySupport')}</Text>
+        </View>
+        <Text style={styles.communityDescription}>
+          {t('home.communityDescription')}
+        </Text>
+        <View style={styles.communityStats}>
+          <View style={styles.communityStat}>
+            <Text style={styles.communityNumber}>2.5k</Text>
+            <Text style={styles.communityLabel}>{t('home.activeMembers')}</Text>
+          </View>
+          <View style={styles.communityStat}>
+            <Text style={styles.communityNumber}>156</Text>
+            <Text style={styles.communityLabel}>{t('home.newPostsToday')}</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.communityButton} onPress={navigateToCommunity}>
+          <Text style={styles.communityButtonText}>{t('home.joinCommunity')}</Text>
+          <Ionicons name="arrow-forward" size={16} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Emergency Contacts */}
+      <View style={styles.emergencyCard}>
+        <View style={styles.emergencyHeader}>
+          <Ionicons name="call" size={24} color="#F44336" />
+          <Text style={styles.emergencyTitle}>{t('home.emergencyContacts')}</Text>
+        </View>
+        <View style={styles.contactList}>
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={() => handlePhoneCall('+91 97179 73658')}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="medical" size={20} color="#F44336" />
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactName}>Womennite</Text>
+              <Text style={styles.contactNumber}>+91 97179 73658</Text>
+            </View>
+            <Ionicons name="call" size={20} color="#F44336" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={() => handlePhoneCall('18001034683')}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="medical" size={20} color="#F44336" />
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactName}>National NGO Social Welfare</Text>
+              <Text style={styles.contactNumber}>18001034683</Text>
+            </View>
+            <Ionicons name="call" size={20} color="#F44336" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.contactItem}
+            onPress={() => handlePhoneCall('1091')}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="medical" size={20} color="#F44336" />
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactName}>Women Helpline</Text>
+              <Text style={styles.contactNumber}>1091</Text>
+            </View>
+            <Ionicons name="call" size={20} color="#F44336" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Health Tips Carousel */}
       <View style={styles.tipsSection}>
         <Text style={styles.sectionTitle}>{t('home.healthTips')}</Text>
@@ -683,82 +759,6 @@ export default function MaternalHealthHomeScreen() {
             <Text style={styles.tipDescription}>{t('home.checkupsTip')}</Text>
           </View>
         </ScrollView>
-      </View>
-
-      {/* Community Support */}
-      <View style={styles.communityCard}>
-        <View style={styles.communityHeader}>
-          <Ionicons name="people" size={24} color="#E91E63" />
-          <Text style={styles.communityTitle}>{t('home.communitySupport')}</Text>
-        </View>
-        <Text style={styles.communityDescription}>
-          {t('home.communityDescription')}
-        </Text>
-        <View style={styles.communityStats}>
-          <View style={styles.communityStat}>
-            <Text style={styles.communityNumber}>2.5k</Text>
-            <Text style={styles.communityLabel}>{t('home.activeMembers')}</Text>
-          </View>
-          <View style={styles.communityStat}>
-            <Text style={styles.communityNumber}>156</Text>
-            <Text style={styles.communityLabel}>{t('home.newPostsToday')}</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.communityButton} onPress={navigateToCommunity}>
-          <Text style={styles.communityButtonText}>{t('home.joinCommunity')}</Text>
-          <Ionicons name="arrow-forward" size={16} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Emergency Contacts */}
-      <View style={styles.emergencyCard}>
-        <View style={styles.emergencyHeader}>
-          <Ionicons name="call" size={24} color="#F44336" />
-          <Text style={styles.emergencyTitle}>{t('home.emergencyContacts')}</Text>
-        </View>
-        <View style={styles.contactList}>
-          <TouchableOpacity 
-            style={styles.contactItem}
-            onPress={() => handlePhoneCall('+91 97179 73658')}
-          >
-            <View style={styles.contactIcon}>
-              <Ionicons name="medical" size={20} color="#F44336" />
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>Womennite</Text>
-              <Text style={styles.contactNumber}>+91 97179 73658</Text>
-            </View>
-            <Ionicons name="call" size={20} color="#F44336" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.contactItem}
-            onPress={() => handlePhoneCall('18001034683')}
-          >
-            <View style={styles.contactIcon}>
-              <Ionicons name="medical" size={20} color="#F44336" />
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>National NGO Social Welfare</Text>
-              <Text style={styles.contactNumber}>18001034683</Text>
-            </View>
-            <Ionicons name="call" size={20} color="#F44336" />
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.contactItem}
-            onPress={() => handlePhoneCall('1091')}
-          >
-            <View style={styles.contactIcon}>
-              <Ionicons name="medical" size={20} color="#F44336" />
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>Women Helpline</Text>
-              <Text style={styles.contactNumber}>1091</Text>
-            </View>
-            <Ionicons name="call" size={20} color="#F44336" />
-          </TouchableOpacity>
-        </View>
       </View>
 
       {/* Session Timer Modal */}

@@ -451,7 +451,7 @@ export default {
 
   // Community Screen
   community: {
-    title: 'समुदाय सहायता संसाधन',
+    title: 'सखीसेतु समुदाय',
     subtitle: 'आस-पास स्वास्थ्य केंद्र, परामर्शदाता और आपातकालीन संसाधन खोजें।',
     filterAll: 'सभी',
     filterHealthCenter: 'स्वास्थ्य केंद्र',
