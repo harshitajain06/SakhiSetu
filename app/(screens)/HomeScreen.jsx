@@ -561,41 +561,48 @@ export default function MaternalHealthHomeScreen() {
         </View>
       )}
 
-      {/* Today's Focus */}
+      {/* Upcoming Appointment - Only show when appointment exists */}
+      {nextAppointment && (
+        <View style={styles.focusCard}>
+          <View style={styles.focusHeader}>
+            <Ionicons name="calendar" size={24} color="#2196F3" />
+            <Text style={styles.focusTitle}>{t('home.upcomingAppointment')}</Text>
+          </View>
+          <View style={styles.focusContent}>
+            <Text style={styles.focusMainText}>
+              {nextAppointment.type}
+            </Text>
+            <Text style={styles.focusSubText}>
+              with {nextAppointment.doctor}
+            </Text>
+            <Text style={styles.focusDateText}>
+              {new Date(nextAppointment.date).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'short', 
+                day: 'numeric' 
+              })} at {nextAppointment.time}
+            </Text>
+            <TouchableOpacity style={styles.focusButton} onPress={navigateToPregnancyTracker}>
+              <Text style={styles.focusButtonText}>{t('home.viewDetails')}</Text>
+              <Ionicons name="arrow-forward" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Today's Focus - Prenatal Yoga (Always visible) */}
       <View style={styles.focusCard}>
         <View style={styles.focusHeader}>
           <Ionicons name="star" size={24} color="#FFC107" />
           <Text style={styles.focusTitle}>{t('home.todaysFocus')}</Text>
         </View>
         <View style={styles.focusContent}>
-          {nextAppointment ? (
-            <>
-              <Text style={styles.focusMainText}>{t('home.upcomingAppointment')}</Text>
-              <Text style={styles.focusSubText}>
-                {nextAppointment.type} with {nextAppointment.doctor}
-              </Text>
-              <Text style={styles.focusDateText}>
-                {new Date(nextAppointment.date).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'short', 
-                  day: 'numeric' 
-                })} at {nextAppointment.time}
-            </Text>
-              <TouchableOpacity style={styles.focusButton} onPress={navigateToPregnancyTracker}>
-                <Text style={styles.focusButtonText}>{t('home.viewDetails')}</Text>
-                <Ionicons name="calendar" size={16} color="#fff" />
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text style={styles.focusMainText}>{t('home.prenatalYoga')}</Text>
-              <Text style={styles.focusSubText}>{t('home.yogaDescription')}</Text>
-              <TouchableOpacity style={styles.focusButton} onPress={startSession}>
-                <Text style={styles.focusButtonText}>{t('home.startSession')}</Text>
-                <Ionicons name="play" size={16} color="#fff" />
-              </TouchableOpacity>
-            </>
-          )}
+          <Text style={styles.focusMainText}>{t('home.prenatalYoga')}</Text>
+          <Text style={styles.focusSubText}>{t('home.yogaDescription')}</Text>
+          <TouchableOpacity style={styles.focusButton} onPress={startSession}>
+            <Text style={styles.focusButtonText}>{t('home.startSession')}</Text>
+            <Ionicons name="play" size={16} color="#fff" />
+          </TouchableOpacity>
         </View>
       </View>
 

@@ -449,11 +449,11 @@ export default function PregnancyTrackerScreen() {
       const updatedHistory = weightHistory.filter(entry => entry.id !== entryId);
       setWeightHistory(updatedHistory);
       
-      // Recalculate weight gain
+      // Recalculate weight gain (difference between current weight and first entry)
       if (updatedHistory.length >= 2) {
         const currentWeight = updatedHistory[0].weight;
-        const previousWeight = updatedHistory[1].weight;
-        const weightGain = currentWeight - previousWeight;
+        const firstWeight = updatedHistory[updatedHistory.length - 1].weight;
+        const weightGain = currentWeight - firstWeight;
         
         const updatedPregnancyData = {
           ...pregnancyData,
@@ -670,15 +670,15 @@ export default function PregnancyTrackerScreen() {
     return diffDays;
   };
 
-  // Calculate weight gain as difference from the last weight entered
+  // Calculate weight gain as difference from the first weight entry
   const calculateWeightGain = () => {
     if (weightHistory.length < 2) {
       return 0; // No previous entry to compare with
     }
-    // weightHistory is sorted by timestamp desc, so [0] is most recent, [1] is previous
+    // weightHistory is sorted by timestamp desc, so [0] is most recent, [length-1] is first entry
     const currentWeight = weightHistory[0].weight;
-    const previousWeight = weightHistory[1].weight;
-    return Math.round((currentWeight - previousWeight) * 10) / 10; // Round to 1 decimal place
+    const firstWeight = weightHistory[weightHistory.length - 1].weight;
+    return Math.round((currentWeight - firstWeight) * 10) / 10; // Round to 1 decimal place
   };
 
   // Validate due date
@@ -990,15 +990,15 @@ export default function PregnancyTrackerScreen() {
       // Save to Firestore
       await saveWeightEntry(newWeightEntry);
       
-      // Calculate weight gain as difference from the last weight entered
-      // weightHistory[0] is the most recent entry before this new one
-      const previousWeight = weightHistory.length > 0 ? weightHistory[0].weight : null;
-      const weightGain = previousWeight !== null ? weight - previousWeight : 0;
+      // Calculate weight gain as difference from the first weight entry
+      // weightHistory[weightHistory.length - 1] is the first (oldest) entry
+      const firstWeight = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1].weight : null;
+      const weightGain = firstWeight !== null ? weight - firstWeight : 0;
       
       // Update local state
       setWeightHistory(prev => [newWeightEntry, ...prev]);
       
-      // Update pregnancy data with weight gain (difference from last entry)
+      // Update pregnancy data with weight gain (difference from first entry)
       const updatedPregnancyData = {
         ...pregnancyData,
         weightGain: Math.round(weightGain * 10) / 10 // Round to 1 decimal place
