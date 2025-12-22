@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions, Modal,
   Platform,
   ScrollView,
@@ -11,6 +13,7 @@ import {
   View
 } from "react-native";
 import YoutubeIframe from 'react-native-youtube-iframe';
+import { db } from '../config/firebase';
 import { useTranslation } from '../contexts/TranslationContext';
 
 const { height, width } = Dimensions.get("window");
@@ -21,78 +24,40 @@ export default function JourneyToUnderstandingScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
+  const [videoLessons, setVideoLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const openVideo = (videoId) => {
     setCurrentVideoId(videoId);
     setModalVisible(true);
   };
 
-  const videoLessons = [
-    {
-      id: 1,
-      title: t('journey.video1Title'),
-      description: t('journey.video1Desc'),
-      icon: 'heart',
-      duration: '2 min',
-      videoId: 'faDgESel4Ng',
-    },
-    {
-      id: 2,
-      title: t('journey.video2Title'),
-      description: t('journey.video2Desc'),
-      icon: 'create',
-      duration: '3 min',
-      videoId: 'cfROFgkV43E',
-    },
-    {
-      id: 3,
-      title: t('journey.video3Title'),
-      description: t('journey.video3Desc'),
-      icon: 'bandage',
-      duration: '4 min',
-      videoId: '',
-    },
-    {
-      id: 4,
-      title: t('journey.video4Title'),
-      description: t('journey.video4Desc'),
-      icon: 'chatbubble',
-      duration: '3 min',
-      videoId: 'ImzxzlPzbRk',
-    },
-    {
-      id: 5,
-      title: t('journey.video5Title'),
-      description: t('journey.video5Desc'),
-      icon: 'time',
-      duration: '2 min',
-      videoId: '',
-    },
-    {
-      id: 6,
-      title: t('journey.video6Title'),
-      description: t('journey.video6Desc'),
-      icon: 'people',
-      duration: '3 min',
-      videoId: 'gojy9QRRO68',
-    },
-    {
-      id: 7,
-      title: t('journey.video7Title'),
-      description: t('journey.video7Desc'),
-      icon: 'water',
-      duration: '4 min',
-      videoId: 'qFLEIwY-SYE',
-    },
-    {
-      id: 8,
-      title: t('journey.video8Title'),
-      description: t('journey.video8Desc'),
-      icon: 'shield',
-      duration: '5 min',
-      videoId: 'J6bZsl1pi_o',
-    },
-  ];
+  // Fetch videos from Firebase
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      const videosCollectionRef = collection(db, 'journeyVideos');
+      const q = query(videosCollectionRef, orderBy('order', 'asc'));
+      const querySnapshot = await getDocs(q);
+      
+      const videos = [];
+      querySnapshot.forEach((doc) => {
+        videos.push({ id: doc.id, ...doc.data() });
+      });
+      
+      setVideoLessons(videos);
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      // Fallback to empty array on error
+      setVideoLessons([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVideos();
+  }, []);
 
   return (
     <>
@@ -152,27 +117,41 @@ export default function JourneyToUnderstandingScreen() {
         <View style={styles.lessonsSection}>
           <Text style={styles.sectionTitle}>Lessons</Text>
 
-          {videoLessons.map((lesson) => (
-            <TouchableOpacity
-              key={lesson.id}
-              style={styles.lessonCard}
-              onPress={() => lesson.videoId && openVideo(lesson.videoId)}
-            >
-              <View style={styles.lessonIconContainer}>
-                <Ionicons name={lesson.icon} size={24} color="#e91e63" />
-              </View>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#e91e63" />
+              <Text style={styles.loadingText}>Loading videos...</Text>
+            </View>
+          ) : videoLessons.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="videocam-off" size={48} color="#ccc" />
+              <Text style={styles.emptyText}>No videos available</Text>
+            </View>
+          ) : (
+            videoLessons.map((lesson) => (
+              <TouchableOpacity
+                key={lesson.id}
+                style={styles.lessonCard}
+                onPress={() => lesson.videoId && openVideo(lesson.videoId)}
+              >
+                <View style={styles.lessonIconContainer}>
+                  <Ionicons name={lesson.icon || 'play-circle'} size={24} color="#e91e63" />
+                </View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                <Text style={styles.lessonDescription}>{lesson.description}</Text>
-              </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.lessonTitle}>{lesson.title || 'Untitled Video'}</Text>
+                  <Text style={styles.lessonDescription}>{lesson.description || ''}</Text>
+                </View>
 
-              <View style={styles.lessonMeta}>
-                <Text style={styles.lessonDuration}>{lesson.duration}</Text>
-                <Ionicons name="play-circle" size={20} color="#e91e63" />
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.lessonMeta}>
+                  <Text style={styles.lessonDuration}>{lesson.duration || ''}</Text>
+                  {lesson.videoId && (
+                    <Ionicons name="play-circle" size={20} color="#e91e63" />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
     </>
@@ -260,5 +239,29 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+  },
+
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  emptyText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#999',
   },
 });

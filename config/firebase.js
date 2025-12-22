@@ -1,18 +1,19 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, initializeAuth, getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getFirestore, collection } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getAuth, getReactNativePersistence, initializeAuth } from "firebase/auth";
+import { collection, getFirestore } from "firebase/firestore";
 import { getStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyBV2Q-_nJIcRHGUbhtwu8eKN9UAeaPvwQw",
-  authDomain: "fir-authentication-8abb6.firebaseapp.com",
-  projectId: "fir-authentication-8abb6",
-  storageBucket: "fir-authentication-8abb6.appspot.com",
-  messagingSenderId: "854259513422",
-  appId: "1:854259513422:web:9a3d38f04501b643f0ab1f"
+  apiKey: "AIzaSyADJMXZi1511N66jc6IiJ3qEKUCoZ6Li4w",
+  authDomain: "sakhisetu-c413b.firebaseapp.com",
+  projectId: "sakhisetu-c413b",
+  storageBucket: "sakhisetu-c413b.firebasestorage.app",
+  messagingSenderId: "992765354152",
+  appId: "1:992765354152:web:f5503c173c732b23d3629d",
+  measurementId: "G-9JLV4SYGNJ"
 };
 
 // Initialize Firebase
