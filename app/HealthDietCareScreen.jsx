@@ -4,197 +4,184 @@ import React, { useState } from 'react';
 import {
   Dimensions,
   Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
-import YoutubeIframe from 'react-native-youtube-iframe';
 import { useTranslation } from '../contexts/TranslationContext';
 
-const { height, width } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 export default function HealthDietCareScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
-  const [currentVideoId, setCurrentVideoId] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState(null);
 
-  const videoLessons = [
+  const topics = [
     {
       id: 1,
       title: t('healthDietCare.video1Title'),
       description: t('healthDietCare.video1Desc'),
       icon: 'restaurant',
-      duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=kmWbOC8Fbb0',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=kmWbOC8Fbb0',
-        'https://www.youtube.com/watch?v=qFLEIwY-SYE'
-      ]
+      contentKey: 'video1Content'
     },
     {
       id: 2,
       title: t('healthDietCare.video2Title'),
       description: t('healthDietCare.video2Desc'),
       icon: 'leaf',
-      duration: '4 min',
-      videoUrl: 'https://www.youtube.com/watch?v=faDgESel4Ng',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=faDgESel4Ng'
-      ]
+      contentKey: 'video2Content'
     },
     {
       id: 3,
       title: t('healthDietCare.video3Title'),
       description: t('healthDietCare.video3Desc'),
       icon: 'happy',
-      duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=cfROFgkV43E',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=cfROFgkV43E'
-      ]
+      contentKey: 'video3Content'
     },
     {
       id: 4,
       title: t('healthDietCare.video4Title'),
       description: t('healthDietCare.video4Desc'),
       icon: 'water',
-      duration: '2 min',
-      videoUrl: 'https://www.youtube.com/watch?v=qFLEIwY-SYE',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=qFLEIwY-SYE'
-      ]
+      contentKey: 'video4Content'
     },
     {
       id: 5,
       title: t('healthDietCare.video5Title'),
       description: t('healthDietCare.video5Desc'),
       icon: 'close-circle',
-      duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=ImzxzlPzbRk',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=ImzxzlPzbRk'
-      ]
+      contentKey: 'video5Content'
     },
     {
       id: 6,
       title: t('healthDietCare.video6Title'),
       description: t('healthDietCare.video6Desc'),
       icon: 'calendar',
-      duration: '5 min',
-      videoUrl: 'https://www.youtube.com/watch?v=gojy9QRRO68',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=gojy9QRRO68'
-      ]
+      contentKey: 'video6Content'
     },
     {
       id: 7,
       title: t('healthDietCare.video7Title'),
       description: t('healthDietCare.video7Desc'),
       icon: 'flask',
-      duration: '4 min',
-      videoUrl: 'https://www.youtube.com/watch?v=J6bZsl1pi_o',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=J6bZsl1pi_o'
-      ]
+      contentKey: 'video7Content'
     },
     {
       id: 8,
       title: t('healthDietCare.video8Title'),
       description: t('healthDietCare.video8Desc'),
       icon: 'spa',
-      duration: '4 min',
-      videoUrl: 'https://www.youtube.com/watch?v=oFf0-311F4E',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=oFf0-311F4E'
-      ]
+      contentKey: 'video8Content'
     },
     {
       id: 9,
       title: t('healthDietCare.video9Title'),
       description: t('healthDietCare.video9Desc'),
       icon: 'cafe',
-      duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=faDgESel4Ng',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=faDgESel4Ng'
-      ]
+      contentKey: 'video9Content'
     },
     {
       id: 10,
       title: t('healthDietCare.video10Title'),
       description: t('healthDietCare.video10Desc'),
       icon: 'fitness',
-      duration: '3 min',
-      videoUrl: 'https://www.youtube.com/watch?v=cfROFgkV43E',
-      relatedVideos: [
-        'https://www.youtube.com/watch?v=cfROFgkV43E'
-      ]
+      contentKey: 'video10Content'
     }
   ];
 
-  const extractVideoId = (url) => {
-    if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    return match ? match[1] : null;
+  const handleTopicPress = (topic) => {
+    setSelectedTopic(topic);
+    setModalVisible(true);
   };
 
-  const openVideo = (videoUrl) => {
-    const videoId = extractVideoId(videoUrl);
-    if (videoId) {
-      setCurrentVideoId(videoId);
-      setModalVisible(true);
-    }
+  const getContent = (contentKey) => {
+    return t(`healthDietCare.${contentKey}`) || '';
   };
 
-  const handleVideoPress = (video) => {
-    if (video.videoUrl) {
-      openVideo(video.videoUrl);
-    }
-  };
+  const renderFormattedContent = (text) => {
+    if (!text) return null;
 
-  const handleRelatedVideoPress = (url) => {
-    openVideo(url);
+    // Split by double newlines to get paragraphs
+    const paragraphs = text.split('\n\n');
+    
+    return paragraphs.map((paragraph, paragraphIndex) => {
+      // Split paragraph into lines
+      const lines = paragraph.split('\n');
+      
+      return (
+        <View key={paragraphIndex} style={{ marginBottom: paragraphIndex < paragraphs.length - 1 ? 16 : 0 }}>
+          {lines.map((line, lineIndex) => {
+            // Check if line is a heading (ends with colon and is not a bullet point)
+            const isHeading = line.trim().endsWith(':') && !line.trim().startsWith('•') && line.trim().length > 0;
+            // Check if line is a bullet point
+            const isBullet = line.trim().startsWith('•');
+            
+            if (isHeading) {
+              return (
+                <Text key={lineIndex} style={[styles.contentText, styles.boldHeading]}>
+                  {line}
+                  {lineIndex < lines.length - 1 ? '\n' : ''}
+                </Text>
+              );
+            } else if (isBullet) {
+              return (
+                <Text key={lineIndex} style={styles.contentText}>
+                  {line}
+                  {lineIndex < lines.length - 1 ? '\n' : ''}
+                </Text>
+              );
+            } else {
+              return (
+                <Text key={lineIndex} style={styles.contentText}>
+                  {line}
+                  {lineIndex < lines.length - 1 ? '\n' : ''}
+                </Text>
+              );
+            }
+          })}
+        </View>
+      );
+    });
   };
 
   return (
     <>
-      {/* Fullscreen Video Modal */}
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.fullscreenContainer}>
-          {/* Close Button */}
-          <TouchableOpacity
-            style={styles.fullscreenClose}
-            onPress={() => setModalVisible(false)}
-          >
-            <Ionicons name="close" size={34} color="#fff" />
-          </TouchableOpacity>
-
-          {/* YouTube Player */}
-          {currentVideoId && (
-            Platform.OS === 'web' ? (
-              <View style={styles.videoContainer}>
-                <YoutubeIframe
-                  height={height * 0.7 - 40}
-                  width={width * 0.5 - 40}
-                  play={true}
-                  videoId={currentVideoId}
-                  webViewStyle={{ backgroundColor: '#000' }}
-                />
-              </View>
-            ) : (
-              <YoutubeIframe
-                height={height * 0.9}
-                width={'100%'}
-                play={true}
-                videoId={currentVideoId}
-                webViewStyle={{ backgroundColor: '#000' }}
-              />
-            )
-          )}
+      {/* Content Modal */}
+      <Modal 
+        visible={modalVisible} 
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {selectedTopic?.title || ''}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView 
+              style={styles.modalBody}
+              showsVerticalScrollIndicator={true}
+            >
+              {selectedTopic && (
+                <View>
+                  {renderFormattedContent(getContent(selectedTopic.contentKey))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
         </View>
       </Modal>
 
@@ -223,26 +210,25 @@ export default function HealthDietCareScreen() {
         <Text style={styles.videoDuration}>Duration: 3 min</Text>
       </View> */}
 
-      {/* Lessons List */}
+      {/* Topics List */}
       <View style={styles.lessonsSection}>
         <Text style={styles.sectionTitle}>{t('healthDietCare.lessons')}</Text>
-        {videoLessons.map((lesson) => (
+        {topics.map((topic) => (
           <TouchableOpacity
-            key={lesson.id}
+            key={topic.id}
             style={styles.lessonCard}
-            onPress={() => lesson.videoUrl && handleVideoPress(lesson)}
+            onPress={() => handleTopicPress(topic)}
             activeOpacity={0.7}
           >
             <View style={styles.lessonIconContainer}>
-              <Ionicons name={lesson.icon} size={24} color="#FF9800" />
+              <Ionicons name={topic.icon} size={24} color="#FF9800" />
             </View>
             <View style={styles.lessonContent}>
-              <Text style={styles.lessonTitle}>{lesson.title}</Text>
-              <Text style={styles.lessonDescription}>{lesson.description}</Text>
+              <Text style={styles.lessonTitle}>{topic.title}</Text>
+              <Text style={styles.lessonDescription}>{topic.description}</Text>
             </View>
             <View style={styles.lessonMeta}>
-              <Text style={styles.lessonDuration}>{lesson.duration}</Text>
-              <Ionicons name="play-circle" size={20} color="#FF9800" />
+              <Ionicons name="document-text" size={20} color="#FF9800" />
             </View>
           </TouchableOpacity>
         ))}
@@ -360,47 +346,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 8,
   },
-  lessonDuration: {
-    fontSize: 12,
-    color: '#666',
-    marginRight: 8,
+  /* Content Modal */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-  relatedVideosSection: {
-    padding: 20,
-    paddingTop: 0,
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: height * 0.9,
+    paddingBottom: 20,
   },
-  relatedVideoCard: {
+  modalHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
-  relatedVideoText: {
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
     flex: 1,
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 8,
+    marginRight: 10,
   },
-  /* Fullscreen Modal */
-  fullscreenContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
+  closeButton: {
+    padding: 4,
   },
-  fullscreenClose: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 999,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    padding: 8,
-    borderRadius: 30,
+  modalBody: {
+    padding: 20,
   },
-  videoContainer: {
-    margin: 20,
+  contentText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+  },
+  boldHeading: {
+    fontWeight: 'bold',
+    marginTop: 8,
+    marginBottom: 4,
   },
 });
 
