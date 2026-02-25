@@ -1,6 +1,8 @@
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNavigation } from '@react-navigation/native';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, reload, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, reload, sendEmailVerification, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
@@ -14,7 +16,7 @@ import {
   View
 } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { auth } from '../../config/firebase';
+import { auth, GOOGLE_OAUTH_CLIENT_ID } from '../../config/firebase';
 import { useTranslation } from '../../contexts/TranslationContext';
 
 const { width, height } = Dimensions.get('window');
@@ -392,12 +394,11 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
-      provider.addScope('profile');
-      provider.addScope('email');
-      
       if (isWeb) {
         // Web: Use signInWithPopup
+        const provider = new GoogleAuthProvider();
+        provider.addScope('profile');
+        provider.addScope('email');
         const result = await signInWithPopup(auth, provider);
         // Reload to get latest verification status
         await reload(result.user);
@@ -408,17 +409,78 @@ export default function AuthPage() {
         } else {
           showToast('success', 'Success', 'Signed in with Google successfully!');
         }
+        setIsLoading(false);
       } else {
-        // Native: Use signInWithRedirect which works better for mobile
-        // The redirect will be handled by the app's deep linking
-        await signInWithRedirect(auth, provider);
-        // Note: signInWithRedirect doesn't return immediately
-        // The user will be redirected to Google sign-in and back
-        showToast('info', 'Redirecting', 'Opening Google sign-in...');
-        // Don't set loading to false here as the redirect will handle it
-        return;
+        // Native: Use expo-auth-session with Google OAuth
+        WebBrowser.maybeCompleteAuthSession();
+        
+        // Configure redirect URI
+        const redirectUri = AuthSession.makeRedirectUri({
+          scheme: 'sakhisetu',
+          useProxy: false,
+        });
+
+        // Google OAuth discovery endpoints
+        const discovery = {
+          authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+          tokenEndpoint: 'https://oauth2.googleapis.com/token',
+          revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
+        };
+
+        // Use Google OAuth Client ID from Firebase config
+        // Make sure to update GOOGLE_OAUTH_CLIENT_ID in config/firebase.js
+        const request = new AuthSession.AuthRequest({
+          clientId: GOOGLE_OAUTH_CLIENT_ID,
+          scopes: ['openid', 'profile', 'email'],
+          responseType: AuthSession.ResponseType.Code,
+          redirectUri,
+          extraParams: {},
+          additionalParameters: {},
+        });
+
+        const result = await request.promptAsync(discovery, {
+          useProxy: false,
+        });
+
+        if (result.type === 'success') {
+          // Exchange the authorization code for tokens
+          const tokenResponse = await AuthSession.exchangeCodeAsync(
+            {
+              clientId: GOOGLE_OAUTH_CLIENT_ID,
+              code: result.params.code,
+              redirectUri,
+              extraParams: {},
+            },
+            discovery
+          );
+
+          if (tokenResponse.idToken) {
+            // Create a credential from the ID token
+            const credential = GoogleAuthProvider.credential(tokenResponse.idToken);
+            
+            // Sign in to Firebase with the credential
+            const userCredential = await signInWithCredential(auth, credential);
+            
+            // Reload to get latest verification status
+            await reload(userCredential.user);
+            
+            // Google accounts are typically already verified
+            if (!userCredential.user.emailVerified) {
+              setShowVerificationMessage(true);
+              showToast('info', 'Email Not Verified', 'Please verify your email address. Check your inbox for the verification email.');
+            } else {
+              showToast('success', 'Success', 'Signed in with Google successfully!');
+            }
+          } else {
+            throw new Error('Failed to get ID token from Google');
+          }
+        } else if (result.type === 'cancel') {
+          showToast('info', 'Cancelled', 'Google sign-in was cancelled.');
+        } else {
+          throw new Error('Google sign-in failed');
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       let errorMessage = 'Google sign-in failed. Please try again.';
@@ -437,6 +499,7 @@ export default function AuthPage() {
         errorMessage = error.message;
       }
       
+      console.error('Google Sign-In Error:', error);
       showToast('error', 'Google Sign-In Failed', errorMessage);
     }
   };

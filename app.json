@@ -2,7 +2,7 @@
   "expo": {
     "name": "SakhiSetu",
     "slug": "SakhiSetu",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sakhisetu",
@@ -17,7 +17,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.harshitaforever.SakhiSetu"
+      "package": "com.harshitaforever.SakhiSetu",
+      // "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
