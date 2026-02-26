@@ -16,8 +16,10 @@ import LearnScreen from "./(screens)/LearnScreen";
 import LoginRegister from './(screens)/index';
 import HealthSelectionScreen from './HealthSelectionScreen';
 import LanguageSelectorScreen from './LanguageSelectorScreen';
+import LandingPage from './LandingPage';
 import MaternalHealthTabs from './MaternalHealthTabs';
 import MenstrualHealthTabs from './MenstrualHealthTabs';
+import PrivacyPolicy from './PrivacyPolicy';
 import WelcomeScreen from './WelcomeScreen';
 
 import { auth } from "../config/firebase";
@@ -84,7 +86,7 @@ const DrawerNavigator = () => {
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
-        navigation.replace("LoginRegister");
+        navigation.replace("LandingPage");
       })
       .catch((err) => {
         console.error("Logout Error:", err);
@@ -143,6 +145,7 @@ export default function MainLayout() {
 
   return (
     <Stack.Navigator
+      initialRouteName="LandingPage"
       screenOptions={{
         headerShown: false,
         contentStyle: {
@@ -150,6 +153,8 @@ export default function MainLayout() {
         },
       }}
     >
+      <Stack.Screen name="LandingPage" component={LandingPage} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
       <Stack.Screen name="LoginRegister" component={LoginRegister} />
       <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
       <Stack.Screen name="HealthSelectionScreen" component={HealthSelectionScreen} />
