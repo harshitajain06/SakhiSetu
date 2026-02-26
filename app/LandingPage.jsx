@@ -4,6 +4,7 @@ import { reload } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import WebLink from '../components/WebLink';
 import { auth } from '../config/firebase';
 import { useTranslation } from '../contexts/TranslationContext';
 
@@ -57,11 +58,21 @@ export default function LandingPage() {
   };
 
   const handlePrivacyPolicy = () => {
-    navigation.navigate('PrivacyPolicy');
+    if (isWeb) {
+      // On web, use direct URL for Google verification
+      window.location.href = '/PrivacyPolicy';
+    } else {
+      navigation.navigate('PrivacyPolicy');
+    }
   };
 
   const handleTermsOfService = () => {
-    navigation.navigate('TermsOfService');
+    if (isWeb) {
+      // On web, use direct URL for Google verification
+      window.location.href = '/TermsOfService';
+    } else {
+      navigation.navigate('TermsOfService');
+    }
   };
 
   const [buttonHover, setButtonHover] = useState(false);
@@ -71,7 +82,7 @@ export default function LandingPage() {
 
   return (
     <View style={[styles.container, isWeb && styles.containerWeb]}>
-      {isWeb && (
+          {isWeb && (
         <style>{`
           * {
             box-sizing: border-box;
@@ -89,6 +100,12 @@ export default function LandingPage() {
           #root {
             height: 100%;
             width: 100%;
+          }
+          /* Ensure privacy policy links are visible and accessible */
+          [href*="PrivacyPolicy"], [href*="TermsOfService"] {
+            color: #2196f3 !important;
+            text-decoration: underline !important;
+            cursor: pointer !important;
           }
           @media (max-width: 768px) {
             .feature-grid {
@@ -246,38 +263,32 @@ export default function LandingPage() {
         {/* Footer */}
         <View style={[styles.footer, isWeb && styles.footerWeb]}>
           <View style={styles.footerLinks}>
-            <TouchableOpacity
+            <WebLink
+              href="https://www.sakhisetu.in/PrivacyPolicy"
               onPress={handlePrivacyPolicy}
-              style={styles.footerLink}
-              onMouseEnter={() => isWeb && setPrivacyHover(true)}
-              onMouseLeave={() => isWeb && setPrivacyHover(false)}
-            >
-              <Text style={[
-                styles.footerLinkText, 
+              style={[
+                styles.footerLinkText,
                 isWeb && styles.footerLinkTextWeb,
                 isWeb && privacyHover && styles.footerLinkTextHover
-              ]}>
-                Privacy Policy
-              </Text>
-            </TouchableOpacity>
-            <Text style={[styles.footerLinkSeparator, isWeb && styles.footerLinkSeparatorWeb]}>•</Text>
-            <TouchableOpacity
-              onPress={handleTermsOfService}
-              style={styles.footerLink}
-              onMouseEnter={() => isWeb && setTermsHover(true)}
-              onMouseLeave={() => isWeb && setTermsHover(false)}
+              ]}
             >
-              <Text style={[
-                styles.footerLinkText, 
+              Privacy Policy
+            </WebLink>
+            <Text style={[styles.footerLinkSeparator, isWeb && styles.footerLinkSeparatorWeb]}>•</Text>
+            <WebLink
+              href="https://www.sakhisetu.in/TermsOfService"
+              onPress={handleTermsOfService}
+              style={[
+                styles.footerLinkText,
                 isWeb && styles.footerLinkTextWeb,
                 isWeb && termsHover && styles.footerLinkTextHover
-              ]}>
-                Terms of Service
-              </Text>
-            </TouchableOpacity>
+              ]}
+            >
+              Terms of Service
+            </WebLink>
           </View>
           <Text style={[styles.copyright, isWeb && styles.copyrightWeb]}>
-            © 2024 SakhiSetu. All rights reserved.
+            © 2026 SakhiSetu. All rights reserved.
           </Text>
         </View>
       </View>
