@@ -20,6 +20,7 @@ import LandingPage from './LandingPage';
 import MaternalHealthTabs from './MaternalHealthTabs';
 import MenstrualHealthTabs from './MenstrualHealthTabs';
 import PrivacyPolicy from './PrivacyPolicy';
+import TermsOfService from './TermsOfService';
 import WelcomeScreen from './WelcomeScreen';
 
 import { auth } from "../config/firebase";
@@ -155,6 +156,7 @@ export default function MainLayout() {
     >
       <Stack.Screen name="LandingPage" component={LandingPage} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+      <Stack.Screen name="TermsOfService" component={TermsOfService} />
       <Stack.Screen name="LoginRegister" component={LoginRegister} />
       <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
       <Stack.Screen name="HealthSelectionScreen" component={HealthSelectionScreen} />
