@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { reload } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import WebLink from '../components/WebLink';
 import { auth } from '../config/firebase';
 import { useTranslation } from '../contexts/TranslationContext';
@@ -80,6 +80,25 @@ export default function LandingPage() {
   const [termsHover, setTermsHover] = useState(false);
   const [featureHovers, setFeatureHovers] = useState({});
 
+  const ContentWrapper = isWeb ? View : ScrollView;
+  const contentWrapperProps = isWeb 
+    ? { 
+        style: [
+          styles.contentContainer,
+          styles.contentContainerWeb
+        ],
+        className: isDesktop ? 'feature-grid' : undefined
+      }
+    : {
+        style: styles.scrollView,
+        contentContainerStyle: [
+          styles.contentContainer,
+          styles.contentContainerNative
+        ],
+        showsVerticalScrollIndicator: true,
+        bounces: true,
+      };
+
   return (
     <View style={[styles.container, isWeb && styles.containerWeb]}>
           {isWeb && (
@@ -121,13 +140,7 @@ export default function LandingPage() {
           }
         `}</style>
       )}
-      <View
-        style={[
-          styles.contentContainer,
-          isWeb && styles.contentContainerWeb
-        ]}
-        className={isWeb && isDesktop ? 'feature-grid' : undefined}
-      >
+      <ContentWrapper {...contentWrapperProps}>
         {/* Hero Section */}
         <View style={[styles.heroSection, isWeb && styles.heroSectionWeb]}>
           <View style={styles.logoContainer}>
@@ -291,7 +304,7 @@ export default function LandingPage() {
             © 2026 SakhiSetu. All rights reserved.
           </Text>
         </View>
-      </View>
+      </ContentWrapper>
     </View>
   );
 }
@@ -309,6 +322,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+  scrollView: {
+    flex: 1,
+  },
   contentContainer: {
     flex: 1,
     paddingBottom: isWeb ? 10 : 30,
@@ -322,11 +338,16 @@ const styles = StyleSheet.create({
     paddingVertical: isWeb ? 16 : 30,
     overflow: 'hidden',
   },
+  contentContainerNative: {
+    flexGrow: 1,
+    paddingBottom: 8,
+  },
+  // Mobile-first: keep vertical spacing tight so everything fits
   heroSection: {
     alignItems: 'center',
-    paddingTop: isWeb ? 20 : 60,
-    paddingBottom: isWeb ? 12 : 40,
-    paddingHorizontal: isWeb ? 20 : 24,
+    paddingTop: isWeb ? 20 : 16,
+    paddingBottom: isWeb ? 12 : 8,
+    paddingHorizontal: isWeb ? 20 : 12,
   },
   heroSectionWeb: {
     maxWidth: 1200,
@@ -336,14 +357,14 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   logoContainer: {
-    marginBottom: isWeb ? 8 : 24,
+    marginBottom: isWeb ? 8 : 6,
   },
   logo: {
-    width: isWeb ? 80 : 150,
-    height: isWeb ? 80 : 150,
+    width: isWeb ? 80 : 80,
+    height: isWeb ? 80 : 80,
   },
   appTitle: {
-    fontSize: isWeb ? 28 : 42,
+    fontSize: isWeb ? 28 : 24,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: isWeb ? 4 : 12,
@@ -353,7 +374,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   tagline: {
-    fontSize: isWeb ? 14 : 20,
+    fontSize: isWeb ? 14 : 13,
     color: '#666',
     marginBottom: isWeb ? 6 : 20,
     textAlign: 'center',
@@ -363,7 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   description: {
-    fontSize: isWeb ? 12 : 16,
+    fontSize: isWeb ? 12 : 12,
     color: '#666',
     textAlign: 'center',
     lineHeight: isWeb ? 16 : 24,
@@ -374,8 +395,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   featuresSection: {
-    paddingHorizontal: isWeb ? 20 : 24,
-    paddingVertical: isWeb ? 12 : 40,
+    paddingHorizontal: isWeb ? 20 : 12,
+    paddingVertical: isWeb ? 12 : 8,
   },
   featuresSectionWeb: {
     maxWidth: 1200,
@@ -395,7 +416,7 @@ const styles = StyleSheet.create({
     // Can add tablet-specific styles if needed
   },
   sectionTitle: {
-    fontSize: isWeb ? 18 : 32,
+    fontSize: isWeb ? 18 : 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: isWeb ? 10 : 30,
@@ -406,9 +427,9 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     backgroundColor: '#f8f9fa',
-    borderRadius: isWeb ? 8 : 16,
-    padding: isWeb ? 12 : 24,
-    marginBottom: isWeb ? 8 : 20,
+    borderRadius: isWeb ? 8 : 10,
+    padding: isWeb ? 12 : 10,
+    marginBottom: isWeb ? 8 : 6,
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
@@ -427,9 +448,9 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   featureIcon: {
-    width: isWeb ? 36 : 60,
-    height: isWeb ? 36 : 60,
-    borderRadius: isWeb ? 18 : 30,
+    width: isWeb ? 36 : 36,
+    height: isWeb ? 36 : 36,
+    borderRadius: isWeb ? 18 : 18,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -441,7 +462,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   featureTitle: {
-    fontSize: isWeb ? 14 : 20,
+    fontSize: isWeb ? 14 : 14,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: isWeb ? 4 : 8,
@@ -451,7 +472,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   featureDescription: {
-    fontSize: isWeb ? 11 : 15,
+    fontSize: isWeb ? 11 : 11,
     color: '#666',
     lineHeight: isWeb ? 14 : 22,
     flex: 1,
@@ -461,8 +482,8 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   ctaSection: {
-    paddingHorizontal: isWeb ? 20 : 24,
-    paddingVertical: isWeb ? 12 : 40,
+    paddingHorizontal: isWeb ? 20 : 12,
+    paddingVertical: isWeb ? 12 : 10,
     alignItems: 'center',
   },
   ctaSectionWeb: {
@@ -473,9 +494,9 @@ const styles = StyleSheet.create({
   },
   getStartedButton: {
     backgroundColor: '#e91e63',
-    paddingVertical: isWeb ? 10 : 16,
-    paddingHorizontal: isWeb ? 24 : 40,
-    borderRadius: isWeb ? 8 : 16,
+    paddingVertical: isWeb ? 10 : 10,
+    paddingHorizontal: isWeb ? 24 : 22,
+    borderRadius: isWeb ? 8 : 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -497,19 +518,19 @@ const styles = StyleSheet.create({
   },
   getStartedButtonText: {
     color: '#fff',
-    fontSize: isWeb ? 14 : 20,
+    fontSize: isWeb ? 14 : 14,
     fontWeight: 'bold',
   },
   getStartedButtonTextWeb: {
     fontSize: 14,
   },
   footer: {
-    paddingHorizontal: isWeb ? 20 : 24,
-    paddingVertical: isWeb ? 8 : 40,
+    paddingHorizontal: isWeb ? 20 : 12,
+    paddingVertical: isWeb ? 8 : 8,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
-    marginTop: isWeb ? 8 : 30,
+    marginTop: isWeb ? 8 : 8,
   },
   footerWeb: {
     maxWidth: 1200,
@@ -520,7 +541,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: isWeb ? 4 : 16,
+    marginBottom: isWeb ? 4 : 4,
     flexWrap: 'wrap',
   },
   footerLink: {

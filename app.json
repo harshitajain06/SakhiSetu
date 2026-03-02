@@ -17,8 +17,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.harshitaforever.SakhiSetu",
-      // "googleServicesFile": "./google-services.json"
+      "package": "com.harshitaforever.SakhiSetu", 
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +35,10 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-web-browser", 
+      "@react-native-firebase/app",
+			"@react-native-firebase/auth"
     ],
     "experiments": {
       "typedRoutes": true

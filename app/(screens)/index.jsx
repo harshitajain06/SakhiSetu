@@ -1,8 +1,6 @@
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, reload, sendEmailVerification, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import {
@@ -21,6 +19,14 @@ import { useTranslation } from '../../contexts/TranslationContext';
 
 const { width, height } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
+
+// Conditionally import GoogleSignin - only available in development builds
+let GoogleSignin = null;
+try {
+  GoogleSignin = require('@react-native-google-signin/google-signin').GoogleSignin;
+} catch (e) {
+  console.warn('GoogleSignin native module not available. A development build is required.');
+}
 
 export default function AuthPage() {
   const navigation = useNavigation();
@@ -132,6 +138,20 @@ export default function AuthPage() {
       return () => clearInterval(interval);
     }
   }, [user, showVerificationMessage]);
+
+  // Configure Google Sign-In for native platforms
+  useEffect(() => {
+    if (!isWeb && GoogleSignin) {
+      try {
+        GoogleSignin.configure({
+          webClientId: GOOGLE_OAUTH_CLIENT_ID, // Web client ID is needed for offline access
+          offlineAccess: true,
+        });
+      } catch (error) {
+        console.error('Failed to configure GoogleSignin:', error);
+      }
+    }
+  }, []);
 
   // Validation functions
   const validateEmail = (email) => {
@@ -411,73 +431,39 @@ export default function AuthPage() {
         }
         setIsLoading(false);
       } else {
-        // Native: Use expo-auth-session with Google OAuth
-        WebBrowser.maybeCompleteAuthSession();
+        // Native: Use @react-native-google-signin/google-signin
+        // Reference: https://www.amarjanica.com/making-google-login-work-in-react-native-and-web/
         
-        // Configure redirect URI
-        const redirectUri = AuthSession.makeRedirectUri({
-          scheme: 'sakhisetu',
-          useProxy: false,
-        });
-
-        // Google OAuth discovery endpoints
-        const discovery = {
-          authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-          tokenEndpoint: 'https://oauth2.googleapis.com/token',
-          revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
-        };
-
-        // Use Google OAuth Client ID from Firebase config
-        // Make sure to update GOOGLE_OAUTH_CLIENT_ID in config/firebase.js
-        const request = new AuthSession.AuthRequest({
-          clientId: GOOGLE_OAUTH_CLIENT_ID,
-          scopes: ['openid', 'profile', 'email'],
-          responseType: AuthSession.ResponseType.Code,
-          redirectUri,
-          extraParams: {},
-          additionalParameters: {},
-        });
-
-        const result = await request.promptAsync(discovery, {
-          useProxy: false,
-        });
-
-        if (result.type === 'success') {
-          // Exchange the authorization code for tokens
-          const tokenResponse = await AuthSession.exchangeCodeAsync(
-            {
-              clientId: GOOGLE_OAUTH_CLIENT_ID,
-              code: result.params.code,
-              redirectUri,
-              extraParams: {},
-            },
-            discovery
-          );
-
-          if (tokenResponse.idToken) {
-            // Create a credential from the ID token
-            const credential = GoogleAuthProvider.credential(tokenResponse.idToken);
-            
-            // Sign in to Firebase with the credential
-            const userCredential = await signInWithCredential(auth, credential);
-            
-            // Reload to get latest verification status
-            await reload(userCredential.user);
-            
-            // Google accounts are typically already verified
-            if (!userCredential.user.emailVerified) {
-              setShowVerificationMessage(true);
-              showToast('info', 'Email Not Verified', 'Please verify your email address. Check your inbox for the verification email.');
-            } else {
-              showToast('success', 'Success', 'Signed in with Google successfully!');
-            }
+        // Check if GoogleSignin is available (requires development build)
+        if (!GoogleSignin) {
+          throw new Error('GoogleSignin not available. Please create a development build using "npx expo run:android" or "eas build --profile development --platform android"');
+        }
+        
+        // Check if Play Services are available (required for Google Sign-In)
+        await GoogleSignin.hasPlayServices();
+        
+        // Sign in with Google
+        const response = await GoogleSignin.signIn();
+        
+        if (response && response.data && response.data.idToken) {
+          // Create Firebase credential from Google ID token
+          const googleCredential = GoogleAuthProvider.credential(response.data.idToken);
+          
+          // Sign in to Firebase with the credential
+          const userCredential = await signInWithCredential(auth, googleCredential);
+          
+          // Reload to get latest verification status
+          await reload(userCredential.user);
+          
+          // Google accounts are typically already verified
+          if (!userCredential.user.emailVerified) {
+            setShowVerificationMessage(true);
+            showToast('info', 'Email Not Verified', 'Please verify your email address. Check your inbox for the verification email.');
           } else {
-            throw new Error('Failed to get ID token from Google');
+            showToast('success', 'Success', 'Signed in with Google successfully!');
           }
-        } else if (result.type === 'cancel') {
-          showToast('info', 'Cancelled', 'Google sign-in was cancelled.');
         } else {
-          throw new Error('Google sign-in failed');
+          throw new Error('No response from GoogleSignin');
         }
         setIsLoading(false);
       }
@@ -485,6 +471,7 @@ export default function AuthPage() {
       setIsLoading(false);
       let errorMessage = 'Google sign-in failed. Please try again.';
       
+      // Handle Firebase auth errors (web)
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Sign-in popup was closed. Please try again.';
       } else if (error.code === 'auth/popup-blocked') {
@@ -495,6 +482,18 @@ export default function AuthPage() {
         errorMessage = 'An account already exists with this email. Please sign in with your existing method.';
       } else if (error.code === 'auth/operation-not-allowed') {
         errorMessage = 'Google sign-in is not enabled. Please contact support.';
+      } 
+      // Handle GoogleSignin errors (native)
+      else if (error.code === 'SIGN_IN_CANCELLED') {
+        errorMessage = 'Google sign-in was cancelled.';
+      } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
+        errorMessage = 'Google Play Services is not available. Please install it from the Play Store.';
+      } else if (error.code === 'IN_PROGRESS') {
+        errorMessage = 'Google sign-in is already in progress. Please wait.';
+      } else if (error.code === 'SIGN_IN_REQUIRED') {
+        errorMessage = 'Please sign in to your Google account.';
+      } else if (error.message && error.message.includes('GoogleSignin not available')) {
+        errorMessage = error.message + '\n\nTo fix this:\n1. Run: npx expo run:android (for local build)\n2. Or: eas build --profile development --platform android (for EAS build)\n3. Then install the development build on your device';
       } else if (error.message) {
         errorMessage = error.message;
       }
