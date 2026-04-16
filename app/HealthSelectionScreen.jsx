@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation, languages } from '../contexts/TranslationContext';
 import ProfileScreen from './ProfileScreen';
 
 export default function HealthSelectionScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { t, language } = useTranslation();
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
@@ -25,10 +27,6 @@ export default function HealthSelectionScreen() {
     t('healthSelection.tip8'),
   ];
 
-  const handleMaternalHealth = () => {
-    navigation.replace('MaternalHealthTabs');
-  };
-
   const handleMenstrualHealth = () => {
     navigation.replace('MenstrualHealthTabs');
   };
@@ -46,20 +44,25 @@ export default function HealthSelectionScreen() {
     setCurrentTipIndex((prevIndex) => (prevIndex - 1 + tips.length) % tips.length);
   };
 
+  const scrollBottomPad = isWeb ? 20 : Math.max(insets.bottom, 16) + 12;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={styles.scrollContent}
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottomPad }]}
         showsVerticalScrollIndicator={Platform.OS === 'web'}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, isWeb ? null : { paddingTop: 4 }]}>
           <Text style={styles.appTitle}>{t('healthSelection.appTitle')}</Text>
           <View style={styles.headerIcons}>
             <TouchableOpacity
               style={styles.profileIcon}
               onPress={() => setProfileModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Profile"
             >
               <View style={styles.profileImage}>
                 <Ionicons name="person" size={isWeb ? 18 : 20} color="#fff" />
@@ -69,56 +72,74 @@ export default function HealthSelectionScreen() {
         </View>
 
         {/* Language Selector */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.languageSelector}
           onPress={() => navigation.navigate('LanguageSelector')}
           activeOpacity={0.7}
         >
-          <Ionicons name="globe-outline" size={isWeb ? 18 : 20} color="#666" />
-          <Text style={styles.languageText}>{currentLanguage.nativeName}</Text>
-          <Ionicons name="chevron-forward" size={isWeb ? 14 : 16} color="#666" />
+          <View style={styles.languageSelectorLeft}>
+            <Ionicons name="globe-outline" size={isWeb ? 18 : 20} color="#5c6bc0" />
+            <Text style={styles.languageText}>{currentLanguage.nativeName}</Text>
+          </View>
+          <Ionicons name="chevron-down" size={isWeb ? 18 : 20} color="#757575" />
         </TouchableOpacity>
 
         {/* Main Content Cards */}
         <View style={styles.cardsContainer}>
-          {/* Menstrual Health Card */}
-          <TouchableOpacity style={[styles.card, styles.menstrualHealthCard]} onPress={handleMenstrualHealth}>
-            <View style={styles.cardIconContainer}>
-              <View style={styles.cardIconBackground}>
-                <Image 
-                  source={require('../assets/images/SakhiSetu_logo.png')} 
-                  style={styles.cardIconImage}
+          {/* Menstrual Health Card — single touch target, no nested buttons */}
+          <TouchableOpacity
+            style={[styles.card, styles.menstrualHealthCard]}
+            onPress={handleMenstrualHealth}
+            activeOpacity={0.92}
+          >
+            <View style={styles.cardTopRow}>
+              <View style={[styles.cardIconBadge, styles.cardIconBadgePink]}>
+                <Image
+                  source={require('../assets/images/SakhiSetu_logo.png')}
+                  style={styles.cardLogoImage}
                   resizeMode="contain"
+                  accessibilityIgnoresInvertColors
                 />
               </View>
+              <View style={styles.cardTextBlock}>
+                <Text style={styles.cardTitle}>{t('healthSelection.menstrualHealth')}</Text>
+                <Text style={styles.cardDescription} numberOfLines={3}>
+                  {t('healthSelection.menstrualHealthDesc')}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.cardTitle}>{t('healthSelection.menstrualHealth')}</Text>
-            <Text style={styles.cardDescription}>
-              {t('healthSelection.menstrualHealthDesc')}
-            </Text>
-            <TouchableOpacity style={styles.cardButton} onPress={handleMenstrualHealth}>
-              <Text style={styles.cardButtonText}>{t('healthSelection.exploreCycleTracking')}</Text>
-            </TouchableOpacity>
+            <View style={styles.cardCta}>
+              <Text style={styles.cardCtaText}>{t('healthSelection.exploreCycleTracking')}</Text>
+              <Ionicons name="arrow-forward" size={18} color="#c2185b" />
+            </View>
           </TouchableOpacity>
 
           {/* Maternal Wellness Card */}
-          <TouchableOpacity style={[styles.card, styles.maternalWellnessCard]} onPress={handleMaternalWellness}>
-            <View style={styles.cardIconContainer}>
-              <View style={styles.cardIconBackground}>
-                <Image 
-                  source={require('../assets/images/SakhiSetu_logo.png')} 
-                  style={styles.cardIconImage}
+          <TouchableOpacity
+            style={[styles.card, styles.maternalWellnessCard]}
+            onPress={handleMaternalWellness}
+            activeOpacity={0.92}
+          >
+            <View style={styles.cardTopRow}>
+              <View style={[styles.cardIconBadge, styles.cardIconBadgeBlue]}>
+                <Image
+                  source={require('../assets/images/SakhiSetu_logo.png')}
+                  style={styles.cardLogoImage}
                   resizeMode="contain"
+                  accessibilityIgnoresInvertColors
                 />
               </View>
+              <View style={styles.cardTextBlock}>
+                <Text style={styles.cardTitle}>{t('healthSelection.maternalWellness')}</Text>
+                <Text style={styles.cardDescription} numberOfLines={3}>
+                  {t('healthSelection.maternalWellnessDesc')}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.cardTitle}>{t('healthSelection.maternalWellness')}</Text>
-            <Text style={styles.cardDescription}>
-              {t('healthSelection.maternalWellnessDesc')}
-            </Text>
-            <TouchableOpacity style={styles.cardButton} onPress={handleMaternalWellness}>
-              <Text style={styles.cardButtonText}>{t('healthSelection.exploreMaternalWellness')}</Text>
-            </TouchableOpacity>
+            <View style={styles.cardCta}>
+              <Text style={styles.cardCtaTextBlue}>{t('healthSelection.exploreMaternalWellness')}</Text>
+              <Ionicons name="arrow-forward" size={18} color="#1565c0" />
+            </View>
           </TouchableOpacity>
 
           {/* Today's Tip Section */}
@@ -170,15 +191,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: isWeb ? 10 : 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: isWeb ? 16 : 20,
-    paddingTop: isWeb ? 8 : 10,
-    paddingBottom: isWeb ? 12 : 20,
+    paddingTop: isWeb ? 8 : 6,
+    paddingBottom: isWeb ? 12 : 14,
   },
   appTitle: {
     fontSize: isWeb ? 20 : 24,
@@ -204,16 +224,21 @@ const styles = StyleSheet.create({
   languageSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f7fa',
     marginHorizontal: isWeb ? 16 : 20,
-    marginBottom: isWeb ? 12 : 20,
-    paddingHorizontal: isWeb ? 12 : 15,
-    paddingVertical: isWeb ? 8 : 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    gap: 8,
+    marginBottom: isWeb ? 12 : 16,
+    paddingHorizontal: isWeb ? 14 : 16,
+    paddingVertical: isWeb ? 10 : 12,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e1e4e8',
     justifyContent: 'space-between',
+  },
+  languageSelectorLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
   },
   languageText: {
     fontSize: isWeb ? 14 : 16,
@@ -222,71 +247,90 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     paddingHorizontal: isWeb ? 16 : 20,
-    gap: isWeb ? 12 : 20,
-    paddingBottom: isWeb ? 12 : 20,
+    gap: isWeb ? 12 : 14,
   },
   card: {
-    borderRadius: isWeb ? 12 : 16,
-    padding: isWeb ? 16 : 24,
+    borderRadius: isWeb ? 14 : 18,
+    padding: isWeb ? 14 : 18,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
   },
   menstrualHealthCard: {
-    backgroundColor: '#e91e63',
+    backgroundColor: '#d81b60',
   },
   maternalWellnessCard: {
-    backgroundColor: '#2196f3',
+    backgroundColor: '#1976d2',
   },
-  cardIconContainer: {
-    alignItems: 'center',
-    marginBottom: isWeb ? 10 : 16,
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: isWeb ? 12 : 14,
   },
-  cardIconBackground: {
-    backgroundColor: '#fff',
-    width: isWeb ? 80 : 100,
-    height: isWeb ? 80 : 100,
-    borderRadius: isWeb ? 40 : 50,
+  cardIconBadge: {
+    width: isWeb ? 48 : 52,
+    height: isWeb ? 48 : 52,
+    borderRadius: isWeb ? 14 : 16,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
   },
-  cardIconImage: {
-    width: isWeb ? 80 : 100,
-    height: isWeb ? 80 : 100,
+  cardIconBadgePink: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+  },
+  cardIconBadgeBlue: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+  },
+  cardLogoImage: {
+    width: isWeb ? 40 : 44,
+    height: isWeb ? 40 : 44,
+  },
+  cardTextBlock: {
+    flex: 1,
+    minWidth: 0,
+    paddingTop: 2,
   },
   cardTitle: {
-    fontSize: isWeb ? 20 : 24,
-    fontWeight: 'bold',
+    fontSize: isWeb ? 18 : 20,
+    fontWeight: '700',
     color: '#fff',
-    textAlign: 'center',
-    marginBottom: isWeb ? 8 : 12,
+    textAlign: 'left',
+    marginBottom: 6,
+    letterSpacing: -0.2,
   },
   cardDescription: {
-    fontSize: isWeb ? 14 : 16,
-    color: '#fff',
-    textAlign: 'center',
-    lineHeight: isWeb ? 20 : 22,
-    marginBottom: isWeb ? 12 : 20,
-    opacity: 0.95,
+    fontSize: isWeb ? 13 : 14,
+    color: 'rgba(255,255,255,0.92)',
+    textAlign: 'left',
+    lineHeight: isWeb ? 19 : 20,
   },
-  cardButton: {
+  cardCta: {
+    marginTop: isWeb ? 14 : 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
-    paddingVertical: isWeb ? 8 : 12,
-    paddingHorizontal: isWeb ? 16 : 20,
-    borderRadius: 8,
-    alignSelf: 'center',
+    paddingVertical: isWeb ? 10 : 12,
+    paddingHorizontal: isWeb ? 14 : 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  cardButtonText: {
-    fontSize: isWeb ? 14 : 16,
+  cardCtaText: {
+    fontSize: isWeb ? 14 : 15,
     fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
+    color: '#c2185b',
+    flex: 1,
+  },
+  cardCtaTextBlue: {
+    fontSize: isWeb ? 14 : 15,
+    fontWeight: '600',
+    color: '#1565c0',
+    flex: 1,
   },
   tipsSection: {
     backgroundColor: '#f8f9fa',

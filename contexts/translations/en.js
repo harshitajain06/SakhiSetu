@@ -46,6 +46,46 @@ export default {
     maternalWellnessDesc: 'Mental health and emotional well-being during and after pregnancy.',
     exerciseFitness: 'Exercise & Fitness',
     exerciseFitnessDesc: 'Safe exercise routines and staying active during pregnancy.',
+    childVaccinationTitle: 'Child Vaccination Tracker',
+    childVaccinationSubtitle:
+      'Add your child’s name and date of birth to generate a full MoHFW UIP-style schedule. Colours: green = done, orange = due within 7 days, red = overdue, grey = later.',
+    vaccineLegendCompleted: 'Done',
+    vaccineLegendDueSoon: 'Due ≤7d',
+    vaccineLegendOverdue: 'Overdue',
+    vaccineLegendUpcoming: 'Later',
+    addChild: 'Add child',
+    noChildrenYet: 'No children added yet. Tap “Add child” to begin.',
+    dob: 'Date of birth',
+    vaccineSchedule: 'Vaccination schedule',
+    due: 'Due',
+    pending: 'Pending',
+    completed: 'Completed',
+    markDone: 'Mark as done',
+    childNameLabel: 'Child name',
+    childNamePlaceholder: 'e.g. Aarav',
+    vaccinationSourceTitle: 'Vaccination schedule source',
+    vaccinationSourceBody:
+      'The vaccination schedule shown in this app is generated based on the Government of India’s Universal Immunization Programme guidelines. Users are encouraged to verify vaccination details with the official Ministry of Health and Family Welfare website or consult a healthcare provider.',
+    viewOfficialSchedule: 'View official vaccination schedule (MoHFW)',
+    vaccinationDisclaimer:
+      'SakhiSetu provides vaccination reminders for awareness and convenience. Users should confirm vaccination schedules with healthcare providers or official government sources.',
+    addCustomVaccine: 'Add other vaccine',
+    customVaccineTitle: 'Add vaccine',
+    vaccineNameLabel: 'Vaccine name',
+    vaccineNamePlaceholder: 'e.g. Measles / doctor-recommended',
+    recommendedAgeOptional: 'Age or notes (optional)',
+    dueDateLabel: 'Due date',
+    customBadge: 'Custom',
+    reminderTimeLabel: 'Reminder time',
+    reminderTimeHint:
+      'Reminders only send on certain days relative to the due date: 2 days before, on the due date, or 7 days after if still pending. The time you pick is when those alerts may fire (within ~10 minutes; server checks every 5 minutes). For a quick test, set the due date to today and pick a time a few minutes ahead. Default schedule vaccines use 9:00 AM IST.',
+    testPushButton: 'Schedule test notification (5 min)',
+    testPushTitle: 'Test scheduled',
+    testPushBody:
+      'A real push notification will be sent in about 5 minutes so you can close the app and receive it from FCM. Ensure notifications are allowed.',
+    testPushSignIn: 'Sign in with your SakhiSetu account, then try again.',
+    testPushNoTokens:
+      'The server did not find any FCM device token for your account. Allow notifications, then fully restart the app (or sign out and back in), then try again.',
   },
 
   // Pregnancy Basics Detail
@@ -695,6 +735,8 @@ export default {
     averageCycleLength: 'Average Cycle Length:',
     days: 'days',
     cycleInsightText: 'Based on your tracked history. Consistency is key for accurate predictions.',
+    maternalPregnancyTab: 'Pregnancy',
+    maternalChildVaccinationTab: 'Child vaccination',
     // Month names
     january: 'January',
     february: 'February',

@@ -1,7 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth, getReactNativePersistence, initializeAuth } from "firebase/auth";
 import { collection, getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 import { getStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 
@@ -16,23 +17,33 @@ const firebaseConfig = {
   measurementId: "G-9JLV4SYGNJ"
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+// Avoid duplicate-app crashes when the module is evaluated more than once (common in release).
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Use correct auth initialization based on platform
+// Native @react-native-firebase + JS SDK: use getAuth if auth was already initialized.
 let auth;
 if (Platform.OS === 'web') {
-  auth = getAuth(app); // Use standard web auth
+  auth = getAuth(app);
 } else {
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
-  });
+  try {
+    auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch (e) {
+    if (e && typeof e === 'object' && e.code === 'auth/already-initialized') {
+      auth = getAuth(app);
+    } else {
+      throw e;
+    }
+  }
 }
 
 export { auth };
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+/** Callable Cloud Functions (region must match deployment). */
+export const functions = getFunctions(app, 'us-central1');
 export const usersRef = collection(db, 'users');
 
 // Google OAuth Client IDs

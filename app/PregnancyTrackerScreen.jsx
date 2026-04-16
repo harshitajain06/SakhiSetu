@@ -1299,7 +1299,7 @@ export default function PregnancyTrackerScreen() {
       {!pregnancyData.isSetup ? (
         <View style={[styles.statusCard, { backgroundColor: '#f0f0f0' }]}>
           <View style={styles.statusHeader}>
-            <Ionicons name="baby" size={24} color="#666" />
+            <Ionicons name="heart" size={24} color="#666" />
             <Text style={[styles.statusTitle, { color: '#666' }]}>
               {t('pregnancyTracker.welcomeTitle')}
             </Text>
@@ -1312,7 +1312,7 @@ export default function PregnancyTrackerScreen() {
       ) : (
         <View style={[styles.statusCard, { backgroundColor: getTrimesterColor(getCurrentTrimester) + '20' }]}>
           <View style={styles.statusHeader}>
-            <Ionicons name="baby" size={24} color={getTrimesterColor(getCurrentTrimester)} />
+            <Ionicons name="heart" size={24} color={getTrimesterColor(getCurrentTrimester)} />
             <Text style={[styles.statusTitle, { color: getTrimesterColor(getCurrentTrimester) }]}>
               {t('pregnancyTracker.week')} {getCurrentWeek} - {t('pregnancyTracker.trimester')} {getCurrentTrimester}
             </Text>

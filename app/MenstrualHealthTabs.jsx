@@ -3,7 +3,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { signOut } from 'firebase/auth';
 import React, { useState } from 'react';
@@ -180,13 +180,22 @@ const DrawerNavigator = () => {
   );
 };
 
+function drawerRouteNameFromStack(state) {
+  const route = state?.routes?.[state?.index];
+  if (route?.name !== 'MenstrualHealthTabs' || !route.state?.routes) return 'MainTabs';
+  const ds = route.state;
+  return ds.routes[ds.index]?.name ?? 'MainTabs';
+}
+
 export default function MenstrualHealthTabs() {
   const [chatModalVisible, setChatModalVisible] = useState(false);
+  const drawerRoute = useNavigationState(drawerRouteNameFromStack);
+  const showChatFab = drawerRoute !== 'LanguageSelector';
 
   return (
     <View style={styles.container}>
       <DrawerNavigator />
-      <FloatingChatButton onPress={() => setChatModalVisible(true)} />
+      {showChatFab ? <FloatingChatButton onPress={() => setChatModalVisible(true)} /> : null}
       <Modal
         visible={chatModalVisible}
         animationType="slide"

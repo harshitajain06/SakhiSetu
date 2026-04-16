@@ -16,7 +16,7 @@ export default function NewbornCareListScreen() {
       activeOpacity={0.7}
     >
       <View style={styles.itemIconContainer}>
-        <Ionicons name="baby" size={24} color="#fff" />
+        <Ionicons name="balloon" size={24} color="#fff" />
       </View>
       <View style={styles.itemTextContainer}>
         <Text style={styles.itemText}>{item.title}</Text>

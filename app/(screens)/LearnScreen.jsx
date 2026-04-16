@@ -49,7 +49,7 @@ export default function LearnScreen() {
       id: 5,
       title: t('learn.newbornCare'),
       description: t('learn.newbornCareDesc'),
-      icon: 'baby',
+      icon: 'balloon',
       iconColor: '#9C27B0',
       contentType: t('contentType.videos'),
       route: 'NewbornCare'

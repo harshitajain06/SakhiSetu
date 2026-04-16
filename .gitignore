@@ -10,6 +10,13 @@ web-build/
 expo-env.d.ts
 
 # Native
+# Android generated output — must not be committed (Windows paths in autolinking.json break EAS/Linux)
+android/app/build/
+android/build/
+android/.gradle/
+android/.cxx/
+android/app/.cxx/
+android/local.properties
 .kotlin/
 *.orig.*
 *.jks

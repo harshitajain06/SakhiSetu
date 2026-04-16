@@ -2,23 +2,25 @@
   "expo": {
     "name": "SakhiSetu",
     "slug": "SakhiSetu",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sakhisetu",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.harshitaforever.SakhiSetu", 
-      "googleServicesFile": "./google-services.json"
+      "package": "com.harshitaforever.SakhiSetu",
+      "googleServicesFile": "./google-services.json",
+      "permissions": ["android.permission.POST_NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",
@@ -38,7 +40,7 @@
       ],
       "expo-web-browser", 
       "@react-native-firebase/app",
-			"@react-native-firebase/auth"
+      "@react-native-firebase/messaging"
     ],
     "experiments": {
       "typedRoutes": true

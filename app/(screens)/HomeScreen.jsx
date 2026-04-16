@@ -9,7 +9,7 @@ import {
   query
 } from 'firebase/firestore';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../../config/firebase';
 import { useTranslation } from '../../contexts/TranslationContext';
 
@@ -492,9 +492,18 @@ export default function MaternalHealthHomeScreen() {
         </View>
       ) : (
         <View style={styles.setupCard}>
-          <View style={styles.setupHeader}>
-            <Ionicons name="heart" size={32} color="#E91E63" />
-            <Text style={styles.setupTitle}>{t('home.welcomeTitle')}</Text>
+          <View style={styles.setupHeaderRow}>
+            <View style={styles.setupLogoBadge}>
+              <Image
+                source={require('../../assets/images/SakhiSetu_logo.png')}
+                style={styles.setupLogoImage}
+                resizeMode="contain"
+                accessibilityIgnoresInvertColors
+              />
+            </View>
+            <View style={styles.setupTitleBlock}>
+              <Text style={styles.setupTitle}>{t('home.welcomeTitle')}</Text>
+            </View>
           </View>
           <Text style={styles.setupText}>
             {t('home.welcomeText')}
@@ -1253,34 +1262,60 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    alignItems: 'center',
   },
-  setupHeader: {
+  setupHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
-    gap: 10,
+    marginBottom: 14,
+    gap: 14,
+    width: '100%',
+  },
+  setupLogoBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#fce4ec',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#f8bbd9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  setupLogoImage: {
+    width: 40,
+    height: 40,
+  },
+  setupTitleBlock: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+    paddingRight: 4,
   },
   setupTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#1a1a1a',
+    lineHeight: 24,
+    textAlign: 'left',
   },
   setupText: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
+    color: '#5f6368',
+    textAlign: 'left',
+    lineHeight: 21,
+    marginBottom: 18,
+    width: '100%',
   },
   setupButton: {
     backgroundColor: '#E91E63',
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
+    width: '100%',
   },
   setupButtonText: {
     color: '#fff',

@@ -46,6 +46,46 @@ export default {
     maternalWellnessDesc: 'गर्भावस्था के दौरान और बाद में मानसिक स्वास्थ्य और भावनात्मक कल्याण।',
     exerciseFitness: 'व्यायाम और फिटनेस',
     exerciseFitnessDesc: 'गर्भावस्था के दौरान सुरक्षित व्यायाम दिनचर्या और सक्रिय रहना।',
+    childVaccinationTitle: 'बच्चे का टीकाकरण ट्रैकर',
+    childVaccinationSubtitle:
+      'बच्चे का नाम और जन्म तिथि जोड़ें—पूर्ण MoHFW UIP शैली की अनुसूची। रंग: हरा = पूर्ण, नारंगी = 7 दिन में नियत, लाल = विलंबित, धूसर = बाद में।',
+    vaccineLegendCompleted: 'पूर्ण',
+    vaccineLegendDueSoon: '7 दिन में',
+    vaccineLegendOverdue: 'विलंबित',
+    vaccineLegendUpcoming: 'बाद में',
+    addChild: 'बच्चा जोड़ें',
+    noChildrenYet: 'अभी कोई बच्चा नहीं जोड़ा। “बच्चा जोड़ें” पर टैप करें।',
+    dob: 'जन्म तिथि',
+    vaccineSchedule: 'टीकाकरण अनुसूची',
+    due: 'नियत तिथि',
+    pending: 'लंबित',
+    completed: 'पूर्ण',
+    markDone: 'पूर्ण चिह्नित करें',
+    childNameLabel: 'बच्चे का नाम',
+    childNamePlaceholder: 'उदा. आरव',
+    vaccinationSourceTitle: 'टीकाकरण अनुसूची स्रोत',
+    vaccinationSourceBody:
+      'ऐप में दिखाई गई टीकाकरण अनुसूची भारत सरकार के यूनिवर्सल इम्युनाइजेशन प्रोग्राम के दिशानिर्देशों पर आधारित है। कृपया आधिकारिक MoHFW वेबसाइट या स्वास्थ्य प्रदाता से पुष्टि करें।',
+    viewOfficialSchedule: 'आधिकारिक टीकाकरण अनुसूची देखें (MoHFW)',
+    vaccinationDisclaimer:
+      'SakhiSetu टीकाकरण अनुसूची जागरूकता के लिए है; अंतिम पुष्टि डॉक्टर या आधिकारिक स्रोत से करें।',
+    addCustomVaccine: 'अन्य टीका जोड़ें',
+    customVaccineTitle: 'टीका जोड़ें',
+    vaccineNameLabel: 'टीके का नाम',
+    vaccineNamePlaceholder: 'उदा. खसरा / डॉक्टर की सलाह',
+    recommendedAgeOptional: 'आयु या नोट (वैकल्पिक)',
+    dueDateLabel: 'नियत तिथि',
+    customBadge: 'कस्टम',
+    reminderTimeLabel: 'रिमाइंडर का समय',
+    reminderTimeHint:
+      'रिमाइंडर केवल नियत तिथि के सापेक्ष खास दिनों पर जाते हैं: 2 दिन पहले, नियत तिथि पर, या यदि लंबित हो तो 7 दिन बाद। आप जो समय चुनते हैं, उसके आसपास (~10 मिनट; सर्वर हर 5 मिनट चेक करता है) अलर्ट भेजे जा सकते हैं। टेस्ट के लिए नियत तिथि आज रखें और कुछ मिनट आगे का समय चुनें। डिफ़ॉल्ट अनुसूची सुबह 9:00 IST है।',
+    testPushButton: 'टेस्ट नोटिफिकेशन शेड्यूल करें (5 मि.)',
+    testPushTitle: 'टेस्ट शेड्यूल हो गया',
+    testPushBody:
+      'लगभग 5 मिनट में असली पुश नोटिफिकेशन भेजा जाएगा—आप ऐप बंद कर सकती हैं और FCM से अलर्ट पाएँ। अनुमति चालू रखें।',
+    testPushSignIn: 'कृपया अपने SakhiSetu खाते से साइन इन करें, फिर पुनः प्रयास करें।',
+    testPushNoTokens:
+      'सर्वर को आपके खाते के लिए कोई FCM डिवाइस टोकन नहीं मिला। नोटिफिकेशन की अनुमति दें, ऐप पूरी तरह बंद करके खोलें (या साइन आउट/इन), फिर पुनः प्रयास करें।',
   },
 
   // Pregnancy Basics Detail
@@ -695,6 +735,8 @@ export default {
     averageCycleLength: 'औसत चक्र लंबाई:',
     days: 'दिन',
     cycleInsightText: 'आपके ट्रैक किए गए इतिहास के आधार पर। सटीक भविष्यवाणियों के लिए निरंतरता महत्वपूर्ण है।',
+    maternalPregnancyTab: 'गर्भावस्था',
+    maternalChildVaccinationTab: 'बच्चे का टीकाकरण',
     // Month names
     january: 'जनवरी',
     february: 'फरवरी',

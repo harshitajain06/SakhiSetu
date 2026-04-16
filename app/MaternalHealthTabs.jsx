@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import React, { useState } from 'react';
 import { Alert, Modal, View, StyleSheet } from 'react-native';
@@ -14,10 +14,8 @@ import { useTranslation } from '../contexts/TranslationContext';
 import { auth } from '../config/firebase';
 import CommunityScreen from './(screens)/CommunityScreen';
 import HomeScreen from './(screens)/HomeScreen';
-import InsightsScreen from './(screens)/InsightsScreens';
 import LearnScreen from './(screens)/LearnScreen';
 import LanguageSelectorScreen from './LanguageSelectorScreen';
-import PregnancyTrackerScreen from './PregnancyTrackerScreen';
 import FloatingChatButton from './components/FloatingChatButton';
 import ChatScreen from './(screens)/ChatScreen';
 
@@ -35,6 +33,7 @@ import NewbornCareScreen from './NewbornCareScreen';
 import NutritionDietDetailScreen from './NutritionDietDetailScreen';
 import NutritionDietListScreen from './NutritionDietListScreen';
 import NutritionDietScreen from './NutritionDietScreen';
+import MaternalInsightsTabs from './MaternalInsightsTabs';
 import PostpartumCareDetailScreen from './PostpartumCareDetailScreen';
 import PostpartumCareListScreen from './PostpartumCareListScreen';
 import PregnancyBasicsDetailScreen from './PregnancyBasicsDetailScreen';
@@ -110,7 +109,7 @@ const BottomTabs = () => {
           } else if (route.name === "Learn") {
             iconName = focused ? "book" : "book-outline";
           } else if (route.name === "Pregnancy") {
-            iconName = focused ? "baby" : "baby-outline";
+            iconName = focused ? "medical" : "medical-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -121,7 +120,7 @@ const BottomTabs = () => {
       <Tab.Screen name="Community" component={CommunityScreen} options={{ title: t('nav.community') }} />
       <Tab.Screen
         name="Insights"
-        component={PregnancyTrackerScreen}
+        component={MaternalInsightsTabs}
         options={{ title: t('nav.insights') }}
       />
       <Tab.Screen
@@ -205,13 +204,22 @@ const DrawerNavigator = () => {
   );
 };
 
+function drawerRouteNameFromStack(state) {
+  const route = state?.routes?.[state?.index];
+  if (route?.name !== 'MaternalHealthTabs' || !route.state?.routes) return 'MainTabs';
+  const ds = route.state;
+  return ds.routes[ds.index]?.name ?? 'MainTabs';
+}
+
 export default function MaternalHealthTabs() {
   const [chatModalVisible, setChatModalVisible] = useState(false);
+  const drawerRoute = useNavigationState(drawerRouteNameFromStack);
+  const showChatFab = drawerRoute !== 'LanguageSelector';
 
   return (
     <View style={styles.container}>
       <DrawerNavigator />
-      <FloatingChatButton onPress={() => setChatModalVisible(true)} />
+      {showChatFab ? <FloatingChatButton onPress={() => setChatModalVisible(true)} /> : null}
       <Modal
         visible={chatModalVisible}
         animationType="slide"
