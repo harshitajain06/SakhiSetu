@@ -1,77 +1,61 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { reload } from 'firebase/auth';
-import React, { useEffect, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import WebLink from '../components/WebLink';
-import { auth } from '../config/firebase';
-import { useTranslation } from '../contexts/TranslationContext';
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import {
+    Dimensions,
+    Image,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import WebLink from "../components/WebLink";
+import { useTranslation } from "../contexts/TranslationContext";
 
 export default function LandingPage() {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const [user, loading] = useAuthState(auth);
-  const isWeb = Platform.OS === 'web';
-  const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
+  const isWeb = Platform.OS === "web";
+  const [windowWidth, setWindowWidth] = useState(
+    Dimensions.get("window").width,
+  );
   const isTablet = windowWidth >= 768;
   const isDesktop = windowWidth >= 1024;
 
   useEffect(() => {
     if (isWeb) {
       const updateDimensions = () => {
-        setWindowWidth(Dimensions.get('window').width);
+        setWindowWidth(Dimensions.get("window").width);
       };
-      const subscription = Dimensions.addEventListener('change', updateDimensions);
+      const subscription = Dimensions.addEventListener(
+        "change",
+        updateDimensions,
+      );
       return () => subscription?.remove();
     }
   }, [isWeb]);
 
-  // Redirect authenticated users to the app
-  useEffect(() => {
-    const checkUserAndRedirect = async () => {
-      if (user && !loading) {
-        try {
-          await reload(user);
-          const currentUser = auth.currentUser;
-          if (currentUser && currentUser.emailVerified) {
-            navigation.replace('WelcomeScreen');
-          } else {
-            // If not verified, go to login page
-            navigation.replace('LoginRegister');
-          }
-        } catch (error) {
-          console.error('Error checking user:', error);
-          // On error, still redirect to login
-          if (user) {
-            navigation.replace('LoginRegister');
-          }
-        }
-      }
-    };
-
-    checkUserAndRedirect();
-  }, [user, loading, navigation]);
-
   const handleGetStarted = () => {
-    navigation.replace('LoginRegister');
+    navigation.replace("LoginRegister");
   };
 
   const handlePrivacyPolicy = () => {
     if (isWeb) {
       // On web, use direct URL for Google verification
-      window.location.href = '/PrivacyPolicy';
+      window.location.href = "/PrivacyPolicy";
     } else {
-      navigation.navigate('PrivacyPolicy');
+      navigation.navigate("PrivacyPolicy");
     }
   };
 
   const handleTermsOfService = () => {
     if (isWeb) {
       // On web, use direct URL for Google verification
-      window.location.href = '/TermsOfService';
+      window.location.href = "/TermsOfService";
     } else {
-      navigation.navigate('TermsOfService');
+      navigation.navigate("TermsOfService");
     }
   };
 
@@ -81,19 +65,16 @@ export default function LandingPage() {
   const [featureHovers, setFeatureHovers] = useState({});
 
   const ContentWrapper = isWeb ? View : ScrollView;
-  const contentWrapperProps = isWeb 
-    ? { 
-        style: [
-          styles.contentContainer,
-          styles.contentContainerWeb
-        ],
-        className: isDesktop ? 'feature-grid' : undefined
+  const contentWrapperProps = isWeb
+    ? {
+        style: [styles.contentContainer, styles.contentContainerWeb],
+        className: isDesktop ? "feature-grid" : undefined,
       }
     : {
         style: styles.scrollView,
         contentContainerStyle: [
           styles.contentContainer,
-          styles.contentContainerNative
+          styles.contentContainerNative,
         ],
         showsVerticalScrollIndicator: true,
         bounces: true,
@@ -101,7 +82,7 @@ export default function LandingPage() {
 
   return (
     <View style={[styles.container, isWeb && styles.containerWeb]}>
-          {isWeb && (
+      {isWeb && (
         <style>{`
           * {
             box-sizing: border-box;
@@ -145,109 +126,180 @@ export default function LandingPage() {
         <View style={[styles.heroSection, isWeb && styles.heroSectionWeb]}>
           <View style={styles.logoContainer}>
             <Image
-              source={require('../assets/images/SakhiSetu_logo.png')}
+              source={require("../assets/images/SakhiSetu_logo.png")}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
-          <Text style={[styles.appTitle, isWeb && styles.appTitleWeb]}>SakhiSetu</Text>
+          <Text style={[styles.appTitle, isWeb && styles.appTitleWeb]}>
+            SakhiSetu
+          </Text>
           <Text style={[styles.tagline, isWeb && styles.taglineWeb]}>
             Your Maternal Health Companion
           </Text>
           <Text style={[styles.description, isWeb && styles.descriptionWeb]}>
-            Comprehensive support for pregnancy, postpartum, and newborn care. 
-            Track your cycle, understand symptoms, and access wellness resources for every stage.
+            Comprehensive support for pregnancy, postpartum, and newborn care.
+            Track your cycle, understand symptoms, and access wellness resources
+            for every stage.
           </Text>
         </View>
 
         {/* Features Section */}
-        <View style={[styles.featuresSection, isWeb && styles.featuresSectionWeb]}>
-          <Text style={[styles.sectionTitle, isWeb && styles.sectionTitleWeb]}>Key Features</Text>
-          
-          <View 
+        <View
+          style={[styles.featuresSection, isWeb && styles.featuresSectionWeb]}
+        >
+          <Text style={[styles.sectionTitle, isWeb && styles.sectionTitleWeb]}>
+            Key Features
+          </Text>
+
+          <View
             style={[
               styles.featuresGrid,
               isDesktop && styles.featuresGridDesktop,
-              isTablet && styles.featuresGridTablet
+              isTablet && styles.featuresGridTablet,
             ]}
-            className={isWeb && isDesktop ? 'feature-grid' : undefined}
+            className={isWeb && isDesktop ? "feature-grid" : undefined}
           >
-            <View 
+            <View
               style={[
-                styles.featureCard, 
+                styles.featureCard,
                 isWeb && styles.featureCardWeb,
-                isWeb && featureHovers[0] && styles.featureCardHover
+                isWeb && featureHovers[0] && styles.featureCardHover,
               ]}
-              onMouseEnter={() => isWeb && setFeatureHovers({...featureHovers, 0: true})}
-              onMouseLeave={() => isWeb && setFeatureHovers({...featureHovers, 0: false})}
+              onMouseEnter={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 0: true })
+              }
+              onMouseLeave={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 0: false })
+              }
             >
               <View style={styles.featureIcon}>
                 <Ionicons name="heart" size={isWeb ? 20 : 28} color="#e91e63" />
               </View>
               <View style={styles.featureContent}>
-                <Text style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}>Maternal Wellness</Text>
-                <Text style={[styles.featureDescription, isWeb && styles.featureDescriptionWeb]}>
-                  Comprehensive support for pregnancy, postpartum, and newborn care with personalized insights.
+                <Text
+                  style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}
+                >
+                  Maternal Wellness
+                </Text>
+                <Text
+                  style={[
+                    styles.featureDescription,
+                    isWeb && styles.featureDescriptionWeb,
+                  ]}
+                >
+                  Comprehensive support for pregnancy, postpartum, and newborn
+                  care with personalized insights.
                 </Text>
               </View>
             </View>
 
-            <View 
+            <View
               style={[
-                styles.featureCard, 
+                styles.featureCard,
                 isWeb && styles.featureCardWeb,
-                isWeb && featureHovers[1] && styles.featureCardHover
+                isWeb && featureHovers[1] && styles.featureCardHover,
               ]}
-              onMouseEnter={() => isWeb && setFeatureHovers({...featureHovers, 1: true})}
-              onMouseLeave={() => isWeb && setFeatureHovers({...featureHovers, 1: false})}
+              onMouseEnter={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 1: true })
+              }
+              onMouseLeave={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 1: false })
+              }
             >
               <View style={styles.featureIcon}>
-                <Ionicons name="calendar" size={isWeb ? 20 : 28} color="#2196f3" />
+                <Ionicons
+                  name="calendar"
+                  size={isWeb ? 20 : 28}
+                  color="#2196f3"
+                />
               </View>
               <View style={styles.featureContent}>
-                <Text style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}>Cycle Tracking</Text>
-                <Text style={[styles.featureDescription, isWeb && styles.featureDescriptionWeb]}>
-                  Track your menstrual cycle, understand symptoms, and access wellness resources.
+                <Text
+                  style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}
+                >
+                  Cycle Tracking
+                </Text>
+                <Text
+                  style={[
+                    styles.featureDescription,
+                    isWeb && styles.featureDescriptionWeb,
+                  ]}
+                >
+                  Track your menstrual cycle, understand symptoms, and access
+                  wellness resources.
                 </Text>
               </View>
             </View>
 
-            <View 
+            <View
               style={[
-                styles.featureCard, 
+                styles.featureCard,
                 isWeb && styles.featureCardWeb,
-                isWeb && featureHovers[2] && styles.featureCardHover
+                isWeb && featureHovers[2] && styles.featureCardHover,
               ]}
-              onMouseEnter={() => isWeb && setFeatureHovers({...featureHovers, 2: true})}
-              onMouseLeave={() => isWeb && setFeatureHovers({...featureHovers, 2: false})}
+              onMouseEnter={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 2: true })
+              }
+              onMouseLeave={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 2: false })
+              }
             >
               <View style={styles.featureIcon}>
-                <Ionicons name="people" size={isWeb ? 20 : 28} color="#4caf50" />
+                <Ionicons
+                  name="people"
+                  size={isWeb ? 20 : 28}
+                  color="#4caf50"
+                />
               </View>
               <View style={styles.featureContent}>
-                <Text style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}>Community Support</Text>
-                <Text style={[styles.featureDescription, isWeb && styles.featureDescriptionWeb]}>
-                  Find health centers, counselors, and emergency resources nearby.
+                <Text
+                  style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}
+                >
+                  Community Support
+                </Text>
+                <Text
+                  style={[
+                    styles.featureDescription,
+                    isWeb && styles.featureDescriptionWeb,
+                  ]}
+                >
+                  Find health centers, counselors, and emergency resources
+                  nearby.
                 </Text>
               </View>
             </View>
 
-            <View 
+            <View
               style={[
-                styles.featureCard, 
+                styles.featureCard,
                 isWeb && styles.featureCardWeb,
-                isWeb && featureHovers[3] && styles.featureCardHover
+                isWeb && featureHovers[3] && styles.featureCardHover,
               ]}
-              onMouseEnter={() => isWeb && setFeatureHovers({...featureHovers, 3: true})}
-              onMouseLeave={() => isWeb && setFeatureHovers({...featureHovers, 3: false})}
+              onMouseEnter={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 3: true })
+              }
+              onMouseLeave={() =>
+                isWeb && setFeatureHovers({ ...featureHovers, 3: false })
+              }
             >
               <View style={styles.featureIcon}>
                 <Ionicons name="book" size={isWeb ? 20 : 28} color="#ff9800" />
               </View>
               <View style={styles.featureContent}>
-                <Text style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}>Educational Content</Text>
-                <Text style={[styles.featureDescription, isWeb && styles.featureDescriptionWeb]}>
-                  Access curated videos, articles, and guides on maternal and menstrual health.
+                <Text
+                  style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}
+                >
+                  Educational Content
+                </Text>
+                <Text
+                  style={[
+                    styles.featureDescription,
+                    isWeb && styles.featureDescriptionWeb,
+                  ]}
+                >
+                  Access curated videos, articles, and guides on maternal and
+                  menstrual health.
                 </Text>
               </View>
             </View>
@@ -258,18 +310,28 @@ export default function LandingPage() {
         <View style={[styles.ctaSection, isWeb && styles.ctaSectionWeb]}>
           <TouchableOpacity
             style={[
-              styles.getStartedButton, 
+              styles.getStartedButton,
               isWeb && styles.getStartedButtonWeb,
-              isWeb && buttonHover && styles.getStartedButtonHover
+              isWeb && buttonHover && styles.getStartedButtonHover,
             ]}
             onPress={handleGetStarted}
             onMouseEnter={() => isWeb && setButtonHover(true)}
             onMouseLeave={() => isWeb && setButtonHover(false)}
           >
-            <Text style={[styles.getStartedButtonText, isWeb && styles.getStartedButtonTextWeb]}>
+            <Text
+              style={[
+                styles.getStartedButtonText,
+                isWeb && styles.getStartedButtonTextWeb,
+              ]}
+            >
               Get Started
             </Text>
-            <Ionicons name="arrow-forward" size={isWeb ? 16 : 20} color="#fff" style={{ marginLeft: 6 }} />
+            <Ionicons
+              name="arrow-forward"
+              size={isWeb ? 16 : 20}
+              color="#fff"
+              style={{ marginLeft: 6 }}
+            />
           </TouchableOpacity>
         </View>
 
@@ -282,19 +344,26 @@ export default function LandingPage() {
               style={[
                 styles.footerLinkText,
                 isWeb && styles.footerLinkTextWeb,
-                isWeb && privacyHover && styles.footerLinkTextHover
+                isWeb && privacyHover && styles.footerLinkTextHover,
               ]}
             >
               Privacy Policy
             </WebLink>
-            <Text style={[styles.footerLinkSeparator, isWeb && styles.footerLinkSeparatorWeb]}>•</Text>
+            <Text
+              style={[
+                styles.footerLinkSeparator,
+                isWeb && styles.footerLinkSeparatorWeb,
+              ]}
+            >
+              •
+            </Text>
             <WebLink
               href="https://www.sakhisetu.in/TermsOfService"
               onPress={handleTermsOfService}
               style={[
                 styles.footerLinkText,
                 isWeb && styles.footerLinkTextWeb,
-                isWeb && termsHover && styles.footerLinkTextHover
+                isWeb && termsHover && styles.footerLinkTextHover,
               ]}
             >
               Terms of Service
@@ -309,18 +378,18 @@ export default function LandingPage() {
   );
 }
 
-const isWeb = Platform.OS === 'web';
+const isWeb = Platform.OS === "web";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   containerWeb: {
-    width: '100%',
-    height: '100vh',
-    overflow: 'hidden',
-    position: 'relative',
+    width: "100%",
+    height: "100vh",
+    overflow: "hidden",
+    position: "relative",
   },
   scrollView: {
     flex: 1,
@@ -330,13 +399,13 @@ const styles = StyleSheet.create({
     paddingBottom: isWeb ? 10 : 30,
   },
   contentContainerWeb: {
-    height: '100vh',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
+    height: "100vh",
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
     paddingVertical: isWeb ? 16 : 30,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   contentContainerNative: {
     flexGrow: 1,
@@ -344,19 +413,20 @@ const styles = StyleSheet.create({
   },
   // Mobile-first: keep vertical spacing tight so everything fits
   heroSection: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: isWeb ? 20 : 16,
     paddingBottom: isWeb ? 12 : 8,
     paddingHorizontal: isWeb ? 20 : 12,
   },
   heroSectionWeb: {
     maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
+    alignSelf: "center",
+    width: "100%",
     paddingTop: 20,
     paddingBottom: 12,
   },
   logoContainer: {
+    marginTop: isWeb ? 8 : 14,
     marginBottom: isWeb ? 8 : 6,
   },
   logo: {
@@ -365,28 +435,28 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     fontSize: isWeb ? 28 : 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: isWeb ? 4 : 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   appTitleWeb: {
     fontSize: 28,
   },
   tagline: {
     fontSize: isWeb ? 14 : 13,
-    color: '#666',
+    color: "#666",
     marginBottom: isWeb ? 6 : 20,
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
   },
   taglineWeb: {
     fontSize: 14,
   },
   description: {
     fontSize: isWeb ? 12 : 12,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     lineHeight: isWeb ? 16 : 24,
     maxWidth: 600,
   },
@@ -400,14 +470,14 @@ const styles = StyleSheet.create({
   },
   featuresSectionWeb: {
     maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
+    alignSelf: "center",
+    width: "100%",
     paddingVertical: 8,
     flex: 1,
     minHeight: 0,
   },
   featuresGrid: {
-    width: '100%',
+    width: "100%",
   },
   featuresGridDesktop: {
     // Grid layout handled by CSS
@@ -417,25 +487,25 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: isWeb ? 18 : 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: isWeb ? 10 : 30,
-    textAlign: 'center',
+    textAlign: "center",
   },
   sectionTitleWeb: {
     fontSize: 18,
   },
   featureCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     borderRadius: isWeb ? 8 : 10,
     padding: isWeb ? 12 : 10,
     marginBottom: isWeb ? 8 : 6,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
   },
   featureCardWeb: {
-    transition: 'all 0.3s ease',
-    cursor: 'default',
+    transition: "all 0.3s ease",
+    cursor: "default",
   },
   featureCardHover: {
     transform: [{ translateY: -2 }],
@@ -451,11 +521,11 @@ const styles = StyleSheet.create({
     width: isWeb ? 36 : 36,
     height: isWeb ? 36 : 36,
     borderRadius: isWeb ? 18 : 18,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: isWeb ? 10 : 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -463,8 +533,8 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     fontSize: isWeb ? 14 : 14,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: isWeb ? 4 : 8,
     flex: 1,
   },
@@ -473,7 +543,7 @@ const styles = StyleSheet.create({
   },
   featureDescription: {
     fontSize: isWeb ? 11 : 11,
-    color: '#666',
+    color: "#666",
     lineHeight: isWeb ? 14 : 22,
     flex: 1,
   },
@@ -484,32 +554,32 @@ const styles = StyleSheet.create({
   ctaSection: {
     paddingHorizontal: isWeb ? 20 : 12,
     paddingVertical: isWeb ? 12 : 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   ctaSectionWeb: {
     maxWidth: 600,
-    alignSelf: 'center',
-    width: '100%',
+    alignSelf: "center",
+    width: "100%",
     paddingVertical: 12,
   },
   getStartedButton: {
-    backgroundColor: '#e91e63',
+    backgroundColor: "#e91e63",
     paddingVertical: isWeb ? 10 : 10,
     paddingHorizontal: isWeb ? 24 : 22,
     borderRadius: isWeb ? 8 : 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
   getStartedButtonWeb: {
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    userSelect: 'none',
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    userSelect: "none",
   },
   getStartedButtonHover: {
     transform: [{ scale: 1.02 }],
@@ -517,9 +587,9 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   getStartedButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: isWeb ? 14 : 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   getStartedButtonTextWeb: {
     fontSize: 14,
@@ -527,42 +597,42 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: isWeb ? 20 : 12,
     paddingVertical: isWeb ? 8 : 8,
-    alignItems: 'center',
+    alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
     marginTop: isWeb ? 8 : 8,
   },
   footerWeb: {
     maxWidth: 1200,
-    alignSelf: 'center',
-    width: '100%',
+    alignSelf: "center",
+    width: "100%",
   },
   footerLinks: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: isWeb ? 4 : 4,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   footerLink: {
     paddingHorizontal: isWeb ? 8 : 4,
   },
   footerLinkText: {
-    color: '#2196f3',
+    color: "#2196f3",
     fontSize: isWeb ? 11 : 16,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
   footerLinkTextWeb: {
     fontSize: 11,
-    cursor: 'pointer',
-    transition: 'color 0.2s ease',
-    userSelect: 'none',
+    cursor: "pointer",
+    transition: "color 0.2s ease",
+    userSelect: "none",
   },
   footerLinkTextHover: {
-    color: '#1976d2',
+    color: "#1976d2",
   },
   footerLinkSeparator: {
-    color: '#999',
+    color: "#999",
     fontSize: isWeb ? 11 : 13,
     marginHorizontal: isWeb ? 6 : 6,
   },
@@ -571,8 +641,8 @@ const styles = StyleSheet.create({
   },
   copyright: {
     fontSize: isWeb ? 10 : 14,
-    color: '#999',
-    textAlign: 'center',
+    color: "#999",
+    textAlign: "center",
   },
   copyrightWeb: {
     fontSize: 10,
