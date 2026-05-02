@@ -182,15 +182,6 @@ export default function LandingPage() {
                 >
                   Maternal Wellness
                 </Text>
-                <Text
-                  style={[
-                    styles.featureDescription,
-                    isWeb && styles.featureDescriptionWeb,
-                  ]}
-                >
-                  Comprehensive support for pregnancy, postpartum, and newborn
-                  care with personalized insights.
-                </Text>
               </View>
             </View>
 
@@ -219,15 +210,6 @@ export default function LandingPage() {
                   style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}
                 >
                   Cycle Tracking
-                </Text>
-                <Text
-                  style={[
-                    styles.featureDescription,
-                    isWeb && styles.featureDescriptionWeb,
-                  ]}
-                >
-                  Track your menstrual cycle, understand symptoms, and access
-                  wellness resources.
                 </Text>
               </View>
             </View>
@@ -258,15 +240,6 @@ export default function LandingPage() {
                 >
                   Community Support
                 </Text>
-                <Text
-                  style={[
-                    styles.featureDescription,
-                    isWeb && styles.featureDescriptionWeb,
-                  ]}
-                >
-                  Find health centers, counselors, and emergency resources
-                  nearby.
-                </Text>
               </View>
             </View>
 
@@ -291,15 +264,6 @@ export default function LandingPage() {
                   style={[styles.featureTitle, isWeb && styles.featureTitleWeb]}
                 >
                   Educational Content
-                </Text>
-                <Text
-                  style={[
-                    styles.featureDescription,
-                    isWeb && styles.featureDescriptionWeb,
-                  ]}
-                >
-                  Access curated videos, articles, and guides on maternal and
-                  menstrual health.
                 </Text>
               </View>
             </View>
