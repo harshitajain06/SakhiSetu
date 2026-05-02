@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTranslation } from '../../contexts/TranslationContext';
@@ -11,9 +11,15 @@ import CommunityResourcesScreen from './CommunityResourcesScreen';
 
 const Stack = createStackNavigator();
 
-function CommunityHome() {
+function CommunityHome({ route }) {
   const { t } = useTranslation();
-  const [tab, setTab] = useState('forum');
+  const [tab, setTab] = useState(route?.params?.tab ?? 'forum');
+
+  useEffect(() => {
+    if (route?.params?.tab) {
+      setTab(route.params.tab);
+    }
+  }, [route?.params?.tab]);
 
   const tabs = useMemo(
     () => [
@@ -49,10 +55,14 @@ function CommunityHome() {
   );
 }
 
-export default function CommunityScreen() {
+export default function CommunityScreen({ route }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="CommunityHome" component={CommunityHome} />
+      <Stack.Screen
+        name="CommunityHome"
+        component={CommunityHome}
+        initialParams={{ tab: route?.params?.tab ?? 'forum' }}
+      />
       <Stack.Screen name="ForumCreatePost" component={ForumCreatePostScreen} />
       <Stack.Screen name="ForumPostDetail" component={ForumPostDetailScreen} />
       <Stack.Screen name="ForumSavedPosts" component={ForumSavedPostsScreen} />

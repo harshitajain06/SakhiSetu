@@ -84,12 +84,26 @@ const LearnStack = () => {
 };
 
 // Bottom Tab Navigator Component
-const BottomTabs = () => {
+const BottomTabs = ({ route }) => {
   const colorScheme = useColorScheme();
   const { t } = useTranslation();
+  const targetTab = route?.params?.targetTab;
+  const communityTab = route?.params?.communityTab;
+  const insightsTab = route?.params?.insightsTab;
+
+  const initialRouteName =
+    targetTab === 'community'
+      ? 'Community'
+      : targetTab === 'insights'
+        ? 'Insights'
+        : targetTab === 'learn'
+          ? 'Learn'
+          : 'Home';
 
   return (
     <Tab.Navigator
+      key={`tabs-${targetTab ?? 'home'}-${communityTab ?? 'default'}-${insightsTab ?? 'default'}`}
+      initialRouteName={initialRouteName}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
@@ -117,11 +131,17 @@ const BottomTabs = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: t('nav.home') }} />
-      <Tab.Screen name="Community" component={CommunityScreen} options={{ title: t('nav.community') }} />
+      <Tab.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{ title: t('nav.community') }}
+        initialParams={{ tab: communityTab }}
+      />
       <Tab.Screen
         name="Insights"
         component={MaternalInsightsTabs}
         options={{ title: t('nav.insights') }}
+        initialParams={{ initialTab: insightsTab }}
       />
       <Tab.Screen
         name="Learn"
@@ -133,7 +153,7 @@ const BottomTabs = () => {
 };
 
 // Drawer Navigator Component
-const DrawerNavigator = () => {
+const DrawerNavigator = ({ route }) => {
   const navigation = useNavigation();
   const { t } = useTranslation();
 
@@ -154,7 +174,12 @@ const DrawerNavigator = () => {
 
   return (
     <Drawer.Navigator initialRouteName="MainTabs">
-      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: t('learn.title') }} />
+      <Drawer.Screen
+        name="MainTabs"
+        component={BottomTabs}
+        initialParams={route?.params}
+        options={{ title: t('learn.title') }}
+      />
       
       <Drawer.Screen
         name="LanguageSelector"
@@ -211,14 +236,14 @@ function drawerRouteNameFromStack(state) {
   return ds.routes[ds.index]?.name ?? 'MainTabs';
 }
 
-export default function MaternalHealthTabs() {
+export default function MaternalHealthTabs({ route }) {
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const drawerRoute = useNavigationState(drawerRouteNameFromStack);
   const showChatFab = drawerRoute !== 'LanguageSelector';
 
   return (
     <View style={styles.container}>
-      <DrawerNavigator />
+      <DrawerNavigator route={route} />
       {showChatFab ? <FloatingChatButton onPress={() => setChatModalVisible(true)} /> : null}
       <Modal
         visible={chatModalVisible}

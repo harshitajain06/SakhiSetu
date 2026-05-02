@@ -1,12 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ChildVaccinationTrackerScreen from './ChildVaccinationTrackerScreen';
 import PregnancyTrackerScreen from './PregnancyTrackerScreen';
 import { useTranslation } from '../contexts/TranslationContext';
 
-export default function MaternalInsightsTabs() {
+export default function MaternalInsightsTabs({ route }) {
   const { t } = useTranslation();
   const [active, setActive] = useState('pregnancy');
+
+  useEffect(() => {
+    const initialTab = route?.params?.initialTab;
+    if (initialTab === 'vaccination') {
+      setActive('vaccination');
+      return;
+    }
+
+    if (initialTab === 'pregnancy') {
+      setActive('pregnancy');
+    }
+  }, [route?.params?.initialTab]);
 
   return (
     <View style={styles.root}>

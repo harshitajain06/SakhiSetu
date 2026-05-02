@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation, languages } from '../contexts/TranslationContext';
 import ProfileScreen from './ProfileScreen';
@@ -33,7 +33,24 @@ export default function HealthSelectionScreen() {
 
   const handleMaternalWellness = () => {
     // Navigate to pregnancy tracker in maternal health
-    navigation.replace('MaternalHealthTabs', { screen: 'Pregnancy' });
+    navigation.replace('MaternalHealthTabs', {
+      targetTab: 'insights',
+      insightsTab: 'pregnancy',
+    });
+  };
+
+  const handleChildVaccination = () => {
+    navigation.replace('MaternalHealthTabs', {
+      targetTab: 'insights',
+      insightsTab: 'vaccination',
+    });
+  };
+
+  const handleSakhiSetuForum = () => {
+    navigation.replace('MaternalHealthTabs', {
+      targetTab: 'community',
+      communityTab: 'forum',
+    });
   };
 
   const nextTip = () => {
@@ -86,7 +103,7 @@ export default function HealthSelectionScreen() {
 
         {/* Main Content Cards */}
         <View style={styles.cardsContainer}>
-          {/* Menstrual Health Card — single touch target, no nested buttons */}
+          {/* Menstrual Health Card */}
           <TouchableOpacity
             style={[styles.card, styles.menstrualHealthCard]}
             onPress={handleMenstrualHealth}
@@ -94,12 +111,7 @@ export default function HealthSelectionScreen() {
           >
             <View style={styles.cardTopRow}>
               <View style={[styles.cardIconBadge, styles.cardIconBadgePink]}>
-                <Image
-                  source={require('../assets/images/SakhiSetu_logo.png')}
-                  style={styles.cardLogoImage}
-                  resizeMode="contain"
-                  accessibilityIgnoresInvertColors
-                />
+                <Ionicons name="water-outline" size={isWeb ? 26 : 28} color="#c2185b" />
               </View>
               <View style={styles.cardTextBlock}>
                 <Text style={styles.cardTitle}>{t('healthSelection.menstrualHealth')}</Text>
@@ -122,12 +134,7 @@ export default function HealthSelectionScreen() {
           >
             <View style={styles.cardTopRow}>
               <View style={[styles.cardIconBadge, styles.cardIconBadgeBlue]}>
-                <Image
-                  source={require('../assets/images/SakhiSetu_logo.png')}
-                  style={styles.cardLogoImage}
-                  resizeMode="contain"
-                  accessibilityIgnoresInvertColors
-                />
+                <Ionicons name="heart-outline" size={isWeb ? 26 : 28} color="#1565c0" />
               </View>
               <View style={styles.cardTextBlock}>
                 <Text style={styles.cardTitle}>{t('healthSelection.maternalWellness')}</Text>
@@ -139,6 +146,52 @@ export default function HealthSelectionScreen() {
             <View style={styles.cardCta}>
               <Text style={styles.cardCtaTextBlue}>{t('healthSelection.exploreMaternalWellness')}</Text>
               <Ionicons name="arrow-forward" size={18} color="#1565c0" />
+            </View>
+          </TouchableOpacity>
+
+          {/* Child Vaccination Card */}
+          <TouchableOpacity
+            style={[styles.card, styles.childVaccinationCard]}
+            onPress={handleChildVaccination}
+            activeOpacity={0.92}
+          >
+            <View style={styles.cardTopRow}>
+              <View style={[styles.cardIconBadge, styles.cardIconBadgeGreen]}>
+                <Ionicons name="shield-checkmark-outline" size={isWeb ? 26 : 28} color="#2e7d32" />
+              </View>
+              <View style={styles.cardTextBlock}>
+                <Text style={styles.cardTitle}>{t('healthSelection.childVaccination')}</Text>
+                <Text style={styles.cardDescription} numberOfLines={3}>
+                  {t('healthSelection.childVaccinationDesc')}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.cardCta}>
+              <Text style={styles.cardCtaTextGreen}>{t('healthSelection.exploreChildVaccination')}</Text>
+              <Ionicons name="arrow-forward" size={18} color="#2e7d32" />
+            </View>
+          </TouchableOpacity>
+
+          {/* SakhiSetu Forum Card */}
+          <TouchableOpacity
+            style={[styles.card, styles.sakhiSetuForumCard]}
+            onPress={handleSakhiSetuForum}
+            activeOpacity={0.92}
+          >
+            <View style={styles.cardTopRow}>
+              <View style={[styles.cardIconBadge, styles.cardIconBadgeOrange]}>
+                <Ionicons name="chatbubbles-outline" size={isWeb ? 26 : 28} color="#ef6c00" />
+              </View>
+              <View style={styles.cardTextBlock}>
+                <Text style={styles.cardTitle}>{t('healthSelection.sakhiSetuForum')}</Text>
+                <Text style={styles.cardDescription} numberOfLines={3}>
+                  {t('healthSelection.sakhiSetuForumDesc')}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.cardCta}>
+              <Text style={styles.cardCtaTextOrange}>{t('healthSelection.exploreSakhiSetuForum')}</Text>
+              <Ionicons name="arrow-forward" size={18} color="#ef6c00" />
             </View>
           </TouchableOpacity>
 
@@ -264,6 +317,12 @@ const styles = StyleSheet.create({
   maternalWellnessCard: {
     backgroundColor: '#1976d2',
   },
+  childVaccinationCard: {
+    backgroundColor: '#388e3c',
+  },
+  sakhiSetuForumCard: {
+    backgroundColor: '#f57c00',
+  },
   cardTopRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -282,9 +341,11 @@ const styles = StyleSheet.create({
   cardIconBadgeBlue: {
     backgroundColor: 'rgba(255,255,255,0.95)',
   },
-  cardLogoImage: {
-    width: isWeb ? 40 : 44,
-    height: isWeb ? 40 : 44,
+  cardIconBadgeGreen: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+  },
+  cardIconBadgeOrange: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
   },
   cardTextBlock: {
     flex: 1,
@@ -330,6 +391,18 @@ const styles = StyleSheet.create({
     fontSize: isWeb ? 14 : 15,
     fontWeight: '600',
     color: '#1565c0',
+    flex: 1,
+  },
+  cardCtaTextGreen: {
+    fontSize: isWeb ? 14 : 15,
+    fontWeight: '600',
+    color: '#2e7d32',
+    flex: 1,
+  },
+  cardCtaTextOrange: {
+    fontSize: isWeb ? 14 : 15,
+    fontWeight: '600',
+    color: '#ef6c00',
     flex: 1,
   },
   tipsSection: {
