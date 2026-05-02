@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deliverScheduledTestPushes = exports.scheduleTestPushNotification = exports.vaccinationRemindersCustomTime = exports.vaccinationRemindersDaily = exports.generateVaccinationScheduleOnChildCreate = exports.periodTrackingRemindersDaily = void 0;
+exports.forumReportPost = exports.forumToggleBookmark = exports.forumToggleLike = exports.forumCreateReply = exports.forumCreatePost = exports.forumGetOrCreateAnonName = exports.deliverScheduledTestPushes = exports.scheduleTestPushNotification = exports.vaccinationRemindersCustomTime = exports.vaccinationRemindersDaily = exports.generateVaccinationScheduleOnChildCreate = exports.periodTrackingRemindersDaily = void 0;
 const admin = __importStar(require("firebase-admin"));
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-functions/v2/firestore");
@@ -421,4 +421,220 @@ exports.deliverScheduledTestPushes = (0, scheduler_1.onSchedule)({ schedule: 'ev
             data: { type: 'test_scheduled' }
         });
     }
+});
+function randomAnonName(uid) {
+    // Stable-ish suffix while still not exposing uid directly.
+    let h = 0;
+    for (let i = 0; i < uid.length; i++)
+        h = (h * 31 + uid.charCodeAt(i)) >>> 0;
+    const suffix = String(1000 + (h % 9000));
+    return `User_${suffix}`;
+}
+async function getOrCreateAnonName(uid) {
+    const ref = admin.firestore().collection('users').doc(uid);
+    const snap = await ref.get();
+    const existing = snap.data()?.anonymousName;
+    if (existing && typeof existing === 'string')
+        return existing;
+    const anon = randomAnonName(uid);
+    await ref.set({ anonymousName: anon }, { merge: true });
+    return anon;
+}
+async function getOpenAiKeyFromFirestore() {
+    // Mirror the app-side config usage, but keep the key server-only in practice.
+    const ref = admin.firestore().collection('appConfigKratika').doc('openai');
+    const snap = await ref.get();
+    const key = snap.data()?.apiKey;
+    return typeof key === 'string' && key.trim() ? key.trim() : null;
+}
+async function moderateTextAndImage(params) {
+    const apiKey = await getOpenAiKeyFromFirestore();
+    if (!apiKey) {
+        // Fail closed: forum requires moderation.
+        return { allowed: false, flagged: true, reasons: ['missing_moderation_key'] };
+    }
+    const input = [{ type: 'text', text: params.text ?? '' }];
+    if (params.imageUrl)
+        input.push({ type: 'image_url', image_url: { url: params.imageUrl } });
+    const resp = await fetch('https://api.openai.com/v1/moderations', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            model: 'omni-moderation-latest',
+            input,
+        }),
+    });
+    if (!resp.ok) {
+        return { allowed: false, flagged: true, reasons: [`moderation_http_${resp.status}`] };
+    }
+    const data = (await resp.json());
+    const result = data?.results?.[0];
+    const flagged = Boolean(result?.flagged);
+    return { allowed: !flagged, flagged, reasons: flagged ? ['flagged'] : [] };
+}
+const FORUM_CHANNELS = new Set(['menstrual', 'maternal']);
+exports.forumGetOrCreateAnonName = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError('unauthenticated', 'Sign in required');
+    const uid = request.auth.uid;
+    const anonymousName = await getOrCreateAnonName(uid);
+    return { ok: true, anonymousName };
+});
+exports.forumCreatePost = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError('unauthenticated', 'Sign in required');
+    const uid = request.auth.uid;
+    const channel = String(request.data?.channel ?? '').trim();
+    const title = request.data?.title != null ? String(request.data.title).trim() : null;
+    const contentText = String(request.data?.contentText ?? '').trim();
+    const imageUrl = request.data?.imageUrl != null ? String(request.data.imageUrl).trim() : null;
+    if (!FORUM_CHANNELS.has(channel))
+        throw new https_1.HttpsError('invalid-argument', 'Invalid channel');
+    if (!contentText)
+        throw new https_1.HttpsError('invalid-argument', 'Post text is required');
+    if (contentText.length > 2000)
+        throw new https_1.HttpsError('invalid-argument', 'Post too long');
+    const anon = await getOrCreateAnonName(uid);
+    const mod = await moderateTextAndImage({ text: [title, contentText].filter(Boolean).join('\n\n'), imageUrl });
+    if (!mod.allowed) {
+        throw new https_1.HttpsError('failed-precondition', 'This post violates community guidelines and cannot be published.');
+    }
+    const ref = admin.firestore().collection('forumPosts').doc();
+    await ref.set({
+        userId: uid,
+        authorDisplayName: anon,
+        channel,
+        title: title || null,
+        contentText,
+        contentImageUrl: imageUrl || null,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'active',
+        likeCount: 0,
+        replyCount: 0,
+        reportCount: 0,
+    });
+    return { ok: true, postId: ref.id };
+});
+exports.forumCreateReply = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError('unauthenticated', 'Sign in required');
+    const uid = request.auth.uid;
+    const postId = String(request.data?.postId ?? '').trim();
+    const replyText = String(request.data?.replyText ?? '').trim();
+    if (!postId)
+        throw new https_1.HttpsError('invalid-argument', 'postId required');
+    if (!replyText)
+        throw new https_1.HttpsError('invalid-argument', 'Reply text required');
+    if (replyText.length > 2000)
+        throw new https_1.HttpsError('invalid-argument', 'Reply too long');
+    const postRef = admin.firestore().collection('forumPosts').doc(postId);
+    const postSnap = await postRef.get();
+    if (!postSnap.exists)
+        throw new https_1.HttpsError('not-found', 'Post not found');
+    if (postSnap.data()?.status === 'removed')
+        throw new https_1.HttpsError('failed-precondition', 'Post is not active');
+    const anon = await getOrCreateAnonName(uid);
+    const mod = await moderateTextAndImage({ text: replyText });
+    if (!mod.allowed)
+        throw new https_1.HttpsError('failed-precondition', 'This reply violates community guidelines and cannot be published.');
+    const replyRef = postRef.collection('replies').doc();
+    await admin.firestore().runTransaction(async (tx) => {
+        tx.set(replyRef, {
+            userId: uid,
+            authorDisplayName: anon,
+            replyText,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'active',
+        });
+        tx.update(postRef, {
+            replyCount: admin.firestore.FieldValue.increment(1),
+        });
+    });
+    return { ok: true, replyId: replyRef.id };
+});
+exports.forumToggleLike = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError('unauthenticated', 'Sign in required');
+    const uid = request.auth.uid;
+    const postId = String(request.data?.postId ?? '').trim();
+    if (!postId)
+        throw new https_1.HttpsError('invalid-argument', 'postId required');
+    const postRef = admin.firestore().collection('forumPosts').doc(postId);
+    const likeRef = postRef.collection('likes').doc(uid);
+    const res = await admin.firestore().runTransaction(async (tx) => {
+        const [postSnap, likeSnap] = await Promise.all([tx.get(postRef), tx.get(likeRef)]);
+        if (!postSnap.exists)
+            throw new https_1.HttpsError('not-found', 'Post not found');
+        if (postSnap.data()?.status === 'removed')
+            throw new https_1.HttpsError('failed-precondition', 'Post is not active');
+        const liked = likeSnap.exists;
+        if (liked) {
+            tx.delete(likeRef);
+            tx.update(postRef, { likeCount: admin.firestore.FieldValue.increment(-1) });
+            return { liked: false };
+        }
+        else {
+            tx.set(likeRef, { createdAt: admin.firestore.FieldValue.serverTimestamp() });
+            tx.update(postRef, { likeCount: admin.firestore.FieldValue.increment(1) });
+            return { liked: true };
+        }
+    });
+    return { ok: true, ...res };
+});
+exports.forumToggleBookmark = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError('unauthenticated', 'Sign in required');
+    const uid = request.auth.uid;
+    const postId = String(request.data?.postId ?? '').trim();
+    if (!postId)
+        throw new https_1.HttpsError('invalid-argument', 'postId required');
+    const postRef = admin.firestore().collection('forumPosts').doc(postId);
+    const bmRef = admin.firestore().collection('users').doc(uid).collection('forumBookmarks').doc(postId);
+    const res = await admin.firestore().runTransaction(async (tx) => {
+        const [postSnap, bmSnap] = await Promise.all([tx.get(postRef), tx.get(bmRef)]);
+        if (!postSnap.exists)
+            throw new https_1.HttpsError('not-found', 'Post not found');
+        if (postSnap.data()?.status === 'removed')
+            throw new https_1.HttpsError('failed-precondition', 'Post is not active');
+        const saved = bmSnap.exists;
+        if (saved) {
+            tx.delete(bmRef);
+            return { saved: false };
+        }
+        else {
+            tx.set(bmRef, { postId, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+            return { saved: true };
+        }
+    });
+    return { ok: true, ...res };
+});
+exports.forumReportPost = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError('unauthenticated', 'Sign in required');
+    const uid = request.auth.uid;
+    const postId = String(request.data?.postId ?? '').trim();
+    const reason = String(request.data?.reason ?? 'user_report').slice(0, 120);
+    if (!postId)
+        throw new https_1.HttpsError('invalid-argument', 'postId required');
+    const postRef = admin.firestore().collection('forumPosts').doc(postId);
+    const repRef = postRef.collection('reports').doc(uid);
+    await admin.firestore().runTransaction(async (tx) => {
+        const [postSnap, repSnap] = await Promise.all([tx.get(postRef), tx.get(repRef)]);
+        if (!postSnap.exists)
+            throw new https_1.HttpsError('not-found', 'Post not found');
+        if (repSnap.exists)
+            return; // idempotent
+        const post = postSnap.data();
+        const nextCount = (typeof post?.reportCount === 'number' ? post.reportCount : 0) + 1;
+        const shouldFlag = nextCount >= 3;
+        tx.set(repRef, { uid, reason, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+        tx.update(postRef, {
+            reportCount: admin.firestore.FieldValue.increment(1),
+            ...(shouldFlag ? { status: 'flagged' } : {}),
+        });
+    });
+    return { ok: true, reported: true };
 });

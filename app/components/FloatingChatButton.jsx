@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
     right: 20,
-    bottom: 100, // Position above the bottom tab bar
+    bottom: 170, // Position above bottom tab bar / other FABs
     width: 60,
     height: 60,
     borderRadius: 30,
