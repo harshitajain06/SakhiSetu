@@ -294,6 +294,25 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
     }
   };
 
+  const markVaccineUndone = async (childId, vaccineId) => {
+    if (!uid) return;
+    setSaving(true);
+    try {
+      await updateDoc(
+        doc(db, 'users', uid, 'children', childId, 'vaccinations', vaccineId),
+        {
+          status: 'pending',
+          completionDate: null,
+        }
+      );
+      await loadChildren();
+    } catch (e) {
+      console.error('markVaccineUndone', e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -413,15 +432,19 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
                         : t('learn.pending')}
                     </Text>
                   </View>
-                  {v.status !== 'completed' && (
-                    <TouchableOpacity
-                      style={styles.doneBtn}
-                      onPress={() => markVaccineDone(child.id, v.id)}
-                      disabled={saving}
-                    >
-                      <Text style={styles.doneBtnText}>{t('learn.markDone')}</Text>
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity
+                    style={v.status === 'completed' ? styles.undoBtn : styles.doneBtn}
+                    onPress={() =>
+                      v.status === 'completed'
+                        ? markVaccineUndone(child.id, v.id)
+                        : markVaccineDone(child.id, v.id)
+                    }
+                    disabled={saving}
+                  >
+                    <Text style={styles.doneBtnText}>
+                      {v.status === 'completed' ? t('learn.markNotDone') : t('learn.markDone')}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               );
             })}
@@ -667,6 +690,12 @@ const styles = StyleSheet.create({
   vaccStatusUpcoming: { color: '#616161', fontWeight: '500' },
   doneBtn: {
     backgroundColor: '#e91e63',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  undoBtn: {
+    backgroundColor: '#607D8B',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,

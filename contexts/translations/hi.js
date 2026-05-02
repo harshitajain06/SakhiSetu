@@ -61,6 +61,7 @@ export default {
     pending: 'लंबित',
     completed: 'पूर्ण',
     markDone: 'पूर्ण चिह्नित करें',
+    markNotDone: 'अभी पूरा नहीं हुआ',
     childNameLabel: 'बच्चे का नाम',
     childNamePlaceholder: 'उदा. आरव',
     vaccinationSourceTitle: 'टीकाकरण अनुसूची स्रोत',

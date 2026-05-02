@@ -61,6 +61,7 @@ export default {
     pending: 'Pending',
     completed: 'Completed',
     markDone: 'Mark as done',
+    markNotDone: 'Mark as not done',
     childNameLabel: 'Child name',
     childNamePlaceholder: 'e.g. Aarav',
     vaccinationSourceTitle: 'Vaccination schedule source',
