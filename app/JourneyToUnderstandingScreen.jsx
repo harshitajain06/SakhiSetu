@@ -20,12 +20,45 @@ const { height, width } = Dimensions.get("window");
 
 export default function JourneyToUnderstandingScreen() {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
   const [videoLessons, setVideoLessons] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const extractVideoId = (lesson = {}) => {
+    if (lesson.videoId && typeof lesson.videoId === 'string') {
+      return lesson.videoId.trim();
+    }
+
+    const url = lesson.videoUrl || lesson.url || lesson.link;
+    if (!url || typeof url !== 'string') {
+      return null;
+    }
+
+    const cleanedUrl = url.trim();
+    const match = cleanedUrl.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([A-Za-z0-9_-]{11})/
+    );
+    return match ? match[1] : null;
+  };
+
+  const getLessonLanguage = (lesson = {}) => {
+    const lang = String(lesson.language || lesson.lang || '').toLowerCase().trim();
+
+    if (lang.startsWith('hi') || lang.includes('hindi')) {
+      return 'hi';
+    }
+
+    if (lang.startsWith('en') || lang.includes('english')) {
+      return 'en';
+    }
+
+    const text = `${lesson.title || ''} ${lesson.description || ''}`;
+    const hasHindiScript = /[\u0900-\u097F]/.test(text);
+    return hasHindiScript ? 'hi' : 'en';
+  };
 
   const openVideo = (videoId) => {
     setCurrentVideoId(videoId);
@@ -42,7 +75,12 @@ export default function JourneyToUnderstandingScreen() {
       
       const videos = [];
       querySnapshot.forEach((doc) => {
-        videos.push({ id: doc.id, ...doc.data() });
+        const lesson = { id: doc.id, ...doc.data() };
+        videos.push({
+          ...lesson,
+          resolvedVideoId: extractVideoId(lesson),
+          resolvedLanguage: getLessonLanguage(lesson),
+        });
       });
       
       setVideoLessons(videos);
@@ -58,6 +96,46 @@ export default function JourneyToUnderstandingScreen() {
   useEffect(() => {
     fetchVideos();
   }, []);
+
+  const englishLessons = videoLessons.filter((lesson) => lesson.resolvedLanguage === 'en');
+  const hindiLessons = videoLessons.filter((lesson) => lesson.resolvedLanguage === 'hi');
+  const selectedLanguage = language === 'hi' ? 'hi' : 'en';
+  const selectedLessons = selectedLanguage === 'hi' ? hindiLessons : englishLessons;
+
+  const renderLessons = (lessons, emptyText) => {
+    if (lessons.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="videocam-off" size={36} color="#ccc" />
+          <Text style={styles.emptyText}>{emptyText}</Text>
+        </View>
+      );
+    }
+
+    return lessons.map((lesson) => (
+      <TouchableOpacity
+        key={lesson.id}
+        style={styles.lessonCard}
+        onPress={() => lesson.resolvedVideoId && openVideo(lesson.resolvedVideoId)}
+      >
+        <View style={styles.lessonIconContainer}>
+          <Ionicons name={lesson.icon || 'play-circle'} size={24} color="#e91e63" />
+        </View>
+
+        <View style={{ flex: 1 }}>
+          <Text style={styles.lessonTitle}>{lesson.title || 'Untitled Video'}</Text>
+          <Text style={styles.lessonDescription}>{lesson.description || ''}</Text>
+        </View>
+
+        <View style={styles.lessonMeta}>
+          <Text style={styles.lessonDuration}>{lesson.duration || ''}</Text>
+          {lesson.resolvedVideoId && (
+            <Ionicons name="play-circle" size={20} color="#e91e63" />
+          )}
+        </View>
+      </TouchableOpacity>
+    ));
+  };
 
   return (
     <>
@@ -128,29 +206,18 @@ export default function JourneyToUnderstandingScreen() {
               <Text style={styles.emptyText}>No videos available</Text>
             </View>
           ) : (
-            videoLessons.map((lesson) => (
-              <TouchableOpacity
-                key={lesson.id}
-                style={styles.lessonCard}
-                onPress={() => lesson.videoId && openVideo(lesson.videoId)}
-              >
-                <View style={styles.lessonIconContainer}>
-                  <Ionicons name={lesson.icon || 'play-circle'} size={24} color="#e91e63" />
-                </View>
-
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.lessonTitle}>{lesson.title || 'Untitled Video'}</Text>
-                  <Text style={styles.lessonDescription}>{lesson.description || ''}</Text>
-                </View>
-
-                <View style={styles.lessonMeta}>
-                  <Text style={styles.lessonDuration}>{lesson.duration || ''}</Text>
-                  {lesson.videoId && (
-                    <Ionicons name="play-circle" size={20} color="#e91e63" />
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))
+            <>
+              <View style={styles.languageHeaderRow}>
+                <Text style={styles.languageSectionTitle}>
+                  {selectedLanguage === 'hi' ? 'Hindi Lessons' : 'English Lessons'}
+                </Text>
+                <Text style={styles.currentLanguageHint}>Current app language</Text>
+              </View>
+              {renderLessons(
+                selectedLessons,
+                selectedLanguage === 'hi' ? 'No Hindi videos available' : 'No English videos available'
+              )}
+            </>
           )}
         </View>
       </ScrollView>
@@ -212,6 +279,32 @@ const styles = StyleSheet.create({
   },
 
   lessonDuration: { fontSize: 12, color: '#666', marginRight: 4 },
+
+  languageHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
+    marginBottom: 8,
+  },
+
+  languageSectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#333',
+  },
+
+  currentLanguageHint: {
+    fontSize: 12,
+    color: '#e91e63',
+    fontWeight: '600',
+  },
+
+  languageDivider: {
+    height: 1,
+    backgroundColor: '#efefef',
+    marginVertical: 16,
+  },
 
   /* Fullscreen Modal */
   fullscreenContainer: {

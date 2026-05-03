@@ -313,6 +313,134 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
     }
   };
 
+  const escapeHtml = (value) =>
+    String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+  const handleDownloadVaccinationPdf = async (child) => {
+    const vaccines = Array.isArray(child?.vaccines) ? child.vaccines : [];
+    if (vaccines.length === 0) {
+      Alert.alert(t('common.error'), t('learn.noVaccinesForPdf'));
+      return;
+    }
+
+    try {
+      const completedCount = vaccines.filter((v) => v.status === 'completed').length;
+      const pendingCount = vaccines.length - completedCount;
+
+      const rowsHtml = vaccines
+        .map((v, index) => {
+          const isCompleted = v.status === 'completed';
+          const statusLabel = isCompleted
+            ? `${t('learn.completed')}${v.completionDate ? ` (${v.completionDate})` : ''}`
+            : t('learn.notCompleted');
+
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${escapeHtml(v.vaccineName)}</td>
+              <td>${escapeHtml(v.recommendedAge || '-')}</td>
+              <td>${escapeHtml(v.dueDate || '-')}</td>
+              <td class="${isCompleted ? 'done' : 'pending'}">${escapeHtml(statusLabel)}</td>
+            </tr>
+          `;
+        })
+        .join('');
+
+      const html = `
+        <html>
+          <head>
+            <meta charset="UTF-8" />
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; color: #222; }
+              h1 { margin: 0 0 10px 0; font-size: 22px; color: #e91e63; }
+              .meta { margin: 4px 0; font-size: 14px; }
+              .summary { margin: 12px 0 18px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+              table { width: 100%; border-collapse: collapse; font-size: 12px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
+              th { background: #f1f1f1; }
+              .done { color: #2e7d32; font-weight: bold; }
+              .pending { color: #c62828; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h1>${escapeHtml(t('learn.vaccinationPdfTitle'))}</h1>
+            <div class="meta"><strong>${escapeHtml(t('learn.childNameLabel'))}:</strong> ${escapeHtml(child.childName)}</div>
+            <div class="meta"><strong>${escapeHtml(t('learn.dob'))}:</strong> ${escapeHtml(child.dob)}</div>
+            <div class="summary">
+              <div><strong>${escapeHtml(t('learn.totalVaccines'))}:</strong> ${vaccines.length}</div>
+              <div><strong>${escapeHtml(t('learn.completedVaccines'))}:</strong> ${completedCount}</div>
+              <div><strong>${escapeHtml(t('learn.pendingVaccines'))}:</strong> ${pendingCount}</div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>${escapeHtml(t('learn.vaccineNameLabel'))}</th>
+                  <th>${escapeHtml(t('learn.recommendedAgeOptional'))}</th>
+                  <th>${escapeHtml(t('learn.dueDateLabel'))}</th>
+                  <th>${escapeHtml(t('learn.statusLabel'))}</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const safeName = String(child.childName || 'child')
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]+/g, '-')
+        .replace(/-+/g, '-');
+
+      let Print = null;
+      let Sharing = null;
+      try {
+        const printModule = await import('expo-print');
+        const sharingModule = await import('expo-sharing');
+        Print = printModule?.default ?? printModule;
+        Sharing = sharingModule?.default ?? sharingModule;
+      } catch (moduleErr) {
+        console.error('PDF modules unavailable', moduleErr);
+        Alert.alert(t('common.error'), t('learn.pdfModuleUnavailable'));
+        return;
+      }
+
+      if (
+        typeof Print?.printToFileAsync !== 'function' ||
+        typeof Sharing?.isAvailableAsync !== 'function' ||
+        typeof Sharing?.shareAsync !== 'function'
+      ) {
+        Alert.alert(t('common.error'), t('learn.pdfModuleUnavailable'));
+        return;
+      }
+
+      const { uri } = await Print.printToFileAsync({
+        html,
+        base64: false,
+      });
+
+      const sharingAvailable = await Sharing.isAvailableAsync();
+      if (!sharingAvailable) {
+        Alert.alert(t('learn.pdfGeneratedTitle'), `${t('learn.pdfSavedMessage')} ${uri}`);
+        return;
+      }
+
+      await Sharing.shareAsync(uri, {
+        mimeType: 'application/pdf',
+        dialogTitle: `${t('learn.downloadPdf')} - ${safeName}`,
+        UTI: 'com.adobe.pdf',
+      });
+    } catch (e) {
+      console.error('handleDownloadVaccinationPdf', e);
+      Alert.alert(t('common.error'), t('learn.pdfGenerationFailed'));
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -357,10 +485,22 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
       ) : (
         children.map((child) => (
           <View key={child.id} style={styles.card}>
-            <Text style={styles.childName}>{child.childName}</Text>
-            <Text style={styles.childMeta}>
-              {t('learn.dob')}: {child.dob}
-            </Text>
+            <View style={styles.childHeader}>
+              <View style={styles.childInfo}>
+                <Text style={styles.childName}>{child.childName}</Text>
+                <Text style={styles.childMeta}>
+                  {t('learn.dob')}: {child.dob}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.pdfBtn}
+                onPress={() => handleDownloadVaccinationPdf(child)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="download-outline" size={16} color="#fff" />
+                <Text style={styles.pdfBtnText}>{t('learn.downloadPdf')}</Text>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.vaccTitle}>{t('learn.vaccineSchedule')}</Text>
             <View style={styles.legendRow}>
               <View style={styles.legendItem}>
@@ -634,8 +774,25 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
   },
+  childHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  childInfo: { flex: 1, paddingRight: 8 },
   childName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   childMeta: { fontSize: 14, color: '#666', marginBottom: 12 },
+  pdfBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#6a1b9a',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  pdfBtnText: { color: '#fff', fontWeight: '600', fontSize: 12 },
   vaccTitle: { fontSize: 15, fontWeight: '600', marginBottom: 8, color: '#e91e63' },
   addCustomBtn: {
     flexDirection: 'row',

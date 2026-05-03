@@ -87,6 +87,19 @@ export default {
     testPushSignIn: 'कृपया अपने SakhiSetu खाते से साइन इन करें, फिर पुनः प्रयास करें।',
     testPushNoTokens:
       'सर्वर को आपके खाते के लिए कोई FCM डिवाइस टोकन नहीं मिला। नोटिफिकेशन की अनुमति दें, ऐप पूरी तरह बंद करके खोलें (या साइन आउट/इन), फिर पुनः प्रयास करें।',
+    downloadPdf: 'PDF डाउनलोड करें',
+    vaccinationPdfTitle: 'बच्चे का टीकाकरण रिपोर्ट',
+    totalVaccines: 'कुल टीके',
+    completedVaccines: 'पूर्ण टीके',
+    pendingVaccines: 'लंबित टीके',
+    notCompleted: 'पूर्ण नहीं',
+    statusLabel: 'स्थिति',
+    noVaccinesForPdf: 'इस बच्चे के लिए कोई टीकाकरण डेटा नहीं मिला।',
+    pdfGeneratedTitle: 'PDF बन गया',
+    pdfSavedMessage: 'PDF फाइल इस स्थान पर बनी है:',
+    pdfModuleUnavailable:
+      'इस ऐप बिल्ड में PDF मॉड्यूल उपलब्ध नहीं है। ऐप को फिर से बिल्ड/इंस्टॉल करके दोबारा प्रयास करें।',
+    pdfGenerationFailed: 'टीकाकरण PDF नहीं बन पाया। कृपया फिर से प्रयास करें।',
   },
 
   // Pregnancy Basics Detail

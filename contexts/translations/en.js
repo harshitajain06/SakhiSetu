@@ -87,6 +87,19 @@ export default {
     testPushSignIn: 'Sign in with your SakhiSetu account, then try again.',
     testPushNoTokens:
       'The server did not find any FCM device token for your account. Allow notifications, then fully restart the app (or sign out and back in), then try again.',
+    downloadPdf: 'Download PDF',
+    vaccinationPdfTitle: 'Child Vaccination Report',
+    totalVaccines: 'Total vaccines',
+    completedVaccines: 'Completed vaccines',
+    pendingVaccines: 'Pending vaccines',
+    notCompleted: 'Not completed',
+    statusLabel: 'Status',
+    noVaccinesForPdf: 'No vaccinations found for this child.',
+    pdfGeneratedTitle: 'PDF generated',
+    pdfSavedMessage: 'PDF file generated at:',
+    pdfModuleUnavailable:
+      'PDF export module is not available in this app build. Rebuild/reinstall the app and try again.',
+    pdfGenerationFailed: 'Could not generate vaccination PDF. Please try again.',
   },
 
   // Pregnancy Basics Detail
