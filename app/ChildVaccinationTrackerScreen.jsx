@@ -465,7 +465,7 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
         <Text style={styles.primaryBtnText}>{t('learn.addChild')}</Text>
       </TouchableOpacity>
 
-      {uid ? (
+      {/* {uid ? (
         <TouchableOpacity
           style={[styles.secondaryBtn, testPushBusy && { opacity: 0.6 }]}
           onPress={handleTestPush}
@@ -475,7 +475,7 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
           <Ionicons name="notifications-outline" size={20} color="#e91e63" />
           <Text style={styles.secondaryBtnText}>{t('learn.testPushButton')}</Text>
         </TouchableOpacity>
-      ) : null}
+      ) : null} */}
 
       {children.length === 0 ? (
         <View style={styles.empty}>

@@ -4,7 +4,9 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -13,12 +15,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { auth } from '../config/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export default function ProfileScreen({ visible, onClose }) {
   const [user] = useAuthState(auth);
+  const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -129,7 +133,11 @@ export default function ProfileScreen({ visible, onClose }) {
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.modalContainer}>
-        <View style={styles.modalContent}>
+        <KeyboardAvoidingView
+          style={styles.modalContent}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Profile</Text>
@@ -143,7 +151,15 @@ export default function ProfileScreen({ visible, onClose }) {
               <ActivityIndicator size="large" color="#e91e63" />
             </View>
           ) : (
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={[
+                styles.scrollContent,
+                { paddingBottom: Math.max(insets.bottom, 12) + 24 },
+              ]}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               {!hasProfileData && !isEditing ? (
                 <View style={styles.emptyState}>
                   <Ionicons name="person-outline" size={64} color="#ccc" />
@@ -214,7 +230,12 @@ export default function ProfileScreen({ visible, onClose }) {
                     </View>
                   </View>
 
-                  <View style={styles.buttonContainer}>
+                  <View
+                    style={[
+                      styles.buttonContainer,
+                      { marginBottom: Math.max(insets.bottom, 12) },
+                    ]}
+                  >
                     <TouchableOpacity
                       style={[styles.button, styles.cancelButton]}
                       onPress={handleCancel}
@@ -289,7 +310,7 @@ export default function ProfileScreen({ visible, onClose }) {
               )}
             </ScrollView>
           )}
-        </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );
@@ -326,6 +347,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   loadingContainer: {
     flex: 1,

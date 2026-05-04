@@ -3,10 +3,13 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useTranslation } from '../../contexts/TranslationContext';
+import { Ionicons } from '@expo/vector-icons';
+import ProfileScreen from '../ProfileScreen';
 
 export default function InsightsScreen() {
   const { t } = useTranslation();
   const [selectedMonth, setSelectedMonth] = useState('July 2025');
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
 
   // Helper function to format month name with year
   const formatMonthYear = (monthName, year) => {
@@ -29,14 +32,21 @@ export default function InsightsScreen() {
   ];
 
   return (
+    <View style={styles.root}>
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('insights.myPeriodTracker')}</Text>
         <View style={styles.headerRight}>
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileText}>AM</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={() => setProfileModalVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Profile"
+            hitSlop={10}
+          >
+            <Ionicons name="person-circle-outline" size={30} color="#e91e63" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -102,10 +112,13 @@ export default function InsightsScreen() {
         </Text>
       </View>
     </ScrollView>
+    <ProfileScreen visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff', padding: 16 },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20,

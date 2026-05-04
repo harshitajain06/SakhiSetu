@@ -16,9 +16,11 @@ import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacit
 import { Calendar } from 'react-native-calendars';
 import { auth, db } from '../config/firebase';
 import { useTranslation } from '../contexts/TranslationContext';
+import ProfileScreen from './ProfileScreen';
 
 export default function PeriodTrackerScreen() {
   const { t } = useTranslation();
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   
   // Helper function to get translation with fallback
   // If translation returns the key itself, use the fallback
@@ -1079,14 +1081,21 @@ export default function PeriodTrackerScreen() {
   }
 
   return (
+    <View style={styles.root}>
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('periodTracker.periodTracker')}</Text>
         <View style={styles.headerRight}>
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileText}>HS</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={() => setProfileModalVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Profile"
+            hitSlop={10}
+          >
+            <Ionicons name="person-circle-outline" size={30} color="#e91e63" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -2077,10 +2086,15 @@ export default function PeriodTrackerScreen() {
         </View>
       </Modal>
     </ScrollView>
+    <ProfileScreen visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

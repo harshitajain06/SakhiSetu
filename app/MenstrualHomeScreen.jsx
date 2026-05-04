@@ -13,10 +13,12 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import InformationIcon from '../components/InformationIcon';
 import { auth, db } from '../config/firebase';
 import { useTranslation } from '../contexts/TranslationContext';
+import ProfileScreen from './ProfileScreen';
 
 export default function MenstrualHomeScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [menstrualData, setMenstrualData] = useState({
     cycleLength: 28,
     periodLength: 5,
@@ -179,16 +181,23 @@ export default function MenstrualHomeScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('menstrualHome.menstrualHealth')}</Text>
-        <View style={styles.headerRight}>
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileText}>HS</Text>
+    <View style={styles.root}>
+      <ScrollView style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>{t('menstrualHome.menstrualHealth')}</Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.profileCircle}
+              onPress={() => setProfileModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Profile"
+              hitSlop={10}
+            >
+              <Ionicons name="person-circle-outline" size={30} color="#e91e63" />
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
 
       {/* Current Cycle Status */}
       {menstrualData.isSetup ? (
@@ -469,7 +478,7 @@ export default function MenstrualHomeScreen() {
           
           <View style={styles.tipCard}>
             <View style={styles.tipImage}>
-              <Ionicons name="tooth-outline" size={40} color="#00BCD4" />
+              <Ionicons name="medkit-outline" size={40} color="#00BCD4" />
             </View>
             <Text style={styles.tipTitle}>{t('menstrualHome.oralCare')}</Text>
             <Text style={styles.tipDescription}>{t('menstrualHome.oralCareDesc')}</Text>
@@ -492,11 +501,16 @@ export default function MenstrualHomeScreen() {
           </View>
         </ScrollView>
       </View>
-    </ScrollView>
+      </ScrollView>
+      <ProfileScreen visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

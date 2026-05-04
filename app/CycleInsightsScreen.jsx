@@ -11,9 +11,11 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
 import { auth, db } from '../config/firebase';
+import ProfileScreen from './ProfileScreen';
 
 export default function CycleInsightsScreen() {
   const { t } = useTranslation();
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('3months');
   const [menstrualData, setMenstrualData] = useState({
     cycleLength: 28,
@@ -421,6 +423,7 @@ export default function CycleInsightsScreen() {
   }
 
   return (
+    <View style={styles.root}>
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -437,9 +440,15 @@ export default function CycleInsightsScreen() {
               <Ionicons name="reload" size={24} color="#e91e63" />
             )}
           </TouchableOpacity>
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileText}>HS</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={() => setProfileModalVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Profile"
+            hitSlop={10}
+          >
+            <Ionicons name="person-circle-outline" size={30} color="#e91e63" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -758,10 +767,15 @@ export default function CycleInsightsScreen() {
         </View>
       </Modal>
     </ScrollView>
+    <ProfileScreen visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

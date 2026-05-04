@@ -82,7 +82,7 @@ export default function HealthSelectionScreen() {
               accessibilityLabel="Profile"
             >
               <View style={styles.profileImage}>
-                <Ionicons name="person" size={isWeb ? 18 : 20} color="#fff" />
+                <Ionicons name="person-circle-outline" size={isWeb ? 20 : 22} color="#fff" />
               </View>
             </TouchableOpacity>
           </View>

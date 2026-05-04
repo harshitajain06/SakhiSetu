@@ -17,9 +17,11 @@ import { Calendar } from 'react-native-calendars';
 import InformationIcon from '../components/InformationIcon';
 import { auth, db } from '../config/firebase';
 import { useTranslation } from '../contexts/TranslationContext';
+import ProfileScreen from './ProfileScreen';
 
 export default function PregnancyTrackerScreen() {
   const { t } = useTranslation();
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showDueDateModal, setShowDueDateModal] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
@@ -1284,14 +1286,21 @@ export default function PregnancyTrackerScreen() {
   }
 
   return (
+    <View style={styles.root}>
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('pregnancyTracker.pregnancyTracker')}</Text>
         <View style={styles.headerRight}>
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileText}>HS</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={() => setProfileModalVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Profile"
+            hitSlop={10}
+          >
+            <Ionicons name="person-circle-outline" size={30} color="#e91e63" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -2526,10 +2535,15 @@ export default function PregnancyTrackerScreen() {
         </View>
       </Modal>
     </ScrollView>
+    <ProfileScreen visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
