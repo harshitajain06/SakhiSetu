@@ -1011,6 +1011,36 @@ export default {
     vomitNausea: 'Vomit/Nausea',
     digestiveIssues: 'Digestive issues',
     moodSwings: 'Mood swings',
+    // Success / error messages
+    periodDeleted: 'Period deleted successfully',
+    errorDeletePeriod: 'Failed to delete period. Please try again.',
+    periodUpdated: 'Period updated successfully',
+    errorUpdatePeriod: 'Failed to update period. Please try again.',
+    symptomDeleted: 'Symptom deleted successfully',
+    errorDeleteSymptom: 'Failed to delete symptom. Please try again.',
+    symptomUpdated: 'Symptom updated successfully',
+
+    // Validation / warnings
+    periodOverlap: 'This period overlaps with an existing entry',
+    longPeriodWarning: 'Period Duration Alert',
+    longPeriodMessage: 'This period looks longer than usual. Please review your dates before saving.',
+    reviewDates: 'Review dates',
+    proceedAnyway: 'Proceed anyway',
+    missingPeriodWarning: 'Missing Period Detected',
+    gapWarningMessage: 'There is a long gap since your last recorded period. Please double-check the dates.',
+
+    // Buttons / labels
+    delete: 'Delete',
+    update: 'Update',
+    editPeriod: 'Edit Period',
+    recordMyPeriod: 'Record My Period',
+    recordMySymptoms: 'Record My Symptoms',
+    symptomsHistory: 'Symptoms History',
+    noSymptomsHistory: 'No symptoms history',
+    deletePeriod: 'Delete Period',
+    confirmDelete: 'Are you sure you want to delete this period? This action cannot be undone.',
+    deleteSymptom: 'Delete Symptom',
+    confirmDeleteSymptom: 'Are you sure you want to delete this symptom? This action cannot be undone.',
   },
 
   // Cycle Insights Screen
