@@ -9,6 +9,7 @@ import {
   orderBy,
   query,
   startAfter,
+  where,
 } from 'firebase/firestore';
 import { auth, db, functions } from '../../config/firebase';
 
@@ -65,6 +66,23 @@ export function listenToLike(postId, cb) {
     return () => {};
   }
   return onSnapshot(doc(db, 'forumPosts', postId, 'likes', uid), (snap) => cb(snap.exists()));
+}
+
+/**
+ * Realtime listener for the newest forum posts (optionally per channel).
+ * Note: uses server-side filtering; ensure Firestore indexes exist if needed.
+ */
+export function listenToLatestPosts({ channel, pageSize = 20 } = {}, cb) {
+  const clauses = [forumPostsCollection(), orderBy('createdAt', 'desc'), limit(pageSize)];
+  if (channel) clauses.splice(1, 0, where('channel', '==', channel));
+  // Only show active/flagged posts, but exclude removed.
+  clauses.splice(1, 0, where('status', '!=', 'removed'));
+
+  const q = query(...clauses);
+  return onSnapshot(q, (snap) => {
+    const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    cb(rows);
+  });
 }
 
 export async function fetchPostsPage({ channel, pageSize = 10, cursor } = {}) {

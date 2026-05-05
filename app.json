@@ -18,6 +18,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "softwareKeyboardLayoutMode": "resize",
       "package": "com.harshitaforever.SakhiSetu",
       "googleServicesFile": "./google-services.json",
       "permissions": ["android.permission.POST_NOTIFICATIONS"]

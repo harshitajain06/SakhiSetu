@@ -45,10 +45,15 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [saving, setSaving] = useState(false);
   const [childName, setChildName] = useState('');
   const [dob, setDob] = useState(new Date());
   const [showDobPicker, setShowDobPicker] = useState(false);
+  const [editChildId, setEditChildId] = useState(null);
+  const [editChildName, setEditChildName] = useState('');
+  const [editDob, setEditDob] = useState(new Date());
+  const [showEditDobPicker, setShowEditDobPicker] = useState(false);
 
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customChildId, setCustomChildId] = useState(null);
@@ -193,6 +198,59 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
       await loadChildren();
     } catch (e) {
       console.error('handleSaveChild', e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditChildModal = (child) => {
+    setEditChildId(child?.id ?? null);
+    setEditChildName(String(child?.childName ?? ''));
+    const parsed = child?.dob ? new Date(`${String(child.dob).slice(0, 10)}T00:00:00`) : new Date();
+    setEditDob(Number.isNaN(parsed?.getTime?.()) ? new Date() : parsed);
+    setShowEditDobPicker(false);
+    setShowEdit(true);
+  };
+
+  const handleUpdateChild = async () => {
+    if (!uid || !editChildId || !editChildName.trim()) return;
+    const dobStr = formatDob(editDob);
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', uid, 'children', editChildId), {
+        childName: editChildName.trim(),
+        dob: dobStr,
+      });
+
+      // If DOB changes, recompute due dates for standard (non-custom) pending vaccines.
+      const vaccinesCol = collection(db, 'users', uid, 'children', editChildId, 'vaccinations');
+      const vSnap = await getDocs(vaccinesCol);
+      const existingById = new Map(vSnap.docs.map((d) => [d.id, d.data()]));
+      const batch = writeBatch(db);
+
+      for (const tmpl of VACCINE_TEMPLATES) {
+        const id = vaccineDocId(tmpl);
+        const existing = existingById.get(id);
+        if (existing?.isCustom) continue;
+        if (existing?.status === 'completed') continue;
+        const dueDate = dueDateStringFromDob(dobStr, tmpl.daysFromDob);
+        batch.set(
+          doc(vaccinesCol, id),
+          {
+            vaccineName: tmpl.vaccineName,
+            recommendedAge: tmpl.recommendedAge,
+            dueDate,
+          },
+          { merge: true }
+        );
+      }
+
+      await batch.commit();
+      setShowEdit(false);
+      setEditChildId(null);
+      await loadChildren();
+    } catch (e) {
+      console.error('handleUpdateChild', e);
     } finally {
       setSaving(false);
     }
@@ -492,14 +550,25 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
                   {t('learn.dob')}: {child.dob}
                 </Text>
               </View>
-              <TouchableOpacity
-                style={styles.pdfBtn}
-                onPress={() => handleDownloadVaccinationPdf(child)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="download-outline" size={16} color="#fff" />
-                <Text style={styles.pdfBtnText}>{t('learn.downloadPdf')}</Text>
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <TouchableOpacity
+                  style={styles.editBtn}
+                  onPress={() => openEditChildModal(child)}
+                  activeOpacity={0.8}
+                  disabled={saving}
+                >
+                  <Ionicons name="pencil-outline" size={16} color="#fff" />
+                  <Text style={styles.actionBtnText}>{t('common.edit')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.pdfBtn}
+                  onPress={() => handleDownloadVaccinationPdf(child)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="download-outline" size={16} color="#fff" />
+                  <Text style={styles.pdfBtnText}>{t('learn.downloadPdf')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
             <Text style={styles.vaccTitle}>{t('learn.vaccineSchedule')}</Text>
             <View style={styles.legendRow}>
@@ -652,6 +721,60 @@ export default function ChildVaccinationTrackerScreen({ embedded = false }) {
         </View>
       </Modal>
 
+      <Modal visible={showEdit} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('learn.editChildTitle')}</Text>
+            <Text style={styles.label}>{t('learn.childNameLabel')}</Text>
+            <TextInput
+              style={styles.input}
+              value={editChildName}
+              onChangeText={setEditChildName}
+              placeholder={t('learn.childNamePlaceholder')}
+            />
+            <Text style={styles.label}>{t('learn.dob')}</Text>
+            <TouchableOpacity style={styles.dateBtn} onPress={() => setShowEditDobPicker(true)}>
+              <Text>{formatDob(editDob)}</Text>
+            </TouchableOpacity>
+            {showEditDobPicker && (
+              <DateTimePicker
+                value={editDob}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_, selected) => {
+                  setShowEditDobPicker(Platform.OS === 'ios');
+                  if (selected) setEditDob(selected);
+                }}
+              />
+            )}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => {
+                  setShowEdit(false);
+                  setEditChildId(null);
+                }}
+                disabled={saving}
+              >
+                <Text>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveBtn, (saving || !editChildName.trim()) && { opacity: 0.6 }]}
+                onPress={handleUpdateChild}
+                disabled={saving || !editChildName.trim()}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.saveBtnText}>{t('common.save')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={showCustomModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -783,6 +906,17 @@ const styles = StyleSheet.create({
   childInfo: { flex: 1, paddingRight: 8 },
   childName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   childMeta: { fontSize: 14, color: '#666', marginBottom: 12 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#009688',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  actionBtnText: { color: '#fff', fontWeight: '600', fontSize: 12 },
   pdfBtn: {
     flexDirection: 'row',
     alignItems: 'center',

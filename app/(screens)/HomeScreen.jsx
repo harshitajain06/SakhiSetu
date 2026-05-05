@@ -5,6 +5,8 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
+  onSnapshot,
   orderBy,
   query
 } from 'firebase/firestore';
@@ -35,6 +37,9 @@ export default function MaternalHealthHomeScreen() {
   const [sessionTime, setSessionTime] = useState(900); // 15 minutes in seconds
   const [isSessionRunning, setIsSessionRunning] = useState(false);
   const timerRef = useRef(null);
+
+  const [communityActiveMembers, setCommunityActiveMembers] = useState(null);
+  const [communityNewPostsToday, setCommunityNewPostsToday] = useState(null);
 
   // Get current user ID
   const getCurrentUserId = () => {
@@ -299,6 +304,39 @@ export default function MaternalHealthHomeScreen() {
     loadData();
   }, []);
 
+  // Realtime community stats from forum posts (best-effort, lightweight).
+  useEffect(() => {
+    const postsCol = collection(db, 'forumPosts');
+
+    const recentQ = query(postsCol, orderBy('createdAt', 'desc'), limit(200));
+    const unsubRecent = onSnapshot(recentQ, (snap) => {
+      const unique = new Set();
+      snap.docs.forEach((d) => {
+        const uid = d.data()?.userId;
+        if (uid) unique.add(uid);
+      });
+      setCommunityActiveMembers(unique.size);
+    });
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    // Count today's posts from the same lightweight recent snapshot.
+    const unsubToday = onSnapshot(recentQ, (snap) => {
+      let count = 0;
+      snap.docs.forEach((d) => {
+        const createdAt = d.data()?.createdAt;
+        const dt = createdAt?.toDate ? createdAt.toDate() : null;
+        if (dt && dt >= start) count += 1;
+      });
+      setCommunityNewPostsToday(count);
+    });
+
+    return () => {
+      unsubRecent?.();
+      unsubToday?.();
+    };
+  }, []);
+
   // Calculate derived data
   const currentWeek = calculateCurrentWeek();
   const currentTrimester = calculateCurrentTrimester(currentWeek);
@@ -329,6 +367,15 @@ export default function MaternalHealthHomeScreen() {
     const url = `tel:${formattedNumber}`;
     Linking.openURL(url).catch(err => console.error('Error opening phone dialer:', err));
   };
+
+  const emergencyContacts = [
+    { name: 'National Emergency Number', number: '112' },
+    { name: 'Ambulance', number: '108' },
+    { name: 'Pregnancy / Infant / Child Helpline', number: '102' },
+    { name: 'Women Helpline', number: '1091' },
+    { name: 'Women Helpline (Domestic Abuse)', number: '181' },
+    { name: 'Child Helpline', number: '1098' },
+  ];
 
   // Session timer functions
   const startSession = () => {
@@ -626,11 +673,15 @@ export default function MaternalHealthHomeScreen() {
         </Text>
         <View style={styles.communityStats}>
           <View style={styles.communityStat}>
-            <Text style={styles.communityNumber}>2.5k</Text>
+            <Text style={styles.communityNumber}>
+              {communityActiveMembers == null ? '—' : String(communityActiveMembers)}
+            </Text>
             <Text style={styles.communityLabel}>{t('home.activeMembers')}</Text>
           </View>
           <View style={styles.communityStat}>
-            <Text style={styles.communityNumber}>156</Text>
+            <Text style={styles.communityNumber}>
+              {communityNewPostsToday == null ? '—' : String(communityNewPostsToday)}
+            </Text>
             <Text style={styles.communityLabel}>{t('home.newPostsToday')}</Text>
           </View>
         </View>
@@ -647,47 +698,22 @@ export default function MaternalHealthHomeScreen() {
           <Text style={styles.emergencyTitle}>{t('home.emergencyContacts')}</Text>
         </View>
         <View style={styles.contactList}>
-          <TouchableOpacity 
-            style={styles.contactItem}
-            onPress={() => handlePhoneCall('+91 97179 73658')}
-          >
-            <View style={styles.contactIcon}>
-              <Ionicons name="medical" size={20} color="#F44336" />
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>Womennite</Text>
-              <Text style={styles.contactNumber}>+91 97179 73658</Text>
-            </View>
-            <Ionicons name="call" size={20} color="#F44336" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.contactItem}
-            onPress={() => handlePhoneCall('18001034683')}
-          >
-            <View style={styles.contactIcon}>
-              <Ionicons name="medical" size={20} color="#F44336" />
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>National NGO Social Welfare</Text>
-              <Text style={styles.contactNumber}>18001034683</Text>
-            </View>
-            <Ionicons name="call" size={20} color="#F44336" />
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.contactItem}
-            onPress={() => handlePhoneCall('1091')}
-          >
-            <View style={styles.contactIcon}>
-              <Ionicons name="medical" size={20} color="#F44336" />
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>Women Helpline</Text>
-              <Text style={styles.contactNumber}>1091</Text>
-            </View>
-            <Ionicons name="call" size={20} color="#F44336" />
-          </TouchableOpacity>
+          {emergencyContacts.map((contact) => (
+            <TouchableOpacity
+              key={contact.number}
+              style={styles.contactItem}
+              onPress={() => handlePhoneCall(contact.number)}
+            >
+              <View style={styles.contactIcon}>
+                <Ionicons name="medical" size={20} color="#F44336" />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName}>{contact.name}</Text>
+                <Text style={styles.contactNumber}>{contact.number}</Text>
+              </View>
+              <Ionicons name="call" size={20} color="#F44336" />
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 

@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../../contexts/TranslationContext';
-import { FORUM_CHANNELS, fetchPostsPage } from '../forum/forumApi';
+import { FORUM_CHANNELS, fetchPostsPage, listenToLatestPosts } from '../forum/forumApi';
 
 function formatCount(n) {
   const x = typeof n === 'number' ? n : 0;
@@ -58,6 +58,9 @@ export default function ForumFeedScreen() {
   const [rows, setRows] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [liveRows, setLiveRows] = useState([]);
+  const [liveReady, setLiveReady] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const channelTabs = useMemo(
     () => [
@@ -71,26 +74,44 @@ export default function ForumFeedScreen() {
     t('community.forumDisclaimer') ??
     'This forum is for informational and community support purposes only. It does not replace professional medical advice.';
 
-  const loadFirstPage = async () => {
-    setLoading(true);
-    try {
-      const res = await fetchPostsPage({ channel, pageSize: 10, cursor: null });
-      setRows(res.rows);
-      setCursor(res.cursor);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Realtime newest posts for the selected channel.
   useEffect(() => {
-    loadFirstPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setLiveReady(false);
+    setLoading(true);
+    setLiveRows([]);
+
+    const unsub = listenToLatestPosts({ channel, pageSize: 20 }, (next) => {
+      setLiveRows(next ?? []);
+      setLiveReady(true);
+      setLoading(false);
+    });
+    return () => unsub?.();
   }, [channel]);
+
+  // Keep pagination cursor in sync with the latest snapshot's last doc.
+  // We still use fetchPostsPage for older posts (load more).
+  useEffect(() => {
+    if (!liveReady) return;
+    // Best-effort: cursor should point after the last visible item in the live slice.
+    // We fetch a page once to obtain a cursor doc snapshot that matches this feed ordering.
+    // This avoids relying on internal snapshot doc references here.
+    (async () => {
+      try {
+        const res = await fetchPostsPage({ channel, pageSize: 20, cursor: null });
+        setCursor(res.cursor);
+      } catch {
+        // ignore
+      }
+    })();
+  }, [channel, liveReady]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await loadFirstPage();
+      // Realtime listener keeps data fresh; "refresh" just briefly shows spinner.
+      // We also reset the pagination cursor to start loadMore from newest window.
+      const res = await fetchPostsPage({ channel, pageSize: 20, cursor: null });
+      setCursor(res.cursor);
     } finally {
       setRefreshing(false);
     }
@@ -114,14 +135,25 @@ export default function ForumFeedScreen() {
 
   const openSaved = () => navigation.navigate('ForumSavedPosts');
 
+  const mergedRows = useMemo(() => {
+    const map = new Map();
+    (liveRows ?? []).forEach((p) => map.set(p.id, p));
+    (rows ?? []).forEach((p) => {
+      if (!map.has(p.id)) map.set(p.id, p);
+    });
+    return Array.from(map.values());
+  }, [liveRows, rows]);
+
   return (
     <View style={styles.container}>
-      <View style={styles.disclaimer}>
-        <Ionicons name="information-circle-outline" size={18} color="#6B7280" />
-        <Text style={styles.disclaimerText}>{disclaimer}</Text>
-      </View>
-
       <View style={styles.topActionsRow}>
+        <TouchableOpacity style={styles.infoBtn} onPress={() => setInfoOpen(true)} activeOpacity={0.85}>
+          <Ionicons name="information-circle-outline" size={18} color="#111827" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh} activeOpacity={0.85} disabled={refreshing}>
+          {refreshing ? <ActivityIndicator size="small" color="#111827" /> : <Ionicons name="refresh" size={16} color="#111827" />}
+          <Text style={styles.refreshBtnText}>{t('common.refresh') ?? 'Refresh'}</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.savedBtn} onPress={openSaved} activeOpacity={0.85}>
           <Ionicons name="bookmark-outline" size={16} color="#111827" />
           <Text style={styles.savedBtnText}>{t('community.forumSaved') ?? 'Saved'}</Text>
@@ -147,7 +179,7 @@ export default function ForumFeedScreen() {
         </View>
       ) : (
         <FlatList
-          data={rows}
+          data={mergedRows}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <PostCard post={item} onPress={() => openPost(item.id)} />}
           contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 120 }}
@@ -178,6 +210,23 @@ export default function ForumFeedScreen() {
         <Ionicons name="add" size={28} color="#fff" />
         <Text style={styles.fabText}>{t('community.forumCreate') ?? 'Create'}</Text>
       </TouchableOpacity>
+
+      <Modal visible={infoOpen} transparent animationType="fade" onRequestClose={() => setInfoOpen(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setInfoOpen(false)}>
+          <TouchableOpacity style={styles.modalCard} activeOpacity={1} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('community.forumInfoTitle') ?? 'Forum info'}</Text>
+              <TouchableOpacity onPress={() => setInfoOpen(false)} style={styles.modalCloseBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={22} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalBody}>{disclaimer}</Text>
+            <TouchableOpacity style={styles.modalOkBtn} onPress={() => setInfoOpen(false)} activeOpacity={0.9}>
+              <Text style={styles.modalOkText}>{t('common.ok') ?? 'OK'}</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -185,25 +234,6 @@ export default function ForumFeedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  disclaimer: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'flex-start',
-    marginHorizontal: 18,
-    marginBottom: 10,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  disclaimerText: {
-    flex: 1,
-    color: '#374151',
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '600',
   },
   channelRow: {
     flexDirection: 'row',
@@ -213,9 +243,37 @@ const styles = StyleSheet.create({
   },
   topActionsRow: {
     paddingHorizontal: 18,
+    paddingTop: 10,
     paddingBottom: 10,
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    gap: 10,
+  },
+  infoBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  refreshBtnText: {
+    color: '#111827',
+    fontWeight: '900',
+    fontSize: 12,
   },
   savedBtn: {
     flexDirection: 'row',
@@ -359,6 +417,58 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '900',
     fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(17, 24, 39, 0.5)',
+    padding: 18,
+    justifyContent: 'center',
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 10,
+  },
+  modalTitle: {
+    flex: 1,
+    color: '#111827',
+    fontWeight: '900',
+    fontSize: 16,
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBody: {
+    color: '#374151',
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  modalOkBtn: {
+    marginTop: 14,
+    alignSelf: 'flex-end',
+    backgroundColor: '#111827',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  modalOkText: {
+    color: '#fff',
+    fontWeight: '900',
   },
 });
 

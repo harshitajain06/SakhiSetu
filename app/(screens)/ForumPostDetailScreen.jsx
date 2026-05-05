@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { createForumReply, fetchReplies, listenToBookmark, listenToLike, listenToPost, reportForumPost, toggleForumBookmark, toggleForumLike } from '../forum/forumApi';
 
@@ -43,6 +43,7 @@ export default function ForumPostDetailScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const disclaimer =
     t('community.forumDisclaimer') ??
@@ -158,11 +159,6 @@ export default function ForumPostDetailScreen() {
     </View>
   ) : (
     <View>
-      <View style={styles.disclaimer}>
-        <Ionicons name="information-circle-outline" size={18} color="#6B7280" />
-        <Text style={styles.disclaimerText}>{disclaimer}</Text>
-      </View>
-
       <View style={styles.postCard}>
         <View style={styles.postTop}>
           <Text style={styles.postAuthor}>{post.authorDisplayName ?? 'User'}</Text>
@@ -217,20 +213,27 @@ export default function ForumPostDetailScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
           <Ionicons name="arrow-back" size={22} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('community.forumPost') ?? 'Post'}</Text>
-        <View style={{ width: 36 }} />
+        <TouchableOpacity onPress={() => setInfoOpen(true)} style={styles.headerBtn}>
+          <Ionicons name="information-circle-outline" size={22} color="#111827" />
+        </TouchableOpacity>
       </View>
 
       <FlatList
         data={replies}
         keyExtractor={(x) => x.id}
         renderItem={({ item }) => <ReplyItem item={item} />}
-        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 18 }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={header}
         ListEmptyComponent={
@@ -262,7 +265,24 @@ export default function ForumPostDetailScreen() {
           {sending ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="send" size={18} color="#fff" />}
         </TouchableOpacity>
       </View>
-    </View>
+
+      <Modal visible={infoOpen} transparent animationType="fade" onRequestClose={() => setInfoOpen(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setInfoOpen(false)}>
+          <TouchableOpacity style={styles.modalCard} activeOpacity={1} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('community.forumInfoTitle') ?? 'Forum info'}</Text>
+              <TouchableOpacity onPress={() => setInfoOpen(false)} style={styles.modalCloseBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={22} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalBody}>{disclaimer}</Text>
+            <TouchableOpacity style={styles.modalOkBtn} onPress={() => setInfoOpen(false)} activeOpacity={0.9}>
+              <Text style={styles.modalOkText}>{t('common.ok') ?? 'OK'}</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -282,19 +302,6 @@ const styles = StyleSheet.create({
   headerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#F3F4F6' },
   headerTitle: { fontWeight: '900', color: '#111827', fontSize: 16 },
   loading: { paddingVertical: 40, alignItems: 'center', justifyContent: 'center' },
-  disclaimer: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'flex-start',
-    marginTop: 14,
-    marginBottom: 10,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  disclaimerText: { flex: 1, color: '#374151', fontSize: 12, lineHeight: 16, fontWeight: '600' },
   postCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -332,10 +339,6 @@ const styles = StyleSheet.create({
   emptyReplies: { paddingVertical: 18, alignItems: 'center' },
   emptyRepliesText: { color: '#6B7280', fontWeight: '700' },
   replyBox: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     paddingHorizontal: 14,
     paddingVertical: 10,
     flexDirection: 'row',
@@ -363,6 +366,58 @@ const styles = StyleSheet.create({
     backgroundColor: '#E91E63',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(17, 24, 39, 0.5)',
+    padding: 18,
+    justifyContent: 'center',
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 10,
+  },
+  modalTitle: {
+    flex: 1,
+    color: '#111827',
+    fontWeight: '900',
+    fontSize: 16,
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBody: {
+    color: '#374151',
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  modalOkBtn: {
+    marginTop: 14,
+    alignSelf: 'flex-end',
+    backgroundColor: '#111827',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  modalOkText: {
+    color: '#fff',
+    fontWeight: '900',
   },
 });
 
