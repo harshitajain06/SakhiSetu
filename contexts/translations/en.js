@@ -509,6 +509,7 @@ export default {
   general: {
     contentNotFound: 'Content not found',
     imageNotAvailable: 'Image not available',
+    sources: 'Sources',
   },
 
   // Community Screen

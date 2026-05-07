@@ -4,6 +4,9 @@ export const mythsData = [
     title: "Can't enter temples during menstruation?",
     shortTitle: "Temple Entry",
     imageType: "temple_sign",
+    sources: [
+      "UNICEF India: Busted - Eight Myths About Periods."
+    ],
     mythStatement: "Women should not enter a temple or perform religious rituals during menstruation because they are 'impure.'",
     factCheck: "Scientifically, menstruation is simply the shedding of the uterine lining — a healthy, natural body function. There is no impurity involved. The body is cleansing itself and maintaining fertility health.",
     scientificFacts: [
@@ -23,6 +26,11 @@ export const mythsData = [
     title: "Is it unclean to touch pickles?",
     shortTitle: "Touch Pickles",
     imageType: "pickles",
+    sources: [
+      "NHM Menstrual Hygiene Training Guide (MoHFW, Govt. of India).",
+      "UNICEF: Myths and Facts About Periods (UNICEF/UNICEF India).",
+      "National Health Portal (NHP) India: Menstrual Hygiene."
+    ],
     mythStatement: "You cannot touch pickles during your period.",
     factCheck: "This is not true. Your period is a natural bodily process. It does not make you impure or affect food in any way.",
     scientificFacts: [
@@ -38,6 +46,11 @@ export const mythsData = [
     title: "Are you unclean during your period?",
     shortTitle: "Unclean During Period",
     imageType: "period_power",
+    sources: [
+      "NHM Menstrual Hygiene Training Guide (MoHFW, Govt. of India).",
+      "UNICEF: Menstrual Hygiene Management (UNICEF/UNICEF India).",
+      "National Health Portal (NHP) India: Menstrual Hygiene."
+    ],
     mythStatement: "A woman is unclean or impure during her period.",
     factCheck: "Menstruation is natural, healthy, and normal. The idea of being 'unclean' is a myth rooted in old beliefs, not science.",
     scientificFacts: [
@@ -54,6 +67,11 @@ export const mythsData = [
     title: "Can't play sports during menstruation?",
     shortTitle: "Play Sports",
     imageType: "soccer_girl",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Menstrual Hygiene Management for Adolescents (UNICEF/UNICEF India).",
+      "National Health Portal (NHP) India: Adolescent Health - Menstruation."
+    ],
     mythStatement: "You can't or shouldn't play sports during your period.",
     factCheck: "You can play sports, train, and exercise safely. In fact, movement often reduces pain and improves mood.",
     scientificFacts: [
@@ -70,6 +88,10 @@ export const mythsData = [
     title: "Menstruation only for married women?",
     shortTitle: "Only Married Women",
     imageType: "default",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Guidance on Menstrual Health and Hygiene (UNICEF/UNICEF India)."
+    ],
     mythStatement: "Menstruation only happens to married women.",
     factCheck: "This is completely false. Menstruation is a natural biological process that begins during puberty, typically between ages 9-16, regardless of marital status.",
     scientificFacts: [
@@ -86,6 +108,10 @@ export const mythsData = [
     title: "Will you get sick if you wash hair?",
     shortTitle: "Wash Hair",
     imageType: "hair_wash",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Myths and Facts About Periods (UNICEF/UNICEF India)."
+    ],
     mythStatement: "You'll get sick if you wash your hair during your period.",
     factCheck: "You will not get sick from washing your hair while menstruating. There's no scientific evidence linking hair washing to illness or menstrual problems.",
     scientificFacts: [
@@ -101,6 +127,10 @@ export const mythsData = [
     title: "Can't share a bed with family members?",
     shortTitle: "Share Bed",
     imageType: "bed_person",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Challenging Menstrual Taboos (UNICEF/UNICEF India)."
+    ],
     mythStatement: "During menstruation, a woman should not share a bed with others.",
     factCheck: "There is no scientific or medical reason to avoid sharing a bed during your period. This belief comes from cultural taboos about 'impurity,' not from facts or hygiene concerns.",
     scientificFacts: [
@@ -117,6 +147,10 @@ export const mythsData = [
     title: "Menstrual blood is inherently impure?",
     shortTitle: "Blood Impure",
     imageType: "period_power",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Period Myths Busted (UNICEF/UNICEF India)."
+    ],
     mythStatement: "Menstrual blood is inherently impure or toxic.",
     factCheck: "Menstrual blood is just blood and uterine tissue — not dirty or toxic. It's a natural part of the reproductive cycle.",
     scientificFacts: [
@@ -133,6 +167,10 @@ export const mythsData = [
     title: "Avoid certain foods during period?",
     shortTitle: "Avoid Foods",
     imageType: "foods_avoid",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Myths and Facts About Periods (UNICEF/UNICEF India)."
+    ],
     mythStatement: "You should avoid certain foods during your period.",
     factCheck: "There's no medical reason to completely avoid specific foods while menstruating. However, some foods can affect how you feel, so it's more about balance, not restriction.",
     scientificFacts: [
@@ -149,6 +187,10 @@ export const mythsData = [
     title: "Is it forbidden to cook food during your period?",
     shortTitle: "Cook Food",
     imageType: "kitchen_cooking",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Myths About Periods (UNICEF/UNICEF India)."
+    ],
     mythStatement: "It is forbidden to cook food during your period.",
     factCheck: "This is a myth based on cultural taboos, not on science or hygiene. There is no medical or biological reason that prevents a woman from cooking while menstruating.",
     scientificFacts: [

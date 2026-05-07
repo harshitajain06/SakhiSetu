@@ -509,6 +509,7 @@ export default {
   general: {
     contentNotFound: 'सामग्री नहीं मिली',
     imageNotAvailable: 'छवि उपलब्ध नहीं है',
+    sources: 'स्रोत',
   },
 
   // Community Screen

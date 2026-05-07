@@ -3,6 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
+import SourcesSection from './components/SourcesSection';
 
 export default function NewbornCareDetailScreen() {
   const navigation = useNavigation();
@@ -70,6 +71,8 @@ export default function NewbornCareDetailScreen() {
           </View>
         </View>
       )}
+
+      <SourcesSection sources={item.sources} accentColor="#9C27B0" />
 
       <View style={styles.bottomSpacer} />
     </ScrollView>

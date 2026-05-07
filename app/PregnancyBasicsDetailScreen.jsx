@@ -4,6 +4,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
 import ContentIllustration from './components/ContentIllustration';
+import SourcesSection from './components/SourcesSection';
 
 export default function PregnancyBasicsDetailScreen() {
   const navigation = useNavigation();
@@ -18,6 +19,33 @@ export default function PregnancyBasicsDetailScreen() {
       </View>
     );
   }
+
+  const sourcesForWeek = (week) => {
+    const w = Number(week);
+    if (!Number.isFinite(w)) return [];
+
+    if (w >= 1 && w <= 12) {
+      return [
+        "NHM Mother and Child Protection (MCP) Card (MoHFW, Govt. of India).",
+        "UNICEF Parenting: Pregnancy Week by Week - First Trimester (UNICEF Parenting).",
+        "National Health Portal (NHP) India: Antenatal Care - Early Pregnancy."
+      ];
+    }
+
+    if (w >= 13 && w <= 26) {
+      return [
+        "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India).",
+        "UNICEF Parenting: Fetal Development and Maternal Changes (UNICEF Parenting).",
+        "National Health Portal (NHP) India: Maternal Health and Milestones."
+      ];
+    }
+
+    return [
+      "NHM Operational Guidelines: Maternal Health (MoHFW, Govt. of India).",
+      "UNICEF Parenting: Preparing for Birth (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Final Stages of Pregnancy and Labor Signs."
+    ];
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -126,6 +154,8 @@ export default function PregnancyBasicsDetailScreen() {
           </View>
         </View>
       )}
+
+      <SourcesSection sources={sourcesForWeek(item.week)} accentColor="#e91e63" />
 
       <View style={styles.bottomSpacer} />
     </ScrollView>

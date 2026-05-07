@@ -4,6 +4,10 @@ export const breastfeedingGuideData = [
     title: "Getting Started with Breastfeeding",
     imageType: "getting_started",
     content: "The first few days and weeks are crucial for establishing successful breastfeeding:",
+    sources: [
+      "MAA (Mothers’ Absolute Affection) Programme Guidelines (MoHFW, Govt. of India).",
+      "UNICEF: Breastfeeding Positions and Latch Guide (UNICEF Parenting)."
+    ],
     tips: [
       "Start breastfeeding as soon as possible after birth - ideally within the first hour.",
       "Feed on demand, which means whenever your baby shows hunger cues (rooting, sucking motions, bringing hands to mouth).",
@@ -20,6 +24,10 @@ export const breastfeedingGuideData = [
     title: "Proper Latch and Positioning",
     imageType: "latch_positioning",
     content: "A good latch is essential for comfortable and effective breastfeeding:",
+    sources: [
+      "MAA (Mothers’ Absolute Affection) Programme Guidelines (MoHFW, Govt. of India).",
+      "UNICEF: Breastfeeding Positions and Latch Guide (UNICEF Parenting)."
+    ],
     tips: [
       "Position yourself comfortably with good back support - use pillows to support your arms and baby.",
       "Hold your baby close with their nose level with your nipple - wait for a wide-open mouth.",
@@ -36,6 +44,10 @@ export const breastfeedingGuideData = [
     title: "Increasing Milk Supply",
     imageType: "milk_supply",
     content: "Building and maintaining a good milk supply is important for your baby's nutrition:",
+    sources: [
+      "NHM IYCF (Infant and Young Child Feeding) Training Guide (MoHFW, Govt. of India).",
+      "UNICEF: How to Increase Your Breast Milk Supply (UNICEF Parenting)."
+    ],
     tips: [
       "Feed frequently - the more you feed, the more milk you produce (supply and demand principle).",
       "Ensure your baby is effectively removing milk - a good latch is crucial.",
@@ -52,6 +64,10 @@ export const breastfeedingGuideData = [
     title: "Common Breastfeeding Challenges",
     imageType: "breastfeeding_challenges",
     content: "Many breastfeeding challenges are common and manageable:",
+    sources: [
+      "National Health Portal (NHP) India: Common Breastfeeding Problems & Solutions.",
+      "UNICEF: Breastfeeding Challenges and How to Overcome Them (UNICEF Parenting)."
+    ],
     tips: [
       "Sore nipples: Ensure proper latch, let nipples air dry after feeding, use lanolin cream.",
       "Engorgement: Feed frequently, use warm compresses before feeding, cold compresses after.",
@@ -68,6 +84,10 @@ export const breastfeedingGuideData = [
     title: "Pumping and Storing Breast Milk",
     imageType: "pumping_storing",
     content: "Pumping allows you to provide breast milk when you're away from your baby:",
+    sources: [
+      "NHM Operational Guidelines: Essential Newborn Care (MoHFW, Govt. of India).",
+      "UNICEF: How to Express and Store Breast Milk Safely (UNICEF Parenting)."
+    ],
     tips: [
       "Wait until breastfeeding is well-established (usually 3-4 weeks) before introducing pumping.",
       "Pump after morning feeds when supply is typically highest.",
@@ -84,6 +104,11 @@ export const breastfeedingGuideData = [
     title: "Nutrition While Breastfeeding",
     imageType: "breastfeeding_nutrition",
     content: "Your nutrition directly affects your breast milk and your own health:",
+    sources: [
+      "POSHAN Abhiyaan: Nutritional Requirements for Lactating Mothers (Ministry of Women and Child Development, Govt. of India).",
+      "UNICEF: What to Eat When Breastfeeding (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Diet and Nutrition for Nursing Mothers."
+    ],
     tips: [
       "Eat a balanced diet with plenty of fruits, vegetables, whole grains, and protein.",
       "Stay hydrated - drink water throughout the day, especially while feeding.",

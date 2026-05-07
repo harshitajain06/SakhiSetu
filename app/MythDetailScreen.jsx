@@ -4,6 +4,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
 import MythIllustration from './components/MythIllustration';
+import SourcesSection from './components/SourcesSection';
 
 export default function MythDetailScreen() {
   const navigation = useNavigation();
@@ -137,6 +138,8 @@ export default function MythDetailScreen() {
         </View>
         <Text style={styles.conclusionText}>{translatedMyth.conclusion}</Text>
       </View>
+
+      <SourcesSection sources={myth.sources} accentColor="#e91e63" />
 
       <View style={styles.bottomSpacer} />
     </ScrollView>

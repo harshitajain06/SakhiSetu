@@ -4,6 +4,10 @@ export const maternalWellnessData = [
     title: "Understanding Maternal Mental Health",
     imageType: "maternal_mental_health",
     content: "Mental health during and after pregnancy is just as important as physical health. Understanding common challenges helps you recognize when you might need support:",
+    sources: [
+      "National Health Portal (NHP) India: Maternal Mental Health Importance.",
+      "UNICEF India: Mental Health and Well-being Standards (UNICEF Parenting)."
+    ],
     tips: [
       "Baby Blues: Mild mood swings, crying, and feeling overwhelmed in the first 2 weeks after birth are common and usually resolve on their own.",
       "Postpartum Depression: Persistent sadness, anxiety, or hopelessness beyond 2 weeks may indicate PPD. Seek professional help if symptoms persist.",
@@ -20,6 +24,10 @@ export const maternalWellnessData = [
     title: "Self-Care During Pregnancy",
     imageType: "pregnancy_self_care",
     content: "Taking care of yourself during pregnancy is essential for both you and your baby's well-being:",
+    sources: [
+      "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India).",
+      "UNICEF: Taking Care of Yourself During Pregnancy (UNICEF Parenting)."
+    ],
     tips: [
       "Rest: Listen to your body and rest when you need to. Your body is working hard to grow your baby.",
       "Gentle Exercise: Engage in doctor-approved activities like walking, prenatal yoga, or swimming to boost mood and energy.",
@@ -36,6 +44,10 @@ export const maternalWellnessData = [
     title: "Postpartum Self-Care and Recovery",
     imageType: "postpartum_self_care",
     content: "The postpartum period requires special attention to your physical and emotional recovery:",
+    sources: [
+      "NHM Guidance Note on Optimizing Post-Natal Care (NHM, Govt. of India).",
+      "UNICEF Parenting: Postnatal Recovery and Wellness (UNICEF Parenting)."
+    ],
     tips: [
       "Rest When Baby Rests: Sleep when your baby sleeps, even if it means letting other tasks wait.",
       "Accept Help: Allow family and friends to help with meals, cleaning, or watching the baby so you can rest.",
@@ -52,6 +64,10 @@ export const maternalWellnessData = [
     title: "Managing Stress and Anxiety",
     imageType: "stress_management",
     content: "Pregnancy and new motherhood can bring stress and anxiety. Learning healthy coping strategies is important:",
+    sources: [
+      "Tele-MANAS: Mental Health Assistance and Networking (NMHP, Govt. of India).",
+      "UNICEF India: Managing Stress for New and Expecting Mothers (UNICEF Parenting)."
+    ],
     tips: [
       "Deep Breathing: Practice deep, slow breathing when you feel stressed or anxious. Inhale for 4 counts, hold for 4, exhale for 4.",
       "Mindfulness: Practice being present in the moment rather than worrying about the future.",
@@ -68,6 +84,10 @@ export const maternalWellnessData = [
     title: "Building a Support System",
     imageType: "support_system",
     content: "Having a strong support system is crucial for maternal wellness during pregnancy and postpartum:",
+    sources: [
+      "MoHFW Guidelines: Social Support in Maternal Health (MoHFW, Govt. of India).",
+      "UNICEF: Why a Support System is Vital for New Parents (UNICEF Parenting)."
+    ],
     tips: [
       "Partner Communication: Keep open communication with your partner about your needs, feelings, and concerns.",
       "Family Support: Accept help from family members with household tasks, meals, or baby care.",
@@ -84,6 +104,11 @@ export const maternalWellnessData = [
     title: "Recognizing When to Seek Help",
     imageType: "seeking_help",
     content: "Knowing when to seek professional help for mental health concerns is crucial for your well-being and your baby's:",
+    sources: [
+      "Tele-MANAS: 24/7 National Mental Health Helpline (14416) (MoHFW, Govt. of India).",
+      "National Health Portal (NHP) India: Warning Signs of Postpartum Depression.",
+      "UNICEF: When to Talk to a Professional About Your Mental Health (UNICEF Parenting)."
+    ],
     tips: [
       "Persistent Sadness: If feelings of sadness, hopelessness, or emptiness last more than 2 weeks.",
       "Severe Anxiety: If anxiety is constant, overwhelming, or preventing you from daily activities.",

@@ -4,6 +4,10 @@ export const wellbeingConfidenceData = [
     title: "Understanding Mood Changes",
     imageType: "mood_changes",
     content: "Mood changes during your period are normal and caused by hormonal fluctuations. Understanding this can help you manage your emotions better:",
+    sources: [
+      "NHM Training Guide: Menstrual Hygiene Scheme (MoHFW, Govt. of India).",
+      "UNICEF India: Tips to Take Care of Your Mental Health."
+    ],
     tips: [
       "Hormonal changes (estrogen and progesterone) affect neurotransmitters in your brain, which can cause mood swings.",
       "Common emotional symptoms include irritability, sadness, anxiety, or feeling overwhelmed.",
@@ -19,6 +23,10 @@ export const wellbeingConfidenceData = [
     title: "Managing Cramps and Discomfort",
     imageType: "managing_cramps",
     content: "Menstrual cramps are common but manageable. Here are effective ways to find relief:",
+    sources: [
+      "NHM Reading Material: Menstrual Hygiene Scheme (MoHFW, Govt. of India).",
+      "National Health Portal (NHP) India: Menstrual Hygiene."
+    ],
     tips: [
       "Apply a heating pad or hot water bottle to your lower abdomen for 15-20 minutes.",
       "Take a warm bath to relax your muscles and ease discomfort.",
@@ -34,6 +42,10 @@ export const wellbeingConfidenceData = [
     title: "Building Self-Confidence",
     imageType: "self_confidence",
     content: "Your period doesn't define you. Here are ways to maintain confidence during menstruation:",
+    sources: [
+      "UNICEF India: Busted - Eight Myths About Periods.",
+      "National Health Portal (NHP) India: Adolescent Health - Puberty Education."
+    ],
     tips: [
       "Wear comfortable clothes that make you feel good about yourself.",
       "Remember that menstruation is a natural, healthy process - nothing to be ashamed of.",
@@ -49,6 +61,10 @@ export const wellbeingConfidenceData = [
     title: "Staying Active and Energized",
     imageType: "staying_active",
     content: "Physical activity can actually help improve your period symptoms and boost your mood:",
+    sources: [
+      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
+      "UNICEF: Menstrual Hygiene Management for Adolescents (UNICEF/UNICEF India)."
+    ],
     tips: [
       "Light to moderate exercise can reduce cramps, bloating, and mood swings.",
       "Activities like walking, yoga, swimming, or dancing are great options.",
@@ -64,6 +80,10 @@ export const wellbeingConfidenceData = [
     title: "Nutrition for Well-being",
     imageType: "nutrition",
     content: "Eating well during your period can help manage symptoms and maintain your energy:",
+    sources: [
+      "POSHAN Abhiyaan: Nutrition for Adolescent Girls (Ministry of Women and Child Development, Govt. of India).",
+      "UNICEF India: What to Eat During Your Period."
+    ],
     tips: [
       "Eat iron-rich foods (leafy greens, beans, lean meats) to replace iron lost through bleeding.",
       "Include foods rich in magnesium (nuts, seeds, whole grains) to help reduce cramps.",
@@ -79,6 +99,10 @@ export const wellbeingConfidenceData = [
     title: "Stress Management and Relaxation",
     imageType: "stress_management",
     content: "Managing stress is especially important during your period when you may feel more sensitive:",
+    sources: [
+      "Tele-MANAS: Mental Health Assistance and Networking (NMHP, Govt. of India).",
+      "UNICEF India: Mental Health and Well-being Standards."
+    ],
     tips: [
       "Practice relaxation techniques like deep breathing, meditation, or mindfulness.",
       "Get adequate sleep - aim for 7-9 hours per night.",
@@ -94,6 +118,10 @@ export const wellbeingConfidenceData = [
     title: "Sleep and Rest",
     imageType: "sleep_rest",
     content: "Quality sleep is essential for managing period symptoms and maintaining well-being:",
+    sources: [
+      "MoHFW Safe Motherhood & Adolescent Health Guidelines (MoHFW, Govt. of India).",
+      "National Health Portal (NHP) India: Importance of Rest During Menstruation."
+    ],
     tips: [
       "Aim for 7-9 hours of sleep per night, especially during your period.",
       "Create a comfortable sleep environment with appropriate temperature and lighting.",

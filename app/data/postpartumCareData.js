@@ -4,6 +4,11 @@ export const postpartumCareData = [
     title: "Physical Recovery After Birth",
     imageType: "physical_recovery",
     content: "Your body needs time to heal after giving birth. Here's what to expect and how to care for yourself:",
+    sources: [
+      "NHM Guidance Note on Optimizing Post-Natal Care (NHM, Govt. of India).",
+      "UNICEF Parenting: Your Body After Birth (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Postnatal Care and Recovery."
+    ],
     tips: [
       "Vaginal bleeding (lochia) is normal and can last 4-6 weeks - use heavy-duty pads, not tampons.",
       "Rest as much as possible - your body has been through a major event and needs recovery time.",
@@ -20,6 +25,11 @@ export const postpartumCareData = [
     title: "Emotional Well-being",
     imageType: "emotional_wellbeing",
     content: "Postpartum emotions can be complex - it's important to take care of your mental health:",
+    sources: [
+      "Tele-MANAS: Mental Health Assistance and Networking (NMHP, Govt. of India).",
+      "UNICEF India: Understanding Postpartum Depression.",
+      "National Health Portal (NHP) India: Postpartum Mental Health Support."
+    ],
     tips: [
       "Baby blues are common in the first 2 weeks - mood swings, crying, and feeling overwhelmed are normal.",
       "Get as much rest as possible - sleep when your baby sleeps.",
@@ -36,6 +46,11 @@ export const postpartumCareData = [
     title: "Breast Care and Comfort",
     imageType: "breast_care",
     content: "Whether you're breastfeeding or not, your breasts need care during the postpartum period:",
+    sources: [
+      "MAA Programme: Mothers’ Absolute Affection Guidelines (MoHFW, Govt. of India).",
+      "UNICEF: Breastfeeding Challenges and Solutions (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Common Breastfeeding Issues and Care."
+    ],
     tips: [
       "If breastfeeding: Feed frequently to establish milk supply and prevent engorgement.",
       "Use warm compresses before feeding and cold compresses after to manage discomfort.",
@@ -52,6 +67,10 @@ export const postpartumCareData = [
     title: "Postpartum Checkups",
     imageType: "postpartum_checkups",
     content: "Regular checkups after birth are essential for monitoring your recovery:",
+    sources: [
+      "NHM Guidance Note on Optimizing Post-Natal Care (NHM, Govt. of India).",
+      "National Health Portal (NHP) India: Postnatal Care and Recovery."
+    ],
     tips: [
       "Schedule your postpartum visit 4-6 weeks after delivery.",
       "Discuss birth control options with your healthcare provider.",
@@ -68,6 +87,11 @@ export const postpartumCareData = [
     title: "Nutrition and Hydration",
     imageType: "postpartum_nutrition",
     content: "Proper nutrition is crucial for your recovery and, if breastfeeding, for your baby:",
+    sources: [
+      "NHM Mother and Child Protection (MCP) Card (MoHFW, Govt. of India).",
+      "UNICEF: What to Eat When Breastfeeding (UNICEF Parenting).",
+      "POSHAN Abhiyaan: Lactating Mother Nutrition (Ministry of Women and Child Development, Govt. of India)."
+    ],
     tips: [
       "Eat regular, balanced meals with plenty of protein, fruits, and vegetables.",
       "Stay hydrated - aim for 8-10 glasses of water daily, especially if breastfeeding.",
@@ -84,6 +108,11 @@ export const postpartumCareData = [
     title: "Getting Back to Exercise",
     imageType: "postpartum_exercise",
     content: "Returning to exercise after birth should be gradual and safe:",
+    sources: [
+      "NHM Operational Guidelines: Postnatal Exercise and Recovery (MoHFW, Govt. of India).",
+      "UNICEF: Exercise After Having a Baby (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Physical Activity After Delivery."
+    ],
     tips: [
       "Wait for your healthcare provider's clearance (usually at your 6-week checkup).",
       "Start with gentle activities like walking, then gradually increase intensity.",

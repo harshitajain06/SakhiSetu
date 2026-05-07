@@ -4,6 +4,11 @@ export const prenatalCareData = [
     title: "First Trimester Care",
     imageType: "first_trimester",
     content: "The first trimester (weeks 1-12) is crucial for your baby's development. Here's what you need to know:",
+    sources: [
+      "NHM Mother and Child Protection (MCP) Card (MoHFW, Govt. of India).",
+      "UNICEF Parenting: Pregnancy Week by Week - First Trimester (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Antenatal Care - Early Pregnancy."
+    ],
     tips: [
       "Schedule your first prenatal appointment as soon as you know you're pregnant.",
       "Start taking prenatal vitamins with folic acid to prevent birth defects.",
@@ -20,6 +25,11 @@ export const prenatalCareData = [
     title: "Second Trimester Care",
     imageType: "second_trimester",
     content: "The second trimester (weeks 13-27) is often called the 'honeymoon period' of pregnancy:",
+    sources: [
+      "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India).",
+      "UNICEF Parenting: Fetal Development and Maternal Changes (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Maternal Health and Milestones."
+    ],
     tips: [
       "Continue taking prenatal vitamins and eating a balanced diet.",
       "You'll likely have more energy now - enjoy light exercise like walking or prenatal yoga.",
@@ -36,6 +46,11 @@ export const prenatalCareData = [
     title: "Third Trimester Care",
     imageType: "third_trimester",
     content: "The final trimester (weeks 28-40) brings you closer to meeting your baby:",
+    sources: [
+      "NHM Operational Guidelines: Maternal Health (MoHFW, Govt. of India).",
+      "UNICEF Parenting: Preparing for Birth (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Final Stages of Pregnancy and Labor Signs."
+    ],
     tips: [
       "Continue regular prenatal checkups - you'll see your doctor more frequently now.",
       "Monitor your baby's movements daily - report any decrease in movement immediately.",
@@ -52,6 +67,11 @@ export const prenatalCareData = [
     title: "Prenatal Vitamins and Supplements",
     imageType: "prenatal_vitamins",
     content: "Proper nutrition through vitamins and supplements is essential for your baby's development:",
+    sources: [
+      "MoHFW Guidelines for Iron and Folic Acid Supplementation (MoHFW, Govt. of India).",
+      "UNICEF: Nutrition and Supplements During Pregnancy (UNICEF Parenting).",
+      "Anemia Mukt Bharat: Pregnant Women Protocol (MoHFW, Govt. of India)."
+    ],
     tips: [
       "Folic acid (400-800 mcg daily) prevents neural tube defects - start before conception if possible.",
       "Iron helps prevent anemia and supports your baby's growth - your doctor will monitor your levels.",
@@ -68,6 +88,11 @@ export const prenatalCareData = [
     title: "Regular Checkups and Tests",
     imageType: "prenatal_checkups",
     content: "Regular prenatal visits are crucial for monitoring your health and your baby's development:",
+    sources: [
+      "Pradhan Mantri Surakshit Matritva Abhiyan (PMSMA) (MoHFW, Govt. of India).",
+      "National Health Portal (NHP) India: Antenatal Clinical Tests & Screening.",
+      "UNICEF: Why Prenatal Care Matters (UNICEF Parenting)."
+    ],
     tips: [
       "First trimester: Initial blood work, ultrasound, and genetic screening options.",
       "Second trimester: Anatomy scan, glucose screening for gestational diabetes, and blood tests.",
@@ -84,6 +109,11 @@ export const prenatalCareData = [
     title: "Managing Common Pregnancy Symptoms",
     imageType: "pregnancy_symptoms",
     content: "Pregnancy brings various symptoms - here's how to manage them:",
+    sources: [
+      "NHM Operational Guidelines: Maternal Health & Danger Signs (MoHFW, Govt. of India).",
+      "UNICEF: Pregnancy Danger Signs to Watch For (UNICEF Parenting).",
+      "National Health Portal (NHP) India: Common Discomforts in Pregnancy."
+    ],
     tips: [
       "Morning sickness: Eat small, frequent meals, avoid strong smells, try ginger tea or crackers.",
       "Fatigue: Get plenty of rest, take naps when possible, maintain a regular sleep schedule.",

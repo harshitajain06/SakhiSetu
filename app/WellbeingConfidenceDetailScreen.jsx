@@ -4,6 +4,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
 import ContentIllustration from './components/ContentIllustration';
+import SourcesSection from './components/SourcesSection';
 
 export default function WellbeingConfidenceDetailScreen() {
   const navigation = useNavigation();
@@ -109,6 +110,8 @@ export default function WellbeingConfidenceDetailScreen() {
           </View>
         </View>
       )}
+
+      <SourcesSection sources={item.sources} accentColor="#4CAF50" />
 
       <View style={styles.bottomSpacer} />
     </ScrollView>
