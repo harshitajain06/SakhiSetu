@@ -534,8 +534,6 @@ export default {
     forumTitlePlaceholder: 'Eg. Missed period for 2 months — is it normal?',
     forumBody: 'Post text',
     forumBodyPlaceholder: 'Write your question or experience...',
-    forumImageOptional: 'Image (optional)',
-    forumPickImage: 'Upload image',
     forumPublish: 'Publish',
     forumModerationNote: 'Posts and replies are moderated for safety. Harmful text or images will be blocked.',
     forumValidationText: 'Please write some text for your post.',

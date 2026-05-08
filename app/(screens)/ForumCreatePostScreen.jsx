@@ -1,17 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import * as DocumentPicker from 'expo-document-picker';
 import React, { useMemo, useState } from 'react';
-import { Alert, ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { Alert, ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../../contexts/TranslationContext';
-import { storage } from '../../config/firebase';
 import { createForumPost, FORUM_CHANNELS } from '../forum/forumApi';
-
-async function uriToBlob(uri) {
-  const res = await fetch(uri);
-  return await res.blob();
-}
 
 export default function ForumCreatePostScreen() {
   const { t } = useTranslation();
@@ -19,7 +11,6 @@ export default function ForumCreatePostScreen() {
   const [channel, setChannel] = useState(FORUM_CHANNELS.menstrual);
   const [title, setTitle] = useState('');
   const [contentText, setContentText] = useState('');
-  const [image, setImage] = useState(null); // { uri, name, mimeType }
   const [submitting, setSubmitting] = useState(false);
 
   const disclaimer =
@@ -34,38 +25,6 @@ export default function ForumCreatePostScreen() {
     [t]
   );
 
-  const pickImage = async () => {
-    try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: ['image/*'],
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
-      if (res.canceled) return;
-      const asset = res.assets?.[0];
-      if (!asset?.uri) return;
-      setImage({
-        uri: asset.uri,
-        name: asset.name ?? `image_${Date.now()}.jpg`,
-        mimeType: asset.mimeType ?? 'image/jpeg',
-      });
-    } catch (e) {
-      Alert.alert(t('common.error') ?? 'Error', String(e?.message ?? e));
-    }
-  };
-
-  const removeImage = () => setImage(null);
-
-  const uploadForumImageIfAny = async () => {
-    if (!image?.uri) return null;
-    const blob = await uriToBlob(image.uri);
-    const ext = (image.name?.split('.').pop() || 'jpg').toLowerCase();
-    const path = `forumImages/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
-    const r = ref(storage, path);
-    await uploadBytes(r, blob, { contentType: image.mimeType ?? 'image/jpeg' });
-    return await getDownloadURL(r);
-  };
-
   const submit = async () => {
     if (!contentText.trim()) {
       Alert.alert(t('common.error') ?? 'Error', t('community.forumValidationText') ?? 'Please write something.');
@@ -73,12 +32,10 @@ export default function ForumCreatePostScreen() {
     }
     setSubmitting(true);
     try {
-      const imageUrl = await uploadForumImageIfAny();
       const res = await createForumPost({
         channel,
         title: title.trim() || null,
         contentText: contentText.trim(),
-        imageUrl: imageUrl || null,
       });
       navigation.replace('ForumPostDetail', { postId: res.postId });
     } catch (e) {
@@ -146,22 +103,6 @@ export default function ForumCreatePostScreen() {
           maxLength={1200}
         />
 
-        <Text style={styles.label}>{t('community.forumImageOptional') ?? 'Image (optional)'}</Text>
-        {image?.uri ? (
-          <View style={styles.imageWrap}>
-            <Image source={{ uri: image.uri }} style={styles.image} />
-            <TouchableOpacity style={styles.removeImage} onPress={removeImage}>
-              <Ionicons name="trash-outline" size={18} color="#fff" />
-              <Text style={styles.removeImageText}>{t('common.cancel') ?? 'Remove'}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity style={styles.pickBtn} onPress={pickImage}>
-            <Ionicons name="image-outline" size={18} color="#111827" />
-            <Text style={styles.pickBtnText}>{t('community.forumPickImage') ?? 'Upload image'}</Text>
-          </TouchableOpacity>
-        )}
-
         <TouchableOpacity style={[styles.submitBtn, submitting && { opacity: 0.7 }]} onPress={submit} disabled={submitting}>
           {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="paper-plane" size={18} color="#fff" />}
           <Text style={styles.submitText}>{t('community.forumPublish') ?? 'Publish'}</Text>
@@ -222,33 +163,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   textArea: { minHeight: 160 },
-  pickBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  pickBtnText: { color: '#111827', fontWeight: '800' },
-  imageWrap: { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff' },
-  image: { width: '100%', height: 200 },
-  removeImage: {
-    position: 'absolute',
-    right: 10,
-    bottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#111827CC',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-  },
-  removeImageText: { color: '#fff', fontWeight: '800', fontSize: 12 },
   submitBtn: {
     marginTop: 16,
     backgroundColor: '#E91E63',

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../../contexts/TranslationContext';
 import { FORUM_CHANNELS, fetchPostsPage, listenToLatestPosts } from '../forum/forumApi';
 
@@ -49,7 +49,7 @@ function PostCard({ post, onPress }) {
   );
 }
 
-export default function ForumFeedScreen() {
+const ForumFeedScreen = React.forwardRef(function ForumFeedScreen(_props, ref) {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const [channel, setChannel] = useState(FORUM_CHANNELS.menstrual);
@@ -60,7 +60,6 @@ export default function ForumFeedScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [liveRows, setLiveRows] = useState([]);
   const [liveReady, setLiveReady] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
 
   const channelTabs = useMemo(
     () => [
@@ -69,10 +68,6 @@ export default function ForumFeedScreen() {
     ],
     [t]
   );
-
-  const disclaimer =
-    t('community.forumDisclaimer') ??
-    'This forum is for informational and community support purposes only. It does not replace professional medical advice.';
 
   // Realtime newest posts for the selected channel.
   useEffect(() => {
@@ -117,6 +112,14 @@ export default function ForumFeedScreen() {
     }
   };
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh: onRefresh,
+    }),
+    [channel]
+  );
+
   const loadMore = async () => {
     if (loadingMore || !cursor) return;
     setLoadingMore(true);
@@ -133,8 +136,6 @@ export default function ForumFeedScreen() {
 
   const openPost = (postId) => navigation.navigate('ForumPostDetail', { postId });
 
-  const openSaved = () => navigation.navigate('ForumSavedPosts');
-
   const mergedRows = useMemo(() => {
     const map = new Map();
     (liveRows ?? []).forEach((p) => map.set(p.id, p));
@@ -146,20 +147,6 @@ export default function ForumFeedScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topActionsRow}>
-        <TouchableOpacity style={styles.infoBtn} onPress={() => setInfoOpen(true)} activeOpacity={0.85}>
-          <Ionicons name="information-circle-outline" size={18} color="#111827" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh} activeOpacity={0.85} disabled={refreshing}>
-          {refreshing ? <ActivityIndicator size="small" color="#111827" /> : <Ionicons name="refresh" size={16} color="#111827" />}
-          <Text style={styles.refreshBtnText}>{t('common.refresh') ?? 'Refresh'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.savedBtn} onPress={openSaved} activeOpacity={0.85}>
-          <Ionicons name="bookmark-outline" size={16} color="#111827" />
-          <Text style={styles.savedBtnText}>{t('community.forumSaved') ?? 'Saved'}</Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.channelRow}>
         {channelTabs.map((x) => (
           <TouchableOpacity
@@ -210,26 +197,11 @@ export default function ForumFeedScreen() {
         <Ionicons name="add" size={28} color="#fff" />
         <Text style={styles.fabText}>{t('community.forumCreate') ?? 'Create'}</Text>
       </TouchableOpacity>
-
-      <Modal visible={infoOpen} transparent animationType="fade" onRequestClose={() => setInfoOpen(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setInfoOpen(false)}>
-          <TouchableOpacity style={styles.modalCard} activeOpacity={1} onPress={() => {}}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('community.forumInfoTitle') ?? 'Forum info'}</Text>
-              <TouchableOpacity onPress={() => setInfoOpen(false)} style={styles.modalCloseBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="close" size={22} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalBody}>{disclaimer}</Text>
-            <TouchableOpacity style={styles.modalOkBtn} onPress={() => setInfoOpen(false)} activeOpacity={0.9}>
-              <Text style={styles.modalOkText}>{t('common.ok') ?? 'OK'}</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
-}
+});
+
+export default ForumFeedScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -240,56 +212,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 10,
     gap: 10,
-  },
-  topActionsRow: {
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    paddingBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-  },
-  infoBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 999,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  refreshBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  refreshBtnText: {
-    color: '#111827',
-    fontWeight: '900',
-    fontSize: 12,
-  },
-  savedBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  savedBtnText: {
-    color: '#111827',
-    fontWeight: '900',
-    fontSize: 12,
   },
   channelPill: {
     flex: 1,
@@ -417,58 +339,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '900',
     fontSize: 14,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(17, 24, 39, 0.5)',
-    padding: 18,
-    justifyContent: 'center',
-  },
-  modalCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-    marginBottom: 10,
-  },
-  modalTitle: {
-    flex: 1,
-    color: '#111827',
-    fontWeight: '900',
-    fontSize: 16,
-  },
-  modalCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalBody: {
-    color: '#374151',
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
-  },
-  modalOkBtn: {
-    marginTop: 14,
-    alignSelf: 'flex-end',
-    backgroundColor: '#111827',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  modalOkText: {
-    color: '#fff',
-    fontWeight: '900',
   },
 });
 

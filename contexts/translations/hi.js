@@ -534,8 +534,6 @@ export default {
     forumTitlePlaceholder: 'उदा. 2 महीने से पीरियड नहीं आया — क्या यह सामान्य है?',
     forumBody: 'पोस्ट',
     forumBodyPlaceholder: 'अपना सवाल या अनुभव लिखें...',
-    forumImageOptional: 'छवि (वैकल्पिक)',
-    forumPickImage: 'छवि अपलोड करें',
     forumPublish: 'प्रकाशित करें',
     forumModerationNote: 'सुरक्षा के लिए पोस्ट और जवाब मॉडरेट होते हैं। हानिकारक टेक्स्ट/छवि ब्लॉक की जा सकती है।',
     forumValidationText: 'कृपया पोस्ट के लिए कुछ लिखें।',
