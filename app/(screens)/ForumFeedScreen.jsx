@@ -132,7 +132,7 @@ const ForumFeedScreen = React.forwardRef(function ForumFeedScreen(_props, ref) {
     }
   };
 
-  const openCreate = () => navigation.navigate('ForumCreatePost');
+  const openCreate = () => navigation.navigate('ForumCreatePost', { channel });
 
   const openPost = (postId) => navigation.navigate('ForumPostDetail', { postId });
 
