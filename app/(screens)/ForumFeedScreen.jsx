@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../../contexts/TranslationContext';
-import { FORUM_CHANNELS, fetchPostsPage, listenToLatestPosts } from '../forum/forumApi';
+import { FORUM_CHANNELS, fetchPostsPage, forumPostHasReports, listenToLatestPosts } from '../forum/forumApi';
 
 function formatCount(n) {
   const x = typeof n === 'number' ? n : 0;
@@ -13,8 +13,13 @@ function formatCount(n) {
 }
 
 function PostCard({ post, onPress }) {
+  const reported = forumPostHasReports(post);
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={[styles.card, reported && styles.cardReported]}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
       <View style={styles.cardTop}>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
@@ -267,6 +272,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
+  },
+  cardReported: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
   },
   cardTop: {
     flexDirection: 'row',

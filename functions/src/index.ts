@@ -611,6 +611,74 @@ export const forumCreatePost = onCall({ region: 'us-central1' }, async (request)
   return { ok: true, postId: ref.id };
 });
 
+export const forumUpdatePost = onCall({ region: 'us-central1' }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required');
+  const uid = request.auth.uid;
+
+  const postId = String((request.data as any)?.postId ?? '').trim();
+  const channel = (request.data as any)?.channel != null ? String((request.data as any).channel).trim() : null;
+  const title = (request.data as any)?.title != null ? String((request.data as any).title).trim() : null;
+  const contentText = String((request.data as any)?.contentText ?? '').trim();
+  const imageUrl = (request.data as any)?.imageUrl != null ? String((request.data as any).imageUrl).trim() : null;
+
+  if (!postId) throw new HttpsError('invalid-argument', 'postId required');
+  if (!contentText) throw new HttpsError('invalid-argument', 'Post text is required');
+  if (contentText.length > 2000) throw new HttpsError('invalid-argument', 'Post too long');
+  if (channel != null && !FORUM_CHANNELS.has(channel)) throw new HttpsError('invalid-argument', 'Invalid channel');
+
+  const postRef = admin.firestore().collection('forumPosts').doc(postId);
+  const postSnap = await postRef.get();
+  if (!postSnap.exists) throw new HttpsError('not-found', 'Post not found');
+
+  const post = postSnap.data() as any;
+  if (post?.status === 'removed') throw new HttpsError('failed-precondition', 'Post is not active');
+  if (post?.userId !== uid) throw new HttpsError('permission-denied', 'Only the author can edit this post');
+
+  const mod = await moderateTextAndImage({ text: [title, contentText].filter(Boolean).join('\n\n'), imageUrl });
+  if (!mod.allowed) {
+    throw new HttpsError('failed-precondition', 'This post violates community guidelines and cannot be published.');
+  }
+
+  await postRef.set(
+    {
+      ...(channel != null ? { channel } : {}),
+      title: title || null,
+      contentText,
+      contentImageUrl: imageUrl || null,
+      editedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  return { ok: true, postId };
+});
+
+export const forumDeletePost = onCall({ region: 'us-central1' }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required');
+  const uid = request.auth.uid;
+
+  const postId = String((request.data as any)?.postId ?? '').trim();
+  if (!postId) throw new HttpsError('invalid-argument', 'postId required');
+
+  const postRef = admin.firestore().collection('forumPosts').doc(postId);
+
+  await admin.firestore().runTransaction(async (tx) => {
+    const postSnap = await tx.get(postRef);
+    if (!postSnap.exists) throw new HttpsError('not-found', 'Post not found');
+
+    const post = postSnap.data() as any;
+    if (post?.status === 'removed') return; // idempotent
+    if (post?.userId !== uid) throw new HttpsError('permission-denied', 'Only the author can delete this post');
+
+    tx.update(postRef, {
+      status: 'removed',
+      removedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  });
+
+  return { ok: true, removed: true };
+});
+
 export const forumCreateReply = onCall({ region: 'us-central1' }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required');
   const uid = request.auth.uid;
@@ -644,6 +712,80 @@ export const forumCreateReply = onCall({ region: 'us-central1' }, async (request
   });
 
   return { ok: true, replyId: replyRef.id };
+});
+
+export const forumUpdateReply = onCall({ region: 'us-central1' }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required');
+  const uid = request.auth.uid;
+  const postId = String((request.data as any)?.postId ?? '').trim();
+  const replyId = String((request.data as any)?.replyId ?? '').trim();
+  const replyText = String((request.data as any)?.replyText ?? '').trim();
+  if (!postId) throw new HttpsError('invalid-argument', 'postId required');
+  if (!replyId) throw new HttpsError('invalid-argument', 'replyId required');
+  if (!replyText) throw new HttpsError('invalid-argument', 'Reply text required');
+  if (replyText.length > 2000) throw new HttpsError('invalid-argument', 'Reply too long');
+
+  const postRef = admin.firestore().collection('forumPosts').doc(postId);
+  const replyRef = postRef.collection('replies').doc(replyId);
+
+  const mod = await moderateTextAndImage({ text: replyText });
+  if (!mod.allowed) throw new HttpsError('failed-precondition', 'This reply violates community guidelines and cannot be published.');
+
+  await admin.firestore().runTransaction(async (tx) => {
+    const [postSnap, replySnap] = await Promise.all([tx.get(postRef), tx.get(replyRef)]);
+    if (!postSnap.exists) throw new HttpsError('not-found', 'Post not found');
+    if ((postSnap.data() as any)?.status === 'removed') throw new HttpsError('failed-precondition', 'Post is not active');
+    if (!replySnap.exists) throw new HttpsError('not-found', 'Reply not found');
+
+    const reply = replySnap.data() as any;
+    if (reply?.status === 'removed') throw new HttpsError('failed-precondition', 'Reply is not active');
+    if (reply?.userId !== uid) throw new HttpsError('permission-denied', 'Only the author can edit this reply');
+
+    tx.set(
+      replyRef,
+      {
+        replyText,
+        editedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  });
+
+  return { ok: true, postId, replyId };
+});
+
+export const forumDeleteReply = onCall({ region: 'us-central1' }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required');
+  const uid = request.auth.uid;
+  const postId = String((request.data as any)?.postId ?? '').trim();
+  const replyId = String((request.data as any)?.replyId ?? '').trim();
+  if (!postId) throw new HttpsError('invalid-argument', 'postId required');
+  if (!replyId) throw new HttpsError('invalid-argument', 'replyId required');
+
+  const postRef = admin.firestore().collection('forumPosts').doc(postId);
+  const replyRef = postRef.collection('replies').doc(replyId);
+
+  await admin.firestore().runTransaction(async (tx) => {
+    const [postSnap, replySnap] = await Promise.all([tx.get(postRef), tx.get(replyRef)]);
+    if (!postSnap.exists) throw new HttpsError('not-found', 'Post not found');
+    if (!replySnap.exists) throw new HttpsError('not-found', 'Reply not found');
+
+    const reply = replySnap.data() as any;
+    if (reply?.userId !== uid) throw new HttpsError('permission-denied', 'Only the author can delete this reply');
+    if (reply?.status === 'removed') return; // idempotent
+
+    tx.update(replyRef, {
+      status: 'removed',
+      removedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Keep replyCount consistent for UI lists (best-effort).
+    tx.update(postRef, {
+      replyCount: admin.firestore.FieldValue.increment(-1),
+    });
+  });
+
+  return { ok: true, removed: true, postId, replyId };
 });
 
 export const forumToggleLike = onCall({ region: 'us-central1' }, async (request) => {

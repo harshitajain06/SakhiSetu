@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   ActivityIndicator,
@@ -16,12 +16,14 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from '../../contexts/TranslationContext';
-import { createForumPost, FORUM_CHANNELS } from '../forum/forumApi';
+import { auth } from '../../config/firebase';
+import { createForumPost, FORUM_CHANNELS, listenToPost, updateForumPost } from '../forum/forumApi';
 
 export default function ForumCreatePostScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
+  const editPostId = route?.params?.postId ?? null;
   const initialChannel =
     route?.params?.channel && Object.values(FORUM_CHANNELS).includes(route.params.channel)
       ? route.params.channel
@@ -30,6 +32,7 @@ export default function ForumCreatePostScreen() {
   const [title, setTitle] = useState('');
   const [contentText, setContentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(Boolean(editPostId));
 
   const disclaimer =
     t('community.forumDisclaimer') ??
@@ -43,6 +46,34 @@ export default function ForumCreatePostScreen() {
     [t]
   );
 
+  useEffect(() => {
+    if (!editPostId) return;
+    setLoadingExisting(true);
+    const unsub = listenToPost(editPostId, (p) => {
+      // Defensive: stop if deleted/missing.
+      if (!p || p.status === 'removed') {
+        setLoadingExisting(false);
+        Alert.alert(t('common.error') ?? 'Error', t('community.forumPostMissing') ?? 'Post not found.');
+        navigation.goBack();
+        return;
+      }
+      // Client-side UX check (real enforcement happens in Cloud Function).
+      const uid = auth.currentUser?.uid;
+      if (uid && p.userId && p.userId !== uid) {
+        setLoadingExisting(false);
+        Alert.alert(t('common.error') ?? 'Error', 'You can only edit your own post.');
+        navigation.goBack();
+        return;
+      }
+      setChannel(p.channel ?? initialChannel);
+      setTitle(p.title ?? '');
+      setContentText(p.contentText ?? '');
+      setLoadingExisting(false);
+    });
+    return () => unsub?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editPostId]);
+
   const submit = async () => {
     if (!contentText.trim()) {
       Alert.alert(t('common.error') ?? 'Error', t('community.forumValidationText') ?? 'Please write something.');
@@ -50,12 +81,22 @@ export default function ForumCreatePostScreen() {
     }
     setSubmitting(true);
     try {
-      const res = await createForumPost({
-        channel,
-        title: title.trim() || null,
-        contentText: contentText.trim(),
-      });
-      navigation.replace('ForumPostDetail', { postId: res.postId });
+      if (editPostId) {
+        const res = await updateForumPost({
+          postId: editPostId,
+          channel,
+          title: title.trim() || null,
+          contentText: contentText.trim(),
+        });
+        navigation.replace('ForumPostDetail', { postId: res.postId ?? editPostId });
+      } else {
+        const res = await createForumPost({
+          channel,
+          title: title.trim() || null,
+          contentText: contentText.trim(),
+        });
+        navigation.replace('ForumPostDetail', { postId: res.postId });
+      }
     } catch (e) {
       const code = e?.code || e?.name;
       const rawMsg = e?.message ?? String(e);
@@ -82,7 +123,9 @@ export default function ForumCreatePostScreen() {
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
               <Ionicons name="arrow-back" size={22} color="#111827" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t('community.forumCreateTitle') ?? 'Create Post'}</Text>
+            <Text style={styles.headerTitle}>
+              {editPostId ? 'Edit Post' : t('community.forumCreateTitle') ?? 'Create Post'}
+            </Text>
             <View style={{ width: 36 }} />
           </View>
 
@@ -91,6 +134,11 @@ export default function ForumCreatePostScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {loadingExisting ? (
+              <View style={{ paddingVertical: 18, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#E91E63" />
+              </View>
+            ) : null}
             <View style={styles.disclaimer}>
               <Ionicons name="information-circle-outline" size={18} color="#6B7280" />
               <Text style={styles.disclaimerText}>{disclaimer}</Text>
@@ -135,14 +183,16 @@ export default function ForumCreatePostScreen() {
             <TouchableOpacity
               style={[styles.submitBtn, submitting && { opacity: 0.7 }]}
               onPress={submit}
-              disabled={submitting}
+              disabled={submitting || loadingExisting}
             >
               {submitting ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Ionicons name="paper-plane" size={18} color="#fff" />
+                <Ionicons name={editPostId ? 'save-outline' : 'paper-plane'} size={18} color="#fff" />
               )}
-              <Text style={styles.submitText}>{t('community.forumPublish') ?? 'Publish'}</Text>
+              <Text style={styles.submitText}>
+                {editPostId ? 'Save' : t('community.forumPublish') ?? 'Publish'}
+              </Text>
             </TouchableOpacity>
 
             <Text style={styles.note}>

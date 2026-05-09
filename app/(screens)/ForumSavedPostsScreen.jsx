@@ -3,11 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../../contexts/TranslationContext';
-import { fetchSavedPosts, toggleForumBookmark } from '../forum/forumApi';
+import { fetchSavedPosts, forumPostHasReports, toggleForumBookmark } from '../forum/forumApi';
 
 function PostRow({ post, onOpen, onUnsave }) {
+  const reported = forumPostHasReports(post);
   return (
-    <TouchableOpacity style={styles.card} onPress={onOpen} activeOpacity={0.85}>
+    <TouchableOpacity style={[styles.card, reported && styles.cardReported]} onPress={onOpen} activeOpacity={0.85}>
       <View style={styles.cardTop}>
         <Text style={styles.title} numberOfLines={1}>
           {post.title || post.contentText || ''}
@@ -137,6 +138,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
+  },
+  cardReported: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   title: { flex: 1, color: '#111827', fontSize: 14, fontWeight: '900' },

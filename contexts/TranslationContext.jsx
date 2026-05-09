@@ -64,7 +64,7 @@ export function TranslationProvider({ children }) {
           if (value && typeof value === 'object') {
             value = value[fallbackKey];
           } else {
-            return key; // Return key if translation not found
+            return key;
           }
         }
         break;

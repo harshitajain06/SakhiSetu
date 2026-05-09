@@ -36,6 +36,11 @@ export function forumRepliesCollection(postId) {
   return collection(db, 'forumPosts', postId, 'replies');
 }
 
+/** True when the post has at least one community report (`reportCount` on the document). */
+export function forumPostHasReports(post) {
+  return (Number(post?.reportCount) || 0) > 0;
+}
+
 export function userForumBookmarksCollection(uid) {
   return collection(db, 'users', uid, 'forumBookmarks');
 }
@@ -117,7 +122,8 @@ export async function fetchPostsPage({ channel, pageSize = 10, cursor } = {}) {
 export async function fetchReplies(postId) {
   const q = query(forumRepliesCollection(postId), orderBy('createdAt', 'asc'), limit(200));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return rows.filter((r) => r?.status !== 'removed');
 }
 
 export async function fetchSavedPosts({ pageSize = 30 } = {}) {
@@ -154,9 +160,33 @@ export async function createForumPost({ channel, title, contentText, imageUrl } 
   return res.data;
 }
 
+export async function updateForumPost({ postId, channel, title, contentText, imageUrl } = {}) {
+  const fn = httpsCallable(functions, 'forumUpdatePost');
+  const res = await fn({ postId, channel, title, contentText, imageUrl });
+  return res.data;
+}
+
+export async function deleteForumPost({ postId } = {}) {
+  const fn = httpsCallable(functions, 'forumDeletePost');
+  const res = await fn({ postId });
+  return res.data;
+}
+
 export async function createForumReply({ postId, replyText } = {}) {
   const fn = httpsCallable(functions, 'forumCreateReply');
   const res = await fn({ postId, replyText });
+  return res.data;
+}
+
+export async function updateForumReply({ postId, replyId, replyText } = {}) {
+  const fn = httpsCallable(functions, 'forumUpdateReply');
+  const res = await fn({ postId, replyId, replyText });
+  return res.data;
+}
+
+export async function deleteForumReply({ postId, replyId } = {}) {
+  const fn = httpsCallable(functions, 'forumDeleteReply');
+  const res = await fn({ postId, replyId });
   return res.data;
 }
 
