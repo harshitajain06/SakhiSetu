@@ -554,8 +554,11 @@ export default {
     forumReport: 'Report',
     forumReportTitle: 'Report post',
     forumReportBody: 'Report this post for review?',
+    forumReportReplyTitle: 'Report reply',
+    forumReportReplyBody: 'Report this reply for review?',
     forumReportCta: 'Report',
     forumReported: 'Reported. Thanks for helping keep the community safe.',
+    forumFlagged: 'Flagged',
     forumPostMissing: 'Post not found.',
     forumFnNotFound:
       'Forum backend is not deployed yet (Cloud Function not found). Please deploy Firebase Functions, then try again.',

@@ -554,8 +554,11 @@ export default {
     forumReport: 'रिपोर्ट',
     forumReportTitle: 'पोस्ट रिपोर्ट करें',
     forumReportBody: 'क्या आप इस पोस्ट को समीक्षा के लिए रिपोर्ट करना चाहती हैं?',
+    forumReportReplyTitle: 'जवाब रिपोर्ट करें',
+    forumReportReplyBody: 'क्या आप इस जवाब को समीक्षा के लिए रिपोर्ट करना चाहती हैं?',
     forumReportCta: 'रिपोर्ट',
     forumReported: 'रिपोर्ट हो गई। समुदाय को सुरक्षित रखने में मदद के लिए धन्यवाद।',
+    forumFlagged: 'फ़्लैग किया गया',
     forumPostMissing: 'पोस्ट नहीं मिली।',
     forumFnNotFound:
       'फोरम का बैकएंड अभी डिप्लॉय नहीं हुआ है (Cloud Function नहीं मिला)। कृपया Firebase Functions डिप्लॉय करें, फिर दोबारा कोशिश करें।',

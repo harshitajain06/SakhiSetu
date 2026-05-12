@@ -6,7 +6,7 @@ import {
     Alert,
     FlatList,
     Image,
-    KeyboardAvoidingView,
+    Keyboard,
     Modal,
     Platform,
     StyleSheet,
@@ -22,15 +22,23 @@ import {
     deleteForumPost,
     deleteForumReply,
     fetchReplies,
+    forumPostHasReports,
+    forumReplyHasReports,
+    getForumReplyIdsReportedByMe,
     listenToBookmark,
     listenToLike,
     listenToPost,
+    listenToUserForumPostReport,
     reportForumPost,
+    reportForumReply,
     toggleForumBookmark,
     toggleForumLike,
     updateForumReply,
 } from "../forum/forumApi";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+/** Bottom inset so list content clears the fixed reply bar (multiline input up to maxHeight + paddings). */
+const FORUM_REPLY_COMPOSER_BOTTOM = 148;
 
 function formatTime(ts) {
   try {
@@ -42,9 +50,30 @@ function formatTime(ts) {
   }
 }
 
-function ReplyItem({ item, isOwner, onPressEdit, onPressDelete }) {
+function FlaggedCornerLabel() {
+  const { t } = useTranslation();
   return (
-    <View style={styles.reply}>
+    <View style={styles.flaggedCorner} pointerEvents="none">
+      <Ionicons name="flag" size={14} color="#DC2626" />
+      <Text style={styles.flaggedCornerText}>
+        {t("community.forumFlagged") ?? "Flagged"}
+      </Text>
+    </View>
+  );
+}
+
+function ReplyItem({
+  item,
+  isOwner,
+  showReport,
+  reported,
+  onPressEdit,
+  onPressDelete,
+  onPressReport,
+}) {
+  const { t } = useTranslation();
+  return (
+    <View style={[styles.reply, reported && styles.replyReported]}>
       <View style={styles.replyTop}>
         <View style={styles.replyTopLeft}>
           <Text style={styles.replyAuthor}>
@@ -69,9 +98,26 @@ function ReplyItem({ item, isOwner, onPressEdit, onPressDelete }) {
               <Ionicons name="trash" size={16} color="#DC2626" />
             </TouchableOpacity>
           </View>
+        ) : showReport ? (
+          <TouchableOpacity
+            onPress={onPressReport}
+            style={styles.replyReportBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="flag-outline" size={16} color="#DC2626" />
+            <Text style={styles.replyReportText}>
+              {t("community.forumReport") ?? "Report"}
+            </Text>
+          </TouchableOpacity>
         ) : null}
       </View>
       <Text style={styles.replyText}>{item.replyText ?? ""}</Text>
+      {reported ? (
+        <View style={styles.replyFlaggedFooter}>
+          <FlaggedCornerLabel />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -98,6 +144,9 @@ export default function ForumPostDetailScreen() {
   const [isSaved, setIsSaved] = useState(false);
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [keyboardPad, setKeyboardPad] = useState(0);
+  const [postReportedByMe, setPostReportedByMe] = useState(false);
+  const [replyIdsReportedByMe, setReplyIdsReportedByMe] = useState([]);
   const isAuthor = Boolean(
     post?.userId &&
     auth.currentUser?.uid &&
@@ -132,6 +181,14 @@ export default function ForumPostDetailScreen() {
     return () => unsub?.();
   }, [postId]);
 
+  useEffect(() => {
+    if (!postId) return;
+    const unsub = listenToUserForumPostReport(postId, (reported) =>
+      setPostReportedByMe(Boolean(reported)),
+    );
+    return () => unsub?.();
+  }, [postId]);
+
   const reloadReplies = async () => {
     if (!postId) return;
     setLoadingReplies(true);
@@ -147,6 +204,49 @@ export default function ForumPostDetailScreen() {
     reloadReplies();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
+
+  useEffect(() => {
+    if (!postId) {
+      setReplyIdsReportedByMe([]);
+      return;
+    }
+    const uid = auth.currentUser?.uid;
+    if (!uid || !replies.length) {
+      setReplyIdsReportedByMe([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const ids = await getForumReplyIdsReportedByMe(
+          postId,
+          replies.map((r) => r.id).filter(Boolean),
+        );
+        if (!cancelled) setReplyIdsReportedByMe(ids);
+      } catch {
+        if (!cancelled) setReplyIdsReportedByMe([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [postId, replies]);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const onShow = (e) =>
+      setKeyboardPad(Math.round(e.endCoordinates?.height ?? 0));
+    const onHide = () => setKeyboardPad(0);
+    const subShow = Keyboard.addListener(showEvent, onShow);
+    const subHide = Keyboard.addListener(hideEvent, onHide);
+    return () => {
+      subShow.remove();
+      subHide.remove();
+    };
+  }, []);
 
   const onSendReply = async () => {
     if (!replyText.trim() || sending) return;
@@ -276,6 +376,41 @@ export default function ForumPostDetailScreen() {
     );
   };
 
+  const onReportReply = (reply) => {
+    if (!postId || !reply?.id) return;
+    Alert.alert(
+      t("community.forumReportReplyTitle") ?? "Report reply",
+      t("community.forumReportReplyBody") ?? "Report this reply for review?",
+      [
+        { text: t("common.cancel") ?? "Cancel", style: "cancel" },
+        {
+          text: t("community.forumReportCta") ?? "Report",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await reportForumReply({
+                postId,
+                replyId: reply.id,
+                reason: "user_report",
+              });
+              Alert.alert(
+                t("common.ok") ?? "OK",
+                t("community.forumReported") ??
+                  "Reported. Thanks for helping keep the community safe.",
+              );
+              await reloadReplies();
+            } catch (e) {
+              Alert.alert(
+                t("common.error") ?? "Error",
+                e?.message ?? String(e),
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const onEdit = () => {
     if (!postId || !post) return;
     navigation.navigate("ForumCreatePost", { postId, channel: post.channel });
@@ -320,7 +455,12 @@ export default function ForumPostDetailScreen() {
     </View>
   ) : (
     <View>
-      <View style={styles.postCard}>
+      <View
+        style={[
+          styles.postCard,
+          forumPostHasReports(post) && styles.postCardReported,
+        ]}
+      >
         <View style={styles.postTop}>
           <Text style={styles.postAuthor}>
             {post.authorDisplayName ?? "User"}
@@ -424,16 +564,23 @@ export default function ForumPostDetailScreen() {
                 : (t("community.forumSave") ?? "Save")}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionDanger]}
-            onPress={onReport}
-          >
-            <Ionicons name="flag-outline" size={18} color="#DC2626" />
-            <Text style={[styles.actionText, { color: "#DC2626" }]}>
-              {t("community.forumReport") ?? "Report"}
-            </Text>
-          </TouchableOpacity>
+          {auth.currentUser && !postReportedByMe ? (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.actionDanger]}
+              onPress={onReport}
+            >
+              <Ionicons name="flag-outline" size={18} color="#DC2626" />
+              <Text style={[styles.actionText, { color: "#DC2626" }]}>
+                {t("community.forumReport") ?? "Report"}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
+        {forumPostHasReports(post) ? (
+          <View style={styles.postFlaggedFooter}>
+            <FlaggedCornerLabel />
+          </View>
+        ) : null}
       </View>
 
       <Text style={styles.repliesTitle}>
@@ -443,11 +590,7 @@ export default function ForumPostDetailScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -480,17 +623,32 @@ export default function ForumPostDetailScreen() {
             auth.currentUser?.uid &&
             item.userId === auth.currentUser.uid,
           );
+          const showReport =
+            Boolean(auth.currentUser?.uid) &&
+            !isOwner &&
+            !replyIdsReportedByMe.includes(item.id);
+          const reported = forumReplyHasReports(item);
           return (
             <ReplyItem
               item={item}
               isOwner={isOwner}
+              showReport={showReport}
+              reported={reported}
               onPressEdit={() => openEditReply(item)}
               onPressDelete={() => onDeleteReply(item)}
+              onPressReport={() => onReportReply(item)}
             />
           );
         }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 18 }}
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={{
+          paddingHorizontal: 18,
+          paddingBottom:
+            18 +
+            FORUM_REPLY_COMPOSER_BOTTOM +
+            Math.max(insets.bottom, 10),
+        }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={header}
         ListEmptyComponent={
@@ -512,7 +670,13 @@ export default function ForumPostDetailScreen() {
       <View
         style={[
           styles.replyBox,
-          { paddingBottom: Math.max(insets.bottom, 10) },
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: keyboardPad,
+            paddingBottom: Math.max(insets.bottom, 10),
+          },
         ]}
       >
         <TextInput
@@ -525,6 +689,8 @@ export default function ForumPostDetailScreen() {
           style={styles.replyInput}
           multiline
           maxLength={700}
+          textAlignVertical={Platform.OS === "android" ? "top" : undefined}
+          cursorColor="#111827"
         />
         <TouchableOpacity
           style={[
@@ -621,6 +787,8 @@ export default function ForumPostDetailScreen() {
               multiline
               maxLength={700}
               editable={!editBusy}
+              textAlignVertical={Platform.OS === "android" ? "top" : undefined}
+              cursorColor="#111827"
             />
             <View style={styles.editModalActions}>
               <TouchableOpacity
@@ -654,7 +822,7 @@ export default function ForumPostDetailScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -687,11 +855,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   postCard: {
+    position: "relative",
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+  },
+  postCardReported: {
+    backgroundColor: "#FEF2F2",
+    borderColor: "#FECACA",
+  },
+  postFlaggedFooter: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  flaggedCorner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  flaggedCornerText: {
+    color: "#DC2626",
+    fontWeight: "800",
+    fontSize: 12,
   },
   postTop: {
     flexDirection: "row",
@@ -784,6 +973,10 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
+  replyReported: {
+    backgroundColor: "#FEF2F2",
+    borderColor: "#FECACA",
+  },
   replyTop: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -802,7 +995,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  replyReportBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: "#FEE2E2",
+  },
+  replyReportText: { color: "#DC2626", fontWeight: "800", fontSize: 12 },
   replyText: { color: "#374151", fontWeight: "600", lineHeight: 18 },
+  replyFlaggedFooter: {
+    marginTop: 8,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
   emptyReplies: { paddingVertical: 18, alignItems: "center" },
   emptyRepliesText: { color: "#6B7280", fontWeight: "700" },
   replyBox: {
@@ -823,6 +1032,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 10,
+    fontSize: 16,
+    lineHeight: 22,
     fontWeight: "600",
     color: "#111827",
   },

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   collection,
   doc,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -304,24 +305,31 @@ export default function MaternalHealthHomeScreen() {
     loadData();
   }, []);
 
-  // Realtime community stats from forum posts (best-effort, lightweight).
+  // "Active Members" count shows total registered app users (top-level `users` docs).
+  const fetchRegisteredUsersCount = React.useCallback(async () => {
+    try {
+      const snap = await getCountFromServer(collection(db, 'users'));
+      setCommunityActiveMembers(snap.data().count);
+    } catch (error) {
+      console.error('Error counting registered users:', error);
+      setCommunityActiveMembers(null);
+    }
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchRegisteredUsersCount();
+    }, [fetchRegisteredUsersCount])
+  );
+
+  // Realtime "new posts today" from a lightweight recent forum snapshot.
   useEffect(() => {
     const postsCol = collection(db, 'forumPosts');
-
     const recentQ = query(postsCol, orderBy('createdAt', 'desc'), limit(200));
-    const unsubRecent = onSnapshot(recentQ, (snap) => {
-      const unique = new Set();
-      snap.docs.forEach((d) => {
-        const uid = d.data()?.userId;
-        if (uid) unique.add(uid);
-      });
-      setCommunityActiveMembers(unique.size);
-    });
-
     const start = new Date();
     start.setHours(0, 0, 0, 0);
-    // Count today's posts from the same lightweight recent snapshot.
-    const unsubToday = onSnapshot(recentQ, (snap) => {
+
+    const unsub = onSnapshot(recentQ, (snap) => {
       let count = 0;
       snap.docs.forEach((d) => {
         const createdAt = d.data()?.createdAt;
@@ -331,10 +339,7 @@ export default function MaternalHealthHomeScreen() {
       setCommunityNewPostsToday(count);
     });
 
-    return () => {
-      unsubRecent?.();
-      unsubToday?.();
-    };
+    return () => unsub?.();
   }, []);
 
   // Calculate derived data

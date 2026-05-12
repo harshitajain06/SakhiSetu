@@ -848,10 +848,47 @@ export const forumReportPost = onCall({ region: 'us-central1' }, async (request)
   if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required');
   const uid = request.auth.uid;
   const postId = String((request.data as any)?.postId ?? '').trim();
+  const replyId = String((request.data as any)?.replyId ?? '').trim();
   const reason = String((request.data as any)?.reason ?? 'user_report').slice(0, 120);
   if (!postId) throw new HttpsError('invalid-argument', 'postId required');
 
   const postRef = admin.firestore().collection('forumPosts').doc(postId);
+
+  // Report a reply (same callable as post so one deploy updates both paths).
+  if (replyId) {
+    const replyRef = postRef.collection('replies').doc(replyId);
+    const repRef = replyRef.collection('reports').doc(uid);
+
+    await admin.firestore().runTransaction(async (tx) => {
+      const [postSnap, replySnap, repSnap] = await Promise.all([
+        tx.get(postRef),
+        tx.get(replyRef),
+        tx.get(repRef),
+      ]);
+      if (!postSnap.exists) throw new HttpsError('not-found', 'Post not found');
+      if ((postSnap.data() as any)?.status === 'removed') {
+        throw new HttpsError('failed-precondition', 'Post is not active');
+      }
+      if (!replySnap.exists) throw new HttpsError('not-found', 'Reply not found');
+
+      const reply = replySnap.data() as any;
+      if (reply?.status === 'removed') throw new HttpsError('failed-precondition', 'Reply is not active');
+      if (reply?.userId === uid) throw new HttpsError('failed-precondition', 'Cannot report your own reply');
+      if (repSnap.exists) return; // idempotent
+
+      const nextCount = (typeof reply?.reportCount === 'number' ? reply.reportCount : 0) + 1;
+      const shouldFlag = nextCount >= 3;
+
+      tx.set(repRef, { uid, reason, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+      tx.update(replyRef, {
+        reportCount: admin.firestore.FieldValue.increment(1),
+        ...(shouldFlag ? { status: 'flagged' } : {}),
+      });
+    });
+
+    return { ok: true, reported: true };
+  }
+
   const repRef = postRef.collection('reports').doc(uid);
 
   await admin.firestore().runTransaction(async (tx) => {

@@ -41,6 +41,11 @@ export function forumPostHasReports(post) {
   return (Number(post?.reportCount) || 0) > 0;
 }
 
+/** True when the reply has at least one community report (`reportCount` on the document). */
+export function forumReplyHasReports(reply) {
+  return (Number(reply?.reportCount) || 0) > 0;
+}
+
 export function userForumBookmarksCollection(uid) {
   return collection(db, 'users', uid, 'forumBookmarks');
 }
@@ -71,6 +76,38 @@ export function listenToLike(postId, cb) {
     return () => {};
   }
   return onSnapshot(doc(db, 'forumPosts', postId, 'likes', uid), (snap) => cb(snap.exists()));
+}
+
+/** Whether the signed-in user has already reported this post (`forumPosts/{postId}/reports/{uid}`). */
+export function listenToUserForumPostReport(postId, cb) {
+  const uid = auth.currentUser?.uid;
+  if (!postId || !uid) {
+    cb(false);
+    return () => {};
+  }
+  const ref = doc(db, 'forumPosts', postId, 'reports', uid);
+  return onSnapshot(
+    ref,
+    (snap) => cb(snap.exists()),
+    () => cb(false),
+  );
+}
+
+/**
+ * Reply ids the current user has already reported (`.../replies/{id}/reports/{uid}`).
+ * @returns {Promise<string[]>}
+ */
+export async function getForumReplyIdsReportedByMe(postId, replyIds) {
+  const uid = auth.currentUser?.uid;
+  if (!postId || !uid || !replyIds?.length) return [];
+  const results = await Promise.all(
+    replyIds.filter(Boolean).map(async (replyId) => {
+      const ref = doc(db, 'forumPosts', postId, 'replies', replyId, 'reports', uid);
+      const snap = await getDoc(ref);
+      return snap.exists() ? replyId : null;
+    }),
+  );
+  return results.filter(Boolean);
 }
 
 /**
@@ -122,7 +159,7 @@ export async function fetchPostsPage({ channel, pageSize = 10, cursor } = {}) {
 export async function fetchReplies(postId) {
   const q = query(forumRepliesCollection(postId), orderBy('createdAt', 'asc'), limit(200));
   const snap = await getDocs(q);
-  const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const rows = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
   return rows.filter((r) => r?.status !== 'removed');
 }
 
@@ -205,6 +242,13 @@ export async function toggleForumBookmark({ postId } = {}) {
 export async function reportForumPost({ postId, reason } = {}) {
   const fn = httpsCallable(functions, 'forumReportPost');
   const res = await fn({ postId, reason });
+  return res.data;
+}
+
+export async function reportForumReply({ postId, replyId, reason } = {}) {
+  // Uses forumReportPost so reply reporting works without deploying a separate callable.
+  const fn = httpsCallable(functions, 'forumReportPost');
+  const res = await fn({ postId, replyId, reason });
   return res.data;
 }
 
