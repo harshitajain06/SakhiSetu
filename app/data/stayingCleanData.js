@@ -1,13 +1,25 @@
+import {
+  NHM_MH_TRAINING_GUIDE,
+  NHM_OPERATIONAL_PROMOTION_MHM,
+  NHM_READING_MHS,
+  NHM_MH_READING_MATERIAL,
+  NHP_MENSTRUAL_HYGIENE,
+  NHP_MHM_MANAGEMENT,
+  NHP_RTI,
+  UNICEF_GUIDANCE_MHH,
+  UNICEF_GUIDE_MHM_MATERIALS,
+  UNICEF_INDIA_BUSTED_EIGHT_ADOPTED,
+  UNICEF_MENSTRUAL_HYGIENE_SHORT,
+  UNICEF_MHM_GUIDELINES,
+} from './_learnSourceCitations';
+
 export const stayingCleanData = [
   {
     id: 1,
     title: "Daily Hygiene Practices",
     imageType: "daily_hygiene",
     content: "Maintaining good hygiene during your period is essential for your health and comfort. Here are some key practices to follow:",
-    sources: [
-      "NHM Menstrual Hygiene Reading Material (MoHFW, Govt. of India).",
-      "UNICEF: Menstrual Hygiene Management (UNICEF/UNICEF India)."
-    ],
+    sources: [NHM_MH_READING_MATERIAL, UNICEF_MENSTRUAL_HYGIENE_SHORT],
     tips: [
       "Change your sanitary pad, tampon, or menstrual cup regularly (every 4-6 hours for pads, every 4-8 hours for tampons, and every 8-12 hours for cups).",
       "Wash your hands before and after changing your sanitary product.",
@@ -23,11 +35,7 @@ export const stayingCleanData = [
     title: "Choosing the Right Sanitary Product",
     imageType: "sanitary_products",
     content: "Selecting the right menstrual product is crucial for comfort and hygiene. Here's what you need to know:",
-    sources: [
-      "NHM Operational Guidelines: Promotion of Menstrual Hygiene (MoHFW, Govt. of India).",
-      "UNICEF Guide to Menstrual Hygiene Materials (UNICEF/UNICEF India).",
-      "National Health Portal (NHP) India: Menstrual Hygiene Management."
-    ],
+    sources: [NHM_OPERATIONAL_PROMOTION_MHM, UNICEF_GUIDE_MHM_MATERIALS, NHP_MHM_MANAGEMENT],
     tips: [
       "Pads: Best for beginners, easy to use, and available in various sizes. Change every 4-6 hours.",
       "Tampons: Internal protection that allows for swimming and sports. Change every 4-8 hours.",
@@ -43,10 +51,7 @@ export const stayingCleanData = [
     title: "Proper Disposal of Sanitary Products",
     imageType: "disposal",
     content: "Disposing of sanitary products correctly is important for hygiene and environmental responsibility:",
-    sources: [
-      "NHM Operational Guidelines: Promotion of Menstrual Hygiene (MoHFW, Govt. of India).",
-      "UNICEF: Guidance on Menstrual Health and Hygiene (UNICEF/UNICEF India)."
-    ],
+    sources: [NHM_OPERATIONAL_PROMOTION_MHM, UNICEF_GUIDANCE_MHH],
     tips: [
       "Wrap used pads or tampons in toilet paper or the wrapper from the new product.",
       "Dispose of them in a covered trash bin - never flush pads or tampons down the toilet.",
@@ -62,10 +67,7 @@ export const stayingCleanData = [
     title: "Preventing Infections",
     imageType: "prevent_infections",
     content: "Good hygiene practices can help prevent infections during your period:",
-    sources: [
-      "National Health Portal (NHP) India: Reproductive Tract Infections (RTI).",
-      "UNICEF: Menstrual Hygiene Management (MHM) Guidelines (UNICEF/UNICEF India)."
-    ],
+    sources: [NHP_RTI, UNICEF_MHM_GUIDELINES],
     tips: [
       "Change your sanitary product regularly to prevent bacterial growth.",
       "Avoid using scented pads or tampons as they can cause irritation.",
@@ -81,11 +83,7 @@ export const stayingCleanData = [
     title: "Bathing and Showering",
     imageType: "bathing",
     content: "Bathing during your period is not only safe but recommended for maintaining hygiene:",
-    sources: [
-      "NHM Menstrual Hygiene Training Guide (MoHFW, Govt. of India).",
-      "UNICEF India: Busted - Eight Myths About Periods.",
-      "National Health Portal (NHP) India: Menstrual Hygiene."
-    ],
+    sources: [NHM_MH_TRAINING_GUIDE, UNICEF_INDIA_BUSTED_EIGHT_ADOPTED, NHP_MENSTRUAL_HYGIENE],
     tips: [
       "You can and should shower or bathe daily during your period.",
       "Use warm water and mild, unscented soap to clean your body.",
@@ -101,11 +99,7 @@ export const stayingCleanData = [
     title: "Managing Odor",
     imageType: "managing_odor",
     content: "Some odor during menstruation is normal, but proper hygiene can help manage it:",
-    sources: [
-      "NHM Reading Material: Menstrual Hygiene Scheme (MoHFW, Govt. of India).",
-      "UNICEF Guide to Menstrual Hygiene Materials (UNICEF/UNICEF India).",
-      "National Health Portal (NHP) India: Reproductive Tract Infections (RTI)."
-    ],
+    sources: [NHM_READING_MHS, UNICEF_GUIDE_MHM_MATERIALS, NHP_RTI],
     tips: [
       "Change your sanitary product regularly - this is the most important step.",
       "Wash your genital area with warm water and mild soap daily.",
@@ -117,4 +111,3 @@ export const stayingCleanData = [
     importantNote: "A slight metallic smell is normal during menstruation. Strong, fishy, or foul odors may indicate an infection and should be checked by a doctor."
   }
 ];
-

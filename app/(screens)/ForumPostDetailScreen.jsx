@@ -30,6 +30,7 @@ import {
     toggleForumLike,
     updateForumReply,
 } from "../forum/forumApi";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function formatTime(ts) {
   try {
@@ -77,6 +78,7 @@ function ReplyItem({ item, isOwner, onPressEdit, onPressDelete }) {
 
 export default function ForumPostDetailScreen() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
   const postId = route?.params?.postId;
@@ -443,7 +445,7 @@ export default function ForumPostDetailScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <View style={styles.header}>
@@ -469,6 +471,7 @@ export default function ForumPostDetailScreen() {
       </View>
 
       <FlatList
+        style={styles.replyList}
         data={replies}
         keyExtractor={(x) => x.id}
         renderItem={({ item }) => {
@@ -506,7 +509,12 @@ export default function ForumPostDetailScreen() {
         }
       />
 
-      <View style={styles.replyBox}>
+      <View
+        style={[
+          styles.replyBox,
+          { paddingBottom: Math.max(insets.bottom, 10) },
+        ]}
+      >
         <TextInput
           value={replyText}
           onChangeText={setReplyText}
@@ -652,6 +660,7 @@ export default function ForumPostDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB" },
+  replyList: { flex: 1 },
   header: {
     paddingTop: Platform.OS === "ios" ? 52 : 20,
     paddingBottom: 14,

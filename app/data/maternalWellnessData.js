@@ -1,13 +1,26 @@
+import {
+  MOHFW_MY_SAFE_MOTHERHOOD,
+  MOHFW_SOCIAL_SUPPORT,
+  NHM_POSTNATAL_CARE_GUIDANCE,
+  NHP_MATERNAL_MENTAL_IMPORTANCE,
+  NHP_WARNING_PPD,
+  TELEMANAS,
+  TELEMANAS_14416,
+  UNICEF_MANAGING_STRESS_MOTHERS,
+  UNICEF_MENTAL_HEALTH_STANDARDS_PARENTING,
+  UNICEF_POSTNATAL_RECOVERY,
+  UNICEF_SELF_CARE_PREGNANCY,
+  UNICEF_SUPPORT_SYSTEM,
+  UNICEF_WHEN_PROFESSIONAL,
+} from './_learnSourceCitations';
+
 export const maternalWellnessData = [
   {
     id: 1,
     title: "Understanding Maternal Mental Health",
     imageType: "maternal_mental_health",
     content: "Mental health during and after pregnancy is just as important as physical health. Understanding common challenges helps you recognize when you might need support:",
-    sources: [
-      "National Health Portal (NHP) India: Maternal Mental Health Importance.",
-      "UNICEF India: Mental Health and Well-being Standards (UNICEF Parenting)."
-    ],
+    sources: [NHP_MATERNAL_MENTAL_IMPORTANCE, UNICEF_MENTAL_HEALTH_STANDARDS_PARENTING],
     tips: [
       "Baby Blues: Mild mood swings, crying, and feeling overwhelmed in the first 2 weeks after birth are common and usually resolve on their own.",
       "Postpartum Depression: Persistent sadness, anxiety, or hopelessness beyond 2 weeks may indicate PPD. Seek professional help if symptoms persist.",
@@ -24,10 +37,7 @@ export const maternalWellnessData = [
     title: "Self-Care During Pregnancy",
     imageType: "pregnancy_self_care",
     content: "Taking care of yourself during pregnancy is essential for both you and your baby's well-being:",
-    sources: [
-      "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India).",
-      "UNICEF: Taking Care of Yourself During Pregnancy (UNICEF Parenting)."
-    ],
+    sources: [MOHFW_MY_SAFE_MOTHERHOOD, UNICEF_SELF_CARE_PREGNANCY],
     tips: [
       "Rest: Listen to your body and rest when you need to. Your body is working hard to grow your baby.",
       "Gentle Exercise: Engage in doctor-approved activities like walking, prenatal yoga, or swimming to boost mood and energy.",
@@ -44,10 +54,7 @@ export const maternalWellnessData = [
     title: "Postpartum Self-Care and Recovery",
     imageType: "postpartum_self_care",
     content: "The postpartum period requires special attention to your physical and emotional recovery:",
-    sources: [
-      "NHM Guidance Note on Optimizing Post-Natal Care (NHM, Govt. of India).",
-      "UNICEF Parenting: Postnatal Recovery and Wellness (UNICEF Parenting)."
-    ],
+    sources: [NHM_POSTNATAL_CARE_GUIDANCE, UNICEF_POSTNATAL_RECOVERY],
     tips: [
       "Rest When Baby Rests: Sleep when your baby sleeps, even if it means letting other tasks wait.",
       "Accept Help: Allow family and friends to help with meals, cleaning, or watching the baby so you can rest.",
@@ -64,10 +71,7 @@ export const maternalWellnessData = [
     title: "Managing Stress and Anxiety",
     imageType: "stress_management",
     content: "Pregnancy and new motherhood can bring stress and anxiety. Learning healthy coping strategies is important:",
-    sources: [
-      "Tele-MANAS: Mental Health Assistance and Networking (NMHP, Govt. of India).",
-      "UNICEF India: Managing Stress for New and Expecting Mothers (UNICEF Parenting)."
-    ],
+    sources: [TELEMANAS, UNICEF_MANAGING_STRESS_MOTHERS],
     tips: [
       "Deep Breathing: Practice deep, slow breathing when you feel stressed or anxious. Inhale for 4 counts, hold for 4, exhale for 4.",
       "Mindfulness: Practice being present in the moment rather than worrying about the future.",
@@ -84,10 +88,7 @@ export const maternalWellnessData = [
     title: "Building a Support System",
     imageType: "support_system",
     content: "Having a strong support system is crucial for maternal wellness during pregnancy and postpartum:",
-    sources: [
-      "MoHFW Guidelines: Social Support in Maternal Health (MoHFW, Govt. of India).",
-      "UNICEF: Why a Support System is Vital for New Parents (UNICEF Parenting)."
-    ],
+    sources: [MOHFW_SOCIAL_SUPPORT, UNICEF_SUPPORT_SYSTEM],
     tips: [
       "Partner Communication: Keep open communication with your partner about your needs, feelings, and concerns.",
       "Family Support: Accept help from family members with household tasks, meals, or baby care.",
@@ -104,11 +105,7 @@ export const maternalWellnessData = [
     title: "Recognizing When to Seek Help",
     imageType: "seeking_help",
     content: "Knowing when to seek professional help for mental health concerns is crucial for your well-being and your baby's:",
-    sources: [
-      "Tele-MANAS: 24/7 National Mental Health Helpline (14416) (MoHFW, Govt. of India).",
-      "National Health Portal (NHP) India: Warning Signs of Postpartum Depression.",
-      "UNICEF: When to Talk to a Professional About Your Mental Health (UNICEF Parenting)."
-    ],
+    sources: [TELEMANAS_14416, NHP_WARNING_PPD, UNICEF_WHEN_PROFESSIONAL],
     tips: [
       "Persistent Sadness: If feelings of sadness, hopelessness, or emptiness last more than 2 weeks.",
       "Severe Anxiety: If anxiety is constant, overwhelming, or preventing you from daily activities.",
@@ -121,4 +118,3 @@ export const maternalWellnessData = [
     importantNote: "If you're experiencing any of these symptoms, contact your healthcare provider, a mental health professional, or a crisis hotline immediately. Help is available, and treatment is effective. You are not alone."
   }
 ];
-

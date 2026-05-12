@@ -1,14 +1,23 @@
+import {
+  MOHFW_MATERNAL_DANGER_PROTOCOLS,
+  MOHFW_MY_SAFE_MOTHERHOOD,
+  NHM_POSTNATAL_CARE_NOTE,
+  NHP_MATERNAL_HEALTH_GUIDELINES,
+  NHP_PHYSICAL_ACTIVITY_PREGNANCY,
+  UNICEF_EXERCISE_AFTER_BABY,
+  UNICEF_PREGNANCY_EXERCISE_ROADMAP,
+  UNICEF_SAFETY_PRECAUTIONS,
+  UNICEF_STAYING_ACTIVE_PREGNANCY,
+  UNICEF_WHEN_STOP_EXERCISING,
+} from './_learnSourceCitations';
+
 export const exerciseFitnessData = [
   {
     id: 1,
     title: "Safe Exercises During Pregnancy",
     imageType: "safe_exercises",
     content: "Staying active during pregnancy benefits both you and your baby, but safety is key:",
-    sources: [
-      "National Health Portal (NHP) India: Physical Activity During Pregnancy.",
-      "UNICEF: Staying Active During Pregnancy (UNICEF Parenting).",
-      "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India)."
-    ],
+    sources: [MOHFW_MY_SAFE_MOTHERHOOD, UNICEF_PREGNANCY_EXERCISE_ROADMAP],
     tips: [
       "Walking is one of the safest and most accessible exercises throughout pregnancy.",
       "Swimming and water aerobics are excellent - the water supports your weight and reduces joint stress.",
@@ -25,10 +34,7 @@ export const exerciseFitnessData = [
     title: "Exercises to Avoid",
     imageType: "exercises_avoid",
     content: "Some activities pose risks during pregnancy and should be avoided:",
-    sources: [
-      "National Health Portal (NHP) India: Maternal Health Guidelines.",
-      "UNICEF: Safety Precautions for Pregnant Women (UNICEF Parenting)."
-    ],
+    sources: [NHP_MATERNAL_HEALTH_GUIDELINES, UNICEF_SAFETY_PRECAUTIONS],
     tips: [
       "Avoid contact sports or activities with high risk of falling (skiing, horseback riding, gymnastics).",
       "Don't scuba dive - it can cause decompression sickness in your baby.",
@@ -45,10 +51,7 @@ export const exerciseFitnessData = [
     title: "Exercise by Trimester",
     imageType: "exercise_trimester",
     content: "Your exercise routine should adapt as your pregnancy progresses:",
-    sources: [
-      "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India).",
-      "UNICEF Parenting: Pregnancy Exercise Roadmap (UNICEF Parenting)."
-    ],
+    sources: [MOHFW_MY_SAFE_MOTHERHOOD, UNICEF_PREGNANCY_EXERCISE_ROADMAP],
     tips: [
       "First trimester: You can usually continue your pre-pregnancy routine with modifications - listen to your body and reduce intensity if needed.",
       "Second trimester: This is often the most comfortable time - you may have more energy and can enjoy moderate exercise.",
@@ -65,10 +68,7 @@ export const exerciseFitnessData = [
     title: "Benefits of Exercise During Pregnancy",
     imageType: "exercise_benefits",
     content: "Regular exercise offers numerous benefits for you and your baby:",
-    sources: [
-      "National Health Portal (NHP) India: Physical Activity During Pregnancy.",
-      "UNICEF: Staying Active During Pregnancy (UNICEF Parenting)."
-    ],
+    sources: [NHP_PHYSICAL_ACTIVITY_PREGNANCY, UNICEF_STAYING_ACTIVE_PREGNANCY],
     tips: [
       "Reduces back pain and improves posture as your body changes.",
       "Helps manage weight gain within healthy ranges.",
@@ -85,10 +85,7 @@ export const exerciseFitnessData = [
     title: "Warning Signs to Stop Exercising",
     imageType: "warning_signs",
     content: "Know when to stop exercising and contact your healthcare provider:",
-    sources: [
-      "MoHFW Protocols: Maternal Health Danger Signs (MoHFW, Govt. of India).",
-      "UNICEF Parenting: When to Stop Exercising (UNICEF Parenting)."
-    ],
+    sources: [MOHFW_MATERNAL_DANGER_PROTOCOLS, UNICEF_WHEN_STOP_EXERCISING],
     tips: [
       "Vaginal bleeding or fluid leakage.",
       "Dizziness, faintness, or difficulty breathing.",
@@ -105,10 +102,7 @@ export const exerciseFitnessData = [
     title: "Postpartum Exercise",
     imageType: "postpartum_exercise",
     content: "Returning to exercise after birth requires patience and proper timing:",
-    sources: [
-      "NHM Guidance Note on Postnatal Care (NHM, Govt. of India).",
-      "UNICEF: Exercise After Having a Baby (UNICEF Parenting)."
-    ],
+    sources: [NHM_POSTNATAL_CARE_NOTE, UNICEF_EXERCISE_AFTER_BABY],
     tips: [
       "Wait for your healthcare provider's clearance (usually at your 6-week postpartum checkup).",
       "Start slowly with gentle activities like walking, then gradually increase intensity.",
@@ -121,4 +115,3 @@ export const exerciseFitnessData = [
     importantNote: "Your body needs time to recover from pregnancy and birth. Be patient and kind to yourself as you regain strength and fitness."
   }
 ];
-

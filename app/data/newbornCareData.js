@@ -1,14 +1,31 @@
+import {
+  NHM_ENC,
+  NHM_HBNC,
+  NHM_IYCF,
+  NHM_KMC,
+  NHM_MCP_CARD,
+  NHM_ASHA_NEWBORN,
+  NHP_COMMON_NEWBORN_PROBLEMS,
+  NHP_ENC,
+  NHP_HYGIENE_NEWBORN,
+  NHP_IYCF,
+  NHP_IMMUNIZATION,
+  NHP_NEWBORN_SAFETY,
+  UNICEF_BREASTFEEDING_NEWBORN,
+  UNICEF_ECD_MILESTONES,
+  UNICEF_FIRST_THREE_MONTHS,
+  UNICEF_NEWBORN_SKIN,
+  UNICEF_SAFE_SLEEP,
+  UNICEF_SKIN_TO_SKIN,
+} from './_learnSourceCitations';
+
 export const newbornCareData = [
   {
     id: 1,
     title: "Feeding Your Newborn",
     imageType: "newborn_feeding",
     content: "Feeding is one of the most important aspects of newborn care. Whether you're breastfeeding or formula feeding, here's what you need to know:",
-    sources: [
-      "NHM IYCF Training Guide (MoHFW, Govt. of India).",
-      "UNICEF: Breastfeeding Your Newborn (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Infant and Young Child Feeding (IYCF)."
-    ],
+    sources: [NHM_IYCF, UNICEF_BREASTFEEDING_NEWBORN, NHP_IYCF],
     tips: [
       "Breastfeeding: Feed on demand, typically 8-12 times per day. Look for hunger cues like rooting, sucking motions, or bringing hands to mouth.",
       "Formula Feeding: Follow the instructions on the formula container. Newborns typically eat 1-3 ounces every 2-3 hours.",
@@ -25,11 +42,7 @@ export const newbornCareData = [
     title: "Sleep Patterns and Safe Sleep",
     imageType: "newborn_sleep",
     content: "Newborns sleep a lot, but their sleep patterns are different from adults. Here's how to ensure safe and healthy sleep:",
-    sources: [
-      "NHM Home Based Newborn Care (HBNC) Guidelines (MoHFW, Govt. of India).",
-      "UNICEF Parenting: Safe Sleep Guide for Babies (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Newborn Care and Safety."
-    ],
+    sources: [NHM_HBNC, UNICEF_SAFE_SLEEP, NHP_NEWBORN_SAFETY],
     tips: [
       "Sleep Duration: Newborns sleep 14-17 hours per day, but in short stretches of 2-4 hours.",
       "Safe Sleep: Always place your baby on their back to sleep, on a firm mattress with a fitted sheet.",
@@ -46,11 +59,7 @@ export const newbornCareData = [
     title: "Diapering and Hygiene",
     imageType: "newborn_diapering",
     content: "Proper diapering and hygiene keep your baby comfortable and healthy:",
-    sources: [
-      "NHM Operational Guidelines: Essential Newborn Care (MoHFW, Govt. of India).",
-      "UNICEF: Caring for Your Newborn's Skin (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Hygiene and Newborn Health."
-    ],
+    sources: [NHM_ENC, UNICEF_NEWBORN_SKIN, NHP_HYGIENE_NEWBORN],
     tips: [
       "Frequency: Change diapers every 2-3 hours or immediately when soiled to prevent diaper rash.",
       "Cleaning: Use warm water and cotton balls or soft wipes. For girls, always wipe front to back.",
@@ -67,11 +76,7 @@ export const newbornCareData = [
     title: "Understanding Newborn Crying",
     imageType: "newborn_crying",
     content: "Crying is your baby's primary way of communicating. Learning to interpret and respond to cries is an important skill:",
-    sources: [
-      "NHM Training Module for ASHA: Newborn Care (MoHFW, Govt. of India).",
-      "UNICEF: The First Three Months - Understanding Cues (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Common Problems in Newborns."
-    ],
+    sources: [NHM_ASHA_NEWBORN, UNICEF_FIRST_THREE_MONTHS, NHP_COMMON_NEWBORN_PROBLEMS],
     tips: [
       "Common Reasons: Hunger, dirty diaper, tiredness, overstimulation, need for comfort, or being too hot/cold.",
       "Hunger Cues: Look for early signs like rooting, sucking motions, or bringing hands to mouth before crying starts.",
@@ -88,11 +93,7 @@ export const newbornCareData = [
     title: "Newborn Health and Development",
     imageType: "newborn_health",
     content: "Monitoring your newborn's health and development helps ensure they're growing properly:",
-    sources: [
-      "NHM Mother and Child Protection (MCP) Card (MoHFW, Govt. of India).",
-      "UNICEF: Early Childhood Development Milestones (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Child Health and Immunization Schedule."
-    ],
+    sources: [NHM_MCP_CARD, UNICEF_ECD_MILESTONES, NHP_IMMUNIZATION],
     tips: [
       "Well-Baby Visits: Schedule regular checkups with your pediatrician - typically at 1 week, 1 month, 2 months, and 4 months.",
       "Weight Gain: Expect your baby to lose 5-10% of birth weight in the first week, then gain it back by 2 weeks.",
@@ -109,11 +110,7 @@ export const newbornCareData = [
     title: "Bonding and Soothing Techniques",
     imageType: "newborn_bonding",
     content: "Building a strong bond with your newborn and learning soothing techniques creates a foundation for healthy development:",
-    sources: [
-      "NHM Kangaroo Mother Care (KMC) and Optimal Feeding Guidelines (MoHFW, Govt. of India).",
-      "UNICEF India: The Power of Skin-to-Skin Contact (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Essential Newborn Care (ENC)."
-    ],
+    sources: [NHM_KMC, UNICEF_SKIN_TO_SKIN, NHP_ENC],
     tips: [
       "Skin-to-Skin Contact: Hold your baby against your bare chest - this promotes bonding and regulates baby's temperature and heart rate.",
       "Talk and Sing: Your voice is comforting to your baby. Talk, sing, or read to them throughout the day.",
@@ -126,4 +123,3 @@ export const newbornCareData = [
     importantNote: "Bonding is a process that happens over time. Don't worry if you don't feel an instant connection - this is normal and the bond will develop with time and care."
   }
 ];
-

@@ -5,6 +5,20 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useTranslation } from '../contexts/TranslationContext';
 import ContentIllustration from './components/ContentIllustration';
 import SourcesSection from './components/SourcesSection';
+import {
+  MOHFW_MCTS,
+  MOHFW_MY_SAFE_MOTHERHOOD,
+  NHM_MCP_CARD,
+  NHM_OPERATIONAL_MATERNAL_HEALTH,
+  NHP_ANTENATAL_EARLY,
+  NHP_COMMON_CHANGES_PREGNANCY,
+  NHP_FINAL_STAGES_LABOR,
+  NHP_MATERNAL_MILESTONES,
+  UNICEF_INTERACTIVE_PREGNANCY,
+  UNICEF_PARENTING_FETAL_MATERNAL,
+  UNICEF_PARENTING_FIRST_TRIMESTER,
+  UNICEF_PARENTING_PREPARING_BIRTH,
+} from './data/_learnSourceCitations';
 
 export default function PregnancyBasicsDetailScreen() {
   const navigation = useNavigation();
@@ -24,26 +38,31 @@ export default function PregnancyBasicsDetailScreen() {
     const w = Number(week);
     if (!Number.isFinite(w)) return [];
 
+    const fetalMilestone = [MOHFW_MCTS, UNICEF_INTERACTIVE_PREGNANCY, NHP_COMMON_CHANGES_PREGNANCY];
+
     if (w >= 1 && w <= 12) {
       return [
-        "NHM Mother and Child Protection (MCP) Card (MoHFW, Govt. of India).",
-        "UNICEF Parenting: Pregnancy Week by Week - First Trimester (UNICEF Parenting).",
-        "National Health Portal (NHP) India: Antenatal Care - Early Pregnancy."
+        NHM_MCP_CARD,
+        UNICEF_PARENTING_FIRST_TRIMESTER,
+        NHP_ANTENATAL_EARLY,
+        ...fetalMilestone,
       ];
     }
 
     if (w >= 13 && w <= 26) {
       return [
-        "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India).",
-        "UNICEF Parenting: Fetal Development and Maternal Changes (UNICEF Parenting).",
-        "National Health Portal (NHP) India: Maternal Health and Milestones."
+        MOHFW_MY_SAFE_MOTHERHOOD,
+        UNICEF_PARENTING_FETAL_MATERNAL,
+        NHP_MATERNAL_MILESTONES,
+        ...fetalMilestone,
       ];
     }
 
     return [
-      "NHM Operational Guidelines: Maternal Health (MoHFW, Govt. of India).",
-      "UNICEF Parenting: Preparing for Birth (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Final Stages of Pregnancy and Labor Signs."
+      NHM_OPERATIONAL_MATERNAL_HEALTH,
+      UNICEF_PARENTING_PREPARING_BIRTH,
+      NHP_FINAL_STAGES_LABOR,
+      ...fetalMilestone,
     ];
   };
 

@@ -12,6 +12,26 @@ import {
 } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
 import SourcesSection from './components/SourcesSection';
+import {
+  ANEMIA_MUKT_BHARAT,
+  EAT_RIGHT_HEALTHY_SNACKING,
+  NHM_MH_TRAINING_GUIDE,
+  NHM_OPERATIONAL_PROMOTION_MHM,
+  NHM_READING_MHS,
+  NHP_HEALTHY_LIVING_DIET,
+  NHP_MENSTRUAL_HYGIENE_PRACTICES,
+  POSHAN_ADOLESCENT_NUTRITION_PROTOCOLS,
+  UNICEF_HEALTHY_EATING_CUES,
+  UNICEF_INDIA_ADOLESCENT_NUTRITION,
+  UNICEF_INDIA_MHM_GUIDELINES,
+  UNICEF_MHH_TRAINING,
+  UNICEF_MYTHS_AND_FACTS_PERIODS,
+  UNICEF_NUTRITION_ADOLESCENT_GIRLS,
+  UNICEF_NUTRITION_SUPPLEMENTS_ADOLESCENTS,
+  UNICEF_PREVENTING_ANEMIA,
+  UNICEF_WASH_MHM,
+  WIFS_PROGRAMME,
+} from './data/_learnSourceCitations';
 
 const { height } = Dimensions.get("window");
 
@@ -22,46 +42,16 @@ export default function HealthDietCareScreen() {
   const [selectedTopic, setSelectedTopic] = useState(null);
 
   const sourcesByTopicId = {
-    1: [
-      "NHM Reading Material: Menstrual Hygiene Scheme (MoHFW, Govt. of India).",
-      "UNICEF India: Nutrition for Adolescent Girls."
-    ],
-    2: [
-      "Anemia Mukt Bharat: Nutritional Guidelines (MoHFW, Govt. of India).",
-      "UNICEF: Preventing Anemia in Adolescent Girls (UNICEF/UNICEF India)."
-    ],
-    3: [
-      "National Health Portal (NHP) India: Healthy Living and Diet.",
-      "UNICEF: Healthy Eating Cues during Menstruation (UNICEF/UNICEF India)."
-    ],
-    4: [
-      "NHM Menstrual Hygiene Training Guide (MoHFW, Govt. of India).",
-      "UNICEF: WASH and Menstrual Hygiene Management (UNICEF/UNICEF India)."
-    ],
-    5: [
-      "National Health Portal (NHP) India: Menstrual Hygiene Practices.",
-      "UNICEF: Myths and Facts About Periods (UNICEF/UNICEF India)."
-    ],
-    6: [
-      "POSHAN Abhiyaan: Adolescent Nutrition Protocols (Ministry of Women and Child Development, Govt. of India).",
-      "UNICEF India: Menstrual Hygiene Management (MHM) Guidelines."
-    ],
-    7: [
-      "WIFS (Weekly Iron and Folic Acid Supplementation) Programme (MoHFW, Govt. of India).",
-      "UNICEF: Nutrition Supplements for Adolescents (UNICEF/UNICEF India)."
-    ],
-    8: [
-      "NHM Operational Guidelines: Promotion of Menstrual Hygiene (MoHFW, Govt. of India).",
-      "UNICEF: Menstrual Health and Hygiene Training (UNICEF/UNICEF India)."
-    ],
-    9: [
-      "Eat Right India: Healthy Snacking Guidelines (FSSAI, Govt. of India).",
-      "UNICEF India: Adolescent Nutrition and Well-being."
-    ],
-    10: [
-      "National Health Portal (NHP) India: Healthy Living and Diet.",
-      "UNICEF: Healthy Eating Cues during Menstruation (UNICEF/UNICEF India)."
-    ],
+    1: [NHM_READING_MHS, UNICEF_NUTRITION_ADOLESCENT_GIRLS],
+    2: [ANEMIA_MUKT_BHARAT, UNICEF_PREVENTING_ANEMIA],
+    3: [NHP_HEALTHY_LIVING_DIET, UNICEF_HEALTHY_EATING_CUES],
+    4: [NHM_MH_TRAINING_GUIDE, UNICEF_WASH_MHM],
+    5: [NHP_MENSTRUAL_HYGIENE_PRACTICES, UNICEF_MYTHS_AND_FACTS_PERIODS],
+    6: [POSHAN_ADOLESCENT_NUTRITION_PROTOCOLS, UNICEF_INDIA_MHM_GUIDELINES],
+    7: [WIFS_PROGRAMME, UNICEF_NUTRITION_SUPPLEMENTS_ADOLESCENTS],
+    8: [NHM_OPERATIONAL_PROMOTION_MHM, UNICEF_MHH_TRAINING],
+    9: [EAT_RIGHT_HEALTHY_SNACKING, UNICEF_INDIA_ADOLESCENT_NUTRITION],
+    10: [NHP_HEALTHY_LIVING_DIET, UNICEF_HEALTHY_EATING_CUES],
   };
 
   const topics = [

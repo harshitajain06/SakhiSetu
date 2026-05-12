@@ -1,14 +1,28 @@
+import {
+  EAT_RIGHT_SAFE_FOOD_MOTHERS,
+  FSSAI_PREGNANT_WOMEN,
+  MOHFW_MY_SAFE_MOTHERHOOD,
+  NHM_ANTENATAL_CARE_OG,
+  NHM_MATERNAL_HEALTH_OG,
+  NHM_MCP_CARD,
+  NHP_COMMON_AILMENTS_DIET,
+  NHP_DIET_PREGNANCY,
+  NHP_MONITORING_WEIGHT,
+  POSHAN_JAN_ANDOLAN,
+  UNICEF_BALANCED_MEALS_EXPECTING,
+  UNICEF_FOODS_AVOID_PREGNANT,
+  UNICEF_MORNING_SICKNESS,
+  UNICEF_WEIGHT_GAIN_ROADMAP,
+  UNICEF_WHAT_TO_EAT_PREGNANT,
+} from './_learnSourceCitations';
+
 export const nutritionDietData = [
   {
     id: 1,
     title: "Essential Nutrients During Pregnancy",
     imageType: "essential_nutrients",
     content: "During pregnancy, your body needs additional nutrients to support your baby's growth and development. Here are the key nutrients you should focus on:",
-    sources: [
-      "NHM Mother and Child Protection (MCP) Card (MoHFW, Govt. of India).",
-      "UNICEF: What to Eat When Pregnant (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Diet and Nutrition During Pregnancy."
-    ],
+    sources: [NHM_MCP_CARD, UNICEF_WHAT_TO_EAT_PREGNANT, NHP_DIET_PREGNANCY],
     tips: [
       "Folic Acid (400-800 mcg daily): Prevents neural tube defects. Found in leafy greens, citrus fruits, and fortified cereals.",
       "Iron (27 mg daily): Prevents anemia and supports baby's growth. Found in lean meats, beans, spinach, and iron-fortified cereals.",
@@ -25,11 +39,7 @@ export const nutritionDietData = [
     title: "Foods to Include in Your Diet",
     imageType: "healthy_foods",
     content: "A well-balanced pregnancy diet includes a variety of nutrient-rich foods from all food groups:",
-    sources: [
-      "NHM Mother and Child Protection (MCP) Card (MoHFW, Govt. of India).",
-      "UNICEF: What to Eat When Pregnant (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Diet and Nutrition During Pregnancy."
-    ],
+    sources: [NHM_MCP_CARD, UNICEF_WHAT_TO_EAT_PREGNANT, NHP_DIET_PREGNANCY],
     tips: [
       "Fruits and Vegetables: Aim for 5-9 servings daily. Choose colorful options like berries, oranges, spinach, and sweet potatoes.",
       "Whole Grains: Include whole wheat bread, brown rice, quinoa, and oats for fiber and B vitamins.",
@@ -46,11 +56,7 @@ export const nutritionDietData = [
     title: "Foods to Avoid During Pregnancy",
     imageType: "foods_to_avoid",
     content: "Some foods can pose risks to your baby's health during pregnancy. Here's what to avoid:",
-    sources: [
-      "MoHFW My Safe Motherhood Booklet (MoHFW, Govt. of India).",
-      "UNICEF: Foods to Avoid While Pregnant (UNICEF Parenting).",
-      "FSSAI: Food Safety for Pregnant Women (FSSAI, Govt. of India)."
-    ],
+    sources: [MOHFW_MY_SAFE_MOTHERHOOD, UNICEF_FOODS_AVOID_PREGNANT, FSSAI_PREGNANT_WOMEN],
     tips: [
       "Raw or Undercooked Meat: Risk of toxoplasmosis and other infections. Cook all meats thoroughly.",
       "Raw Fish and Seafood: Avoid sushi, raw oysters, and other raw seafood. High-mercury fish like shark, swordfish, and king mackerel should be avoided.",
@@ -67,11 +73,7 @@ export const nutritionDietData = [
     title: "Managing Morning Sickness and Nausea",
     imageType: "morning_sickness",
     content: "Morning sickness affects many pregnant women, especially in the first trimester. Here are strategies to manage it:",
-    sources: [
-      "NHM Operational Guidelines: Antenatal Care (MoHFW, Govt. of India).",
-      "UNICEF: Coping with Morning Sickness (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Common Ailments and Diet in Pregnancy."
-    ],
+    sources: [NHM_ANTENATAL_CARE_OG, UNICEF_MORNING_SICKNESS, NHP_COMMON_AILMENTS_DIET],
     tips: [
       "Eat small, frequent meals throughout the day instead of large meals.",
       "Keep crackers or dry toast by your bedside and eat before getting up.",
@@ -88,11 +90,7 @@ export const nutritionDietData = [
     title: "Healthy Weight Gain During Pregnancy",
     imageType: "weight_gain",
     content: "Gaining weight during pregnancy is normal and necessary, but it should be gradual and healthy:",
-    sources: [
-      "NHM Maternal Health Operational Guidelines (MoHFW, Govt. of India).",
-      "UNICEF Parenting: Healthy Weight Gain Roadmap (UNICEF Parenting).",
-      "National Health Portal (NHP) India: Monitoring Weight During Pregnancy."
-    ],
+    sources: [NHM_MATERNAL_HEALTH_OG, UNICEF_WEIGHT_GAIN_ROADMAP, NHP_MONITORING_WEIGHT],
     tips: [
       "First Trimester: Gain 1-4 pounds total (or maintain weight if experiencing morning sickness).",
       "Second and Third Trimesters: Gain about 1 pound per week (or 0.5-1 pound per week if overweight before pregnancy).",
@@ -111,11 +109,7 @@ export const nutritionDietData = [
     title: "Meal Planning and Preparation Tips",
     imageType: "meal_planning",
     content: "Planning and preparing healthy meals during pregnancy can help you maintain good nutrition even when you're tired:",
-    sources: [
-      "POSHAN Abhiyaan: Jan Andolan Guidelines (Ministry of Women and Child Development, Govt. of India).",
-      "UNICEF India: Balanced Meals for Expecting Mothers.",
-      "Eat Right India: Safe Food Handling for Mothers (FSSAI, Govt. of India)."
-    ],
+    sources: [POSHAN_JAN_ANDOLAN, UNICEF_BALANCED_MEALS_EXPECTING, EAT_RIGHT_SAFE_FOOD_MOTHERS],
     tips: [
       "Plan meals for the week ahead and create a shopping list to ensure you have healthy options available.",
       "Prep ingredients in advance - wash and cut vegetables, cook grains, and prepare proteins ahead of time.",
@@ -128,4 +122,3 @@ export const nutritionDietData = [
     importantNote: "Remember, you don't need to eat perfectly every day. Focus on overall patterns of healthy eating rather than perfection."
   }
 ];
-
