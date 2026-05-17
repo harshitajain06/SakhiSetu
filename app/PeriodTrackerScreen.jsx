@@ -1489,12 +1489,16 @@ export default function PeriodTrackerScreen() {
 
             <View style={styles.editModalButtons}>
               <TouchableOpacity 
-                style={[styles.deleteButton, saving && styles.disabledButton]}
+                style={[styles.editDeleteButton, saving && styles.disabledButton]}
                 onPress={showDeleteConfirmation}
                 disabled={saving}
+                accessibilityRole="button"
+                accessibilityLabel={getTranslation('periodTracker.deletePeriod', 'Delete Period')}
               >
                 <Ionicons name="trash-outline" size={20} color="#fff" />
-                <Text style={styles.deleteButtonText}>{getTranslation('periodTracker.delete', 'Delete')}</Text>
+                <Text style={styles.deleteButtonText}>
+                  {getTranslation('periodTracker.deletePeriod', 'Delete Period')}
+                </Text>
               </TouchableOpacity>
               <View style={styles.editModalButtonsRow}>
                 <TouchableOpacity 
@@ -2466,10 +2470,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
   },
-  deleteButton: {
-    flex: 1,
+  editDeleteButton: {
+    width: '100%',
     paddingVertical: 12,
-    marginRight: 8,
     borderRadius: 8,
     backgroundColor: '#F44336',
     alignItems: 'center',

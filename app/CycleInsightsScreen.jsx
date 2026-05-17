@@ -7,7 +7,8 @@ import {
   orderBy,
   query
 } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from '../contexts/TranslationContext';
 import { auth, db } from '../config/firebase';
@@ -284,7 +285,9 @@ export default function CycleInsightsScreen() {
     };
   };
 
-  // Reload data function
+  const isFirstFocus = useRef(true);
+
+  // Reload data function (manual refresh button)
   const reloadData = async () => {
     try {
       setRefreshing(true);
@@ -300,25 +303,47 @@ export default function CycleInsightsScreen() {
     }
   };
 
-  // Load data on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchMenstrualData(),
-        fetchPeriodHistory(),
-        fetchSymptoms()
-      ]);
-      setLoading(false);
-    };
-    
-    loadData();
-  }, []);
+  // Refresh whenever the Insights tab gains focus (e.g. after logging on Tracker)
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
 
-  // Calculate insights when period history changes
+      const loadData = async () => {
+        if (isFirstFocus.current) {
+          setLoading(true);
+        } else {
+          setRefreshing(true);
+        }
+
+        try {
+          await Promise.all([
+            fetchMenstrualData(),
+            fetchPeriodHistory(),
+            fetchSymptoms()
+          ]);
+        } catch (error) {
+          console.error('Error loading insights data:', error);
+        } finally {
+          if (!cancelled) {
+            setLoading(false);
+            setRefreshing(false);
+            isFirstFocus.current = false;
+          }
+        }
+      };
+
+      loadData();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [])
+  );
+
+  // Calculate insights when period history or menstrual settings change
   useEffect(() => {
     calculateInsights();
-  }, [periodHistory]);
+  }, [periodHistory, menstrualData]);
 
   const predictions = calculatePredictions();
   

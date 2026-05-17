@@ -1021,6 +1021,15 @@ export default {
     vomitNausea: 'उल्टी/मतली',
     digestiveIssues: 'पाचन समस्याएं',
     moodSwings: 'मूड स्विंग',
+    delete: 'हटाएँ',
+    update: 'अपडेट करें',
+    editPeriod: 'पीरियड संपादित करें',
+    deletePeriod: 'पीरियड हटाएँ',
+    confirmDelete: 'क्या आप वाकई इस पीरियड को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।',
+    periodDeleted: 'पीरियड सफलतापूर्वक हटाया गया',
+    errorDeletePeriod: 'पीरियड हटाने में विफल। कृपया पुनः प्रयास करें।',
+    periodUpdated: 'पीरियड सफलतापूर्वक अपडेट किया गया',
+    errorUpdatePeriod: 'पीरियड अपडेट करने में विफल। कृपया पुनः प्रयास करें।',
   },
 
   // Cycle Insights Screen
