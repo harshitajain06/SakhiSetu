@@ -11,7 +11,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { app } from '../config/firebase';
 import { TranslationProvider } from '../contexts/TranslationContext';
 import MainLayout from './MainLayout';
-import { ensureFcmPermission, registerFcmListeners, syncFcmTokenToFirestore } from './utils/fcm';
+import { ensureFcmPermission, registerFcmListeners, syncFcmTokenToFirestore } from '../lib/fcm';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

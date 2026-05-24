@@ -28,7 +28,7 @@ import {
 } from 'react-native';
 import { auth, db, functions } from '../config/firebase';
 import { useTranslation } from '../contexts/TranslationContext';
-import { syncFcmTokenToFirestore } from './utils/fcm';
+import { syncFcmTokenToFirestore } from '../lib/fcm';
 import {
   dueDateStringFromDob,
   vaccineDocId,

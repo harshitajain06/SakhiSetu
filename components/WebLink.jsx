@@ -3,21 +3,13 @@ import { Platform, Text, TouchableOpacity } from 'react-native';
 
 export default function WebLink({ href, children, style, onPress }) {
   if (Platform.OS === 'web') {
-    // For web, render as an anchor tag using dangerouslySetInnerHTML
-    // or use a web-specific component
     return (
       <Text
         style={style}
-        onPress={() => {
-          if (onPress) {
-            onPress();
-          } else if (typeof window !== 'undefined') {
-            window.location.href = href;
-          }
-        }}
+        onPress={onPress}
         accessibilityRole="link"
-        // @ts-ignore - href is supported by react-native-web
-        href={href}
+        // Only use href when there is no custom handler (avoids full-page reload).
+        {...(!onPress && href ? { href } : {})}
       >
         {children}
       </Text>

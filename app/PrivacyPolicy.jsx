@@ -2,15 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import WebStyle from '../components/WebStyle';
+import { goBackOrLanding } from '../lib/navigationBack';
 
 export default function PrivacyPolicy() {
   const navigation = useNavigation();
   const isWeb = Platform.OS === 'web';
 
+  const handleBack = () => goBackOrLanding(navigation);
+
   return (
     <View style={[styles.container, isWeb && styles.containerWeb]}>
-      {isWeb && (
-        <style>{`
+      <WebStyle
+        css={`
           .privacy-scroll-container > div {
             scrollbar-width: thin;
             scrollbar-color: #888 #f1f1f1;
@@ -29,11 +33,11 @@ export default function PrivacyPolicy() {
           .privacy-scroll-container > div::-webkit-scrollbar-thumb:hover {
             background: #555;
           }
-        `}</style>
-      )}
+        `}
+      />
       <View style={[styles.header, isWeb && styles.headerWeb]}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={handleBack}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={isWeb ? 24 : 28} color="#333" />

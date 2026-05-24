@@ -14,6 +14,7 @@ import {
   View
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+import WebStyle from '../../components/WebStyle';
 import { auth, GOOGLE_OAUTH_CLIENT_ID } from '../../config/firebase';
 import { useTranslation } from '../../contexts/TranslationContext';
 
@@ -503,17 +504,8 @@ export default function AuthPage() {
     }
   };
 
-  return (
-    <View style={[
-      styles.pageContainer, 
-      isDarkMode && { backgroundColor: '#121212' },
-      isWeb && styles.pageContainerWeb,
-      isWeb && {
-        alignItems: 'center',
-      }
-    ]}>
-      {isWeb && (
-        <style>{`
+  const authScrollCss = isWeb
+    ? `
           .auth-scroll-container > div {
             scrollbar-width: thin;
             scrollbar-color: ${isDarkMode ? '#555 #1e1e1e' : '#888 #f1f1f1'};
@@ -532,8 +524,20 @@ export default function AuthPage() {
           .auth-scroll-container > div::-webkit-scrollbar-thumb:hover {
             background: ${isDarkMode ? '#666' : '#555'};
           }
-        `}</style>
-      )}
+        `
+    : '';
+
+  return (
+    <>
+      <WebStyle css={authScrollCss} />
+      <View style={[
+        styles.pageContainer, 
+        isDarkMode && { backgroundColor: '#121212' },
+        isWeb && styles.pageContainerWeb,
+        isWeb && {
+          alignItems: 'center',
+        }
+      ]}>
       <View style={isWeb && styles.scrollViewWrapper} className={isWeb ? 'auth-scroll-container' : undefined}>
         <ScrollView
           contentContainerStyle={[
@@ -955,7 +959,8 @@ export default function AuthPage() {
         </ScrollView>
       </View>
       <Toast />
-    </View>
+      </View>
+    </>
   );
 }
 

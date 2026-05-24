@@ -12,6 +12,7 @@ import {
     View,
 } from "react-native";
 import WebLink from "../components/WebLink";
+import WebStyle from "../components/WebStyle";
 import { useTranslation } from "../contexts/TranslationContext";
 
 export default function LandingPage() {
@@ -42,21 +43,11 @@ export default function LandingPage() {
   };
 
   const handlePrivacyPolicy = () => {
-    if (isWeb) {
-      // On web, use direct URL for Google verification
-      window.location.href = "/PrivacyPolicy";
-    } else {
-      navigation.navigate("PrivacyPolicy");
-    }
+    navigation.navigate("PrivacyPolicy");
   };
 
   const handleTermsOfService = () => {
-    if (isWeb) {
-      // On web, use direct URL for Google verification
-      window.location.href = "/TermsOfService";
-    } else {
-      navigation.navigate("TermsOfService");
-    }
+    navigation.navigate("TermsOfService");
   };
 
   const [buttonHover, setButtonHover] = useState(false);
@@ -64,64 +55,49 @@ export default function LandingPage() {
   const [termsHover, setTermsHover] = useState(false);
   const [featureHovers, setFeatureHovers] = useState({});
 
-  const ContentWrapper = isWeb ? View : ScrollView;
-  const contentWrapperProps = isWeb
-    ? {
-        style: [styles.contentContainer, styles.contentContainerWeb],
-        className: isDesktop ? "feature-grid" : undefined,
-      }
-    : {
-        style: styles.scrollView,
-        contentContainerStyle: [
-          styles.contentContainer,
-          styles.contentContainerNative,
-        ],
-        showsVerticalScrollIndicator: true,
-        bounces: true,
-      };
-
-  return (
-    <View style={[styles.container, isWeb && styles.containerWeb]}>
-      {isWeb && (
-        <style>{`
-          * {
-            box-sizing: border-box;
-          }
+  const landingWebCss = isWeb
+    ? `
+          * { box-sizing: border-box; }
           html, body {
             margin: 0;
             padding: 0;
-            height: 100%;
+            min-height: 100%;
             width: 100%;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
           }
-          #root {
-            height: 100%;
-            width: 100%;
-          }
-          /* Ensure privacy policy links are visible and accessible */
+          #root { min-height: 100%; width: 100%; }
           [href*="PrivacyPolicy"], [href*="TermsOfService"] {
             color: #2196f3 !important;
             text-decoration: underline !important;
             cursor: pointer !important;
           }
-          @media (max-width: 768px) {
-            .feature-grid {
-              flex-direction: column !important;
-            }
-          }
-          @media (min-width: 1024px) {
+          @media (min-width: 768px) {
             .feature-grid {
               display: grid;
               grid-template-columns: repeat(2, 1fr);
-              gap: 12px;
+              gap: 8px;
             }
           }
-        `}</style>
-      )}
-      <ContentWrapper {...contentWrapperProps}>
+        `
+    : '';
+
+  return (
+    <>
+      <WebStyle css={landingWebCss} />
+      <View style={[styles.container, isWeb && styles.containerWeb]}>
+      <ScrollView
+        style={[styles.scrollView, isWeb && styles.scrollViewWeb]}
+        contentContainerStyle={[
+          styles.contentContainer,
+          isWeb ? styles.contentContainerWeb : styles.contentContainerNative,
+        ]}
+        showsVerticalScrollIndicator={isWeb}
+        bounces={!isWeb}
+      >
         {/* Hero Section */}
         <View style={[styles.heroSection, isWeb && styles.heroSectionWeb]}>
           <View style={styles.logoContainer}>
@@ -137,7 +113,10 @@ export default function LandingPage() {
           <Text style={[styles.tagline, isWeb && styles.taglineWeb]}>
             Your Maternal Health Companion
           </Text>
-          <Text style={[styles.description, isWeb && styles.descriptionWeb]}>
+          <Text
+            style={[styles.description, isWeb && styles.descriptionWeb]}
+            numberOfLines={isWeb ? 2 : undefined}
+          >
             Comprehensive support for pregnancy, postpartum, and newborn care.
             Track your cycle, understand symptoms, and access wellness resources
             for every stage.
@@ -158,7 +137,7 @@ export default function LandingPage() {
               isDesktop && styles.featuresGridDesktop,
               isTablet && styles.featuresGridTablet,
             ]}
-            className={isWeb && isDesktop ? "feature-grid" : undefined}
+            className={isWeb && isTablet ? "feature-grid" : undefined}
           >
             <View
               style={[
@@ -337,8 +316,9 @@ export default function LandingPage() {
             © 2026 SakhiSetu. All rights reserved.
           </Text>
         </View>
-      </ContentWrapper>
-    </View>
+      </ScrollView>
+      </View>
+    </>
   );
 }
 
@@ -351,25 +331,27 @@ const styles = StyleSheet.create({
   },
   containerWeb: {
     width: "100%",
-    height: "100vh",
-    overflow: "hidden",
-    position: "relative",
+    flex: 1,
+    minHeight: "100vh",
   },
   scrollView: {
     flex: 1,
   },
-  contentContainer: {
+  scrollViewWeb: {
+    width: "100%",
     flex: 1,
-    paddingBottom: isWeb ? 10 : 30,
+  },
+  contentContainer: {
+    flexGrow: 1,
+    paddingBottom: isWeb ? 16 : 30,
   },
   contentContainerWeb: {
-    height: "100vh",
     width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    paddingVertical: isWeb ? 16 : 30,
-    overflow: "hidden",
+    maxWidth: 720,
+    alignSelf: "center",
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 20,
   },
   contentContainerNative: {
     flexGrow: 1,
@@ -378,67 +360,62 @@ const styles = StyleSheet.create({
   // Mobile-first: keep vertical spacing tight so everything fits
   heroSection: {
     alignItems: "center",
-    paddingTop: isWeb ? 20 : 16,
-    paddingBottom: isWeb ? 12 : 8,
-    paddingHorizontal: isWeb ? 20 : 12,
+    paddingTop: isWeb ? 8 : 16,
+    paddingBottom: isWeb ? 6 : 8,
+    paddingHorizontal: isWeb ? 12 : 12,
   },
   heroSectionWeb: {
-    maxWidth: 1200,
-    alignSelf: "center",
     width: "100%",
-    paddingTop: 20,
-    paddingBottom: 12,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
   logoContainer: {
-    marginTop: isWeb ? 8 : 14,
-    marginBottom: isWeb ? 8 : 6,
+    marginTop: isWeb ? 0 : 14,
+    marginBottom: isWeb ? 4 : 6,
   },
   logo: {
-    width: isWeb ? 80 : 80,
-    height: isWeb ? 80 : 80,
+    width: isWeb ? 56 : 80,
+    height: isWeb ? 56 : 80,
   },
   appTitle: {
-    fontSize: isWeb ? 28 : 24,
+    fontSize: isWeb ? 22 : 24,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: isWeb ? 4 : 12,
+    marginBottom: isWeb ? 2 : 12,
     textAlign: "center",
   },
   appTitleWeb: {
-    fontSize: 28,
+    fontSize: 22,
   },
   tagline: {
-    fontSize: isWeb ? 14 : 13,
+    fontSize: isWeb ? 13 : 13,
     color: "#666",
-    marginBottom: isWeb ? 6 : 20,
+    marginBottom: isWeb ? 4 : 20,
     textAlign: "center",
     fontWeight: "500",
   },
   taglineWeb: {
-    fontSize: 14,
+    fontSize: 13,
   },
   description: {
-    fontSize: isWeb ? 12 : 12,
+    fontSize: isWeb ? 11 : 12,
     color: "#666",
     textAlign: "center",
-    lineHeight: isWeb ? 16 : 24,
+    lineHeight: isWeb ? 15 : 24,
     maxWidth: 600,
   },
   descriptionWeb: {
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11,
+    lineHeight: 15,
+    maxWidth: 520,
   },
   featuresSection: {
-    paddingHorizontal: isWeb ? 20 : 12,
-    paddingVertical: isWeb ? 12 : 8,
+    paddingHorizontal: isWeb ? 0 : 12,
+    paddingVertical: isWeb ? 6 : 8,
   },
   featuresSectionWeb: {
-    maxWidth: 1200,
-    alignSelf: "center",
     width: "100%",
-    paddingVertical: 8,
-    flex: 1,
-    minHeight: 0,
+    paddingVertical: 4,
   },
   featuresGrid: {
     width: "100%",
@@ -450,20 +427,20 @@ const styles = StyleSheet.create({
     // Can add tablet-specific styles if needed
   },
   sectionTitle: {
-    fontSize: isWeb ? 18 : 18,
+    fontSize: isWeb ? 15 : 18,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: isWeb ? 10 : 30,
+    marginBottom: isWeb ? 6 : 30,
     textAlign: "center",
   },
   sectionTitleWeb: {
-    fontSize: 18,
+    fontSize: 15,
   },
   featureCard: {
     backgroundColor: "#f8f9fa",
     borderRadius: isWeb ? 8 : 10,
-    padding: isWeb ? 12 : 10,
-    marginBottom: isWeb ? 8 : 6,
+    padding: isWeb ? 8 : 10,
+    marginBottom: isWeb ? 6 : 6,
     flexDirection: "row",
     alignItems: "flex-start",
   },
@@ -482,13 +459,13 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   featureIcon: {
-    width: isWeb ? 36 : 36,
-    height: isWeb ? 36 : 36,
-    borderRadius: isWeb ? 18 : 18,
+    width: isWeb ? 32 : 36,
+    height: isWeb ? 32 : 36,
+    borderRadius: isWeb ? 16 : 18,
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: isWeb ? 10 : 20,
+    marginRight: isWeb ? 8 : 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -496,14 +473,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   featureTitle: {
-    fontSize: isWeb ? 14 : 14,
+    fontSize: isWeb ? 13 : 14,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: isWeb ? 4 : 8,
+    marginBottom: isWeb ? 0 : 8,
     flex: 1,
   },
   featureTitleWeb: {
-    fontSize: 14,
+    fontSize: 13,
   },
   featureDescription: {
     fontSize: isWeb ? 11 : 11,
@@ -516,20 +493,18 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   ctaSection: {
-    paddingHorizontal: isWeb ? 20 : 12,
-    paddingVertical: isWeb ? 12 : 10,
+    paddingHorizontal: isWeb ? 0 : 12,
+    paddingVertical: isWeb ? 8 : 10,
     alignItems: "center",
   },
   ctaSectionWeb: {
-    maxWidth: 600,
-    alignSelf: "center",
     width: "100%",
-    paddingVertical: 12,
+    paddingVertical: 6,
   },
   getStartedButton: {
     backgroundColor: "#e91e63",
-    paddingVertical: isWeb ? 10 : 10,
-    paddingHorizontal: isWeb ? 24 : 22,
+    paddingVertical: isWeb ? 8 : 10,
+    paddingHorizontal: isWeb ? 20 : 22,
     borderRadius: isWeb ? 8 : 10,
     flexDirection: "row",
     alignItems: "center",
@@ -559,16 +534,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   footer: {
-    paddingHorizontal: isWeb ? 20 : 12,
-    paddingVertical: isWeb ? 8 : 8,
+    paddingHorizontal: isWeb ? 0 : 12,
+    paddingVertical: isWeb ? 10 : 8,
     alignItems: "center",
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
-    marginTop: isWeb ? 8 : 8,
+    marginTop: isWeb ? 4 : 8,
   },
   footerWeb: {
-    maxWidth: 1200,
-    alignSelf: "center",
     width: "100%",
   },
   footerLinks: {
